@@ -10,17 +10,13 @@
     "claude": "npx tsx scripts/claude.ts",
     "python": "npx tsx scripts/python.ts",
     "lemontree": "npx tsx scripts/test-lemontree.ts",
-    "db:setup": "npx drizzle-kit generate && npx drizzle-kit push",
-    "db:seed": "npx tsx lib/reviews/seed.ts",
-    "db:clear": "npx tsx lib/reviews/clear.ts"
+    "reviews": "npx tsx scripts/test-reviews.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "crypto": "^1.0.1",
     "dotenv": "^17.3.1",
-    "drizzle-orm": "^0.45.1",
     "next": "16.1.6",
-    "postgres": "^3.4.8",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
@@ -29,7 +25,6 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "drizzle-kit": "^0.31.9",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",

@@ -114,10 +114,7 @@ export interface Review {
   reviewedByUserId: string | null;
 }
 
-export function generateReview(
-  resourceId: string,
-  occurrenceId: string | null,
-): Review {
+function generateReview(resourceId: string): Review {
   const outcomeRoll = Math.random();
 
   let attended: boolean;
@@ -154,7 +151,7 @@ export function generateReview(
     createdAt: randomDate(365),
     deletedAt: null,
     resourceId,
-    occurrenceId,
+    occurrenceId: null,
     authorId: `client_${randomUUID().replace(/-/g, "").slice(0, 10)}`,
     attended,
     didNotAttendReason: !attended ? pick(DID_NOT_ATTEND_REASONS) : null,
@@ -175,24 +172,16 @@ export function generateReview(
   };
 }
 
-export function generateReviews(
-  resourceOccurrences: Record<string, string[]>,
-  reviewsPerResource = 50,
+export function getReviewsForResource(
+  resourceId: string,
+  count = 10,
 ): Review[] {
   const reviews: Review[] = [];
-
-  for (const [resourceId, occs] of Object.entries(resourceOccurrences)) {
-    for (let i = 0; i < reviewsPerResource; i++) {
-      const occurrenceId = occs.length > 0 ? pick(occs) : null;
-      reviews.push(generateReview(resourceId, occurrenceId));
-    }
+  for (let i = 0; i < count; i++) {
+    reviews.push(generateReview(resourceId));
   }
-
-  // shuffle so reviews aren't grouped by resource
-  for (let i = reviews.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [reviews[i], reviews[j]] = [reviews[j], reviews[i]];
-  }
-
+  reviews.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
   return reviews;
 }
