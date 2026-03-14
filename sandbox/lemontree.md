@@ -138,41 +138,19 @@ Quality/moderation flags on resources. One row per flag. Join to resources via `
 
 ---
 
+## Relationships
 ## Functions Reference
 
-The following helper functions are pre-loaded in your sandbox environment to facilitate data exploration and analysis.
+The following helper functions are pre-loaded in your sandbox environment. These are intentionally minimal so the agent can write custom analysis code when needed.
 
 ### How To Choose A Function
-Use the smallest function that directly answers the question.
-
-- Use `filter_resources` to get a DataFrame slice you can reuse across multiple steps.
-- Use `filter_reviews` and `summarize_feedback` for questions about experience, wait times, or quality.
-- Use `wait_time_trends` for time series trends.
-- Use `disruption_summary` for cancellations and schedule issues.
-- Use `coverage_by_area` for gaps by city, zip, or region.
-- Use `plot_*` functions when a chart or visual is requested.
-- Use `generate_partner_report` when the user wants a summary report for a region.
-
-If the user request mentions a timeframe, always pass `date_from` and `date_to` when available.
-
----
-
-### `get_resources(**kwargs)`
-Purpose: Quick, lightweight access to a small sample of resources.
-
-Inputs:
-- `zip` (str) Zip code filter. Alias: `zip_code`.
-- `region` (str) Neighborhood name.
-- `text` (str) Name search term.
-- `take` (int) Max rows returned (default: 50).
-- `sort` (str) Column to sort by.
-
-Returns: `pd.DataFrame`
-
-Example:
-```python
-df = get_resources(zip="10001", take=10)
-```
+- Use `filter_resources` to slice the main dataset.
+- Use `filter_occurrences` to slice schedules by time.
+- Use `filter_reviews` for feedback analysis (synthetic in sandbox).
+- Use `query_resources` for grouped counts and aggregates.
+- Use `trend` for time series metrics.
+- Use `gap_analysis` to find underserved areas.
+- Use `generate_pdf_report` only after you have a report dict and optional image paths.
 
 ### `filter_resources(zip=None, region=None, city=None, resource_type=None, status=None, priority_min=None, resource_ids=None)`
 Purpose: Flexible filtering across the full `resources` table.
@@ -204,155 +182,41 @@ Example:
 reviews = filter_reviews(resource_ids=pantries["id"], rating_min=3)
 ```
 
-### `get_reviews(resource_id)`
-Purpose: Generate synthetic feedback for one resource.
-
-Returns: `pd.DataFrame` with columns like `text`, `rating`, `wait_time_minutes`, `attended`.
+### `query_resources(filters=None, group_by=None, metrics=None)`
+Purpose: General-purpose aggregation for the `resources` DataFrame.
 
 Example:
 ```python
-reviews = get_reviews("resource_id_here")
+query_resources(
+  filters={"region": "Bronx"},
+  group_by=["resource_type_id"],
+  metrics={"count": ("id", "count"), "avg_wait": ("wait_time_minutes_average", "mean")}
+)
 ```
 
-### `get_wait_time_trends(resource_id)`
-Purpose: Weekly average wait times for a single resource.
-
-Returns: `pd.DataFrame` with columns `week`, `avg_wait_minutes`.
+### `trend(metric, group_by_time="week", filters=None, per=None, source="reviews")`
+Purpose: Time-series trend for review-based metrics.
 
 Example:
 ```python
-trend = get_wait_time_trends("resource_id_here")
+trend("wait_time_minutes", group_by_time="month", filters={"rating_min": 3}, per="city")
 ```
 
-### `wait_time_trends(resource_ids=None, date_from=None, date_to=None, group_by="week")`
-Purpose: Weekly or monthly wait time trends for multiple resources.
-
-Returns: `pd.DataFrame`
+### `gap_analysis(level="city", min_resources=1, filters=None)`
+Purpose: Identify underserved areas by minimum resource count.
 
 Example:
 ```python
-trend = wait_time_trends(resource_ids=pantries["id"], group_by="month")
+gap_analysis(level="zip", min_resources=1)
 ```
 
-### `get_neighborhood_stats(region)`
-Purpose: Aggregate resource metrics for a neighborhood.
+### `fetch_json(url)`
+Purpose: Fetch JSON from allowlisted domains only.
 
-Returns: `pd.DataFrame` grouped by `resource_type_id`.
-
-### `categorize_feedback(reviews_df)`
-Purpose: Label review text into a small set of categories.
-
-Returns: `pd.DataFrame` with new `category` column.
-
-Example:
-```python
-reviews = categorize_feedback(reviews)
-```
-
-### `summarize_feedback(reviews_df)`
-Purpose: Aggregate ratings, wait times, attendance, and category counts.
+Inputs:
+- `url` must start with `https://platform.foodhelpline.org/`.
 
 Returns: `dict`
-
-Example:
-```python
-summary = summarize_feedback(reviews)
-```
-
-### `extract_key_phrases(reviews_df, top_n=10)`
-Purpose: Extract top keywords from review text.
-
-Returns: `dict` of token counts.
-
-Example:
-```python
-keywords = extract_key_phrases(reviews, top_n=8)
-```
-
-### `sentiment_score(reviews_df)`
-Purpose: Simple lexicon sentiment in range [-1, 1].
-
-Returns: `float | None`
-
-Example:
-```python
-score = sentiment_score(reviews)
-```
-
-### `get_service_disruptions()`
-Purpose: Identify cancelled occurrences.
-
-Returns: `pd.DataFrame` with `resource_id`, `name`, `skipped_at`, `address`, `start_time`.
-
-### `disruption_summary(date_from=None, date_to=None)`
-Purpose: Summary counts of disruptions and top affected resources.
-
-Returns: `dict`
-
-Example:
-```python
-disruptions = disruption_summary(date_from="2025-01-01", date_to="2025-03-31")
-```
-
-### `compute_resource_breakdown(resources_df)`
-Purpose: Group by type and compute average wait time for each type.
-
-Returns: `dict`
-
-### `resource_type_breakdown(zip=None, region=None, city=None, resource_type=None, status=None, priority_min=None)`
-Purpose: Type breakdown on a filtered slice.
-
-Returns: `dict`
-
-Example:
-```python
-breakdown = resource_type_breakdown(region="Bronx")
-```
-
-### `filter_active_high_priority(resources_df, min_priority=0)`
-Purpose: Filter to PUBLISHED resources with priority >= min.
-
-Returns: `list` of dicts with `id`, `name`, `city`, `priority`.
-
-### `get_neighborhood_coverage(resources_df)`
-Purpose: Coverage stats by city for a given resource slice.
-
-Returns: `dict`
-
-### `coverage_by_area(level="city")`
-Purpose: Coverage counts by city, zip, or region.
-
-Returns: `dict`
-
-Example:
-```python
-coverage = coverage_by_area(level="zip")
-```
-
-### `plot_trend(df, x, y, title="Trend")`
-Purpose: Save a line chart to `/home/user/exports`.
-
-Returns: `str` path to image.
-
-### `plot_bar(df, x, y, title="Bar Chart")`
-Purpose: Save a bar chart to `/home/user/exports`.
-
-Returns: `str` path to image.
-
-### `plot_map(resources_df)`
-Purpose: Save a lat/long scatter to `/home/user/exports`.
-
-Returns: `str` path to image.
-
-### `generate_partner_report(region=None, date_from=None, date_to=None)`
-Purpose: Generate a lightweight report dict for partners.
-
-Returns: `dict`
-
-### `export_report(report_dict, format="json")`
-Purpose: Export a report to `/home/user/exports`.
-
-Returns: `str` path to file.
 
 ### `load_public_dataset(path_or_url)`
 Purpose: Load a dataset from a local path or allowlisted URL.
@@ -364,17 +228,17 @@ Purpose: Join Lemontree data with public datasets on a geographic key.
 
 Returns: `pd.DataFrame`
 
-### `fetch_json(url)`
-Purpose: Fetch JSON from allowlisted domains only.
+### `generate_pdf_report(report_dict, image_paths=None, title="Lemontree Report")`
+Purpose: Create a PDF from a report dict and optional chart images.
 
-Inputs:
-- `url` must start with `https://platform.foodhelpline.org/`.
+Required parameters:
+- `report_dict`: a non-empty `dict`
+- `title`: non-empty `str`
 
-Returns: `dict`
+Optional:
+- `image_paths`: list of image file paths (e.g., `/home/user/exports/*.png`)
 
----
-
-## Relationships
+Returns: `str` path to the PDF in `/home/user/exports`.
 
 ```
 resources.id  ──<  descriptions.resource_id

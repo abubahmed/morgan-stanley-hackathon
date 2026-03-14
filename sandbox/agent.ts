@@ -27,6 +27,9 @@ import os
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
 
 ALLOWED_DOMAINS = {"platform.foodhelpline.org"}
 
@@ -63,35 +66,8 @@ occurrences = _load("/home/user/data/occurrences.csv")
 tags = _load("/home/user/data/tags.csv")
 flags = _load("/home/user/data/flags.csv")
 
+`;
 # --- CORE ANALYSIS FUNCTIONS ---
-
-def get_resources(**kwargs):
-    """
-    Fetches food resources by filtering the pre-loaded 'resources' DataFrame.
-    """
-    df = resources.copy()
-
-    zip_value = kwargs.get('zip') or kwargs.get('zip_code')
-    if zip_value:
-        df = df[df['zip_code'] == str(zip_value)]
-        
-    if kwargs.get('region'):
-        region = kwargs['region'].lower()
-        mask = (
-            df['city'].str.lower().str.contains(region, na=False) | 
-            df['address_street1'].str.lower().str.contains(region, na=False)
-        )
-        df = df[mask]
-        
-    if kwargs.get('text'):
-        text = kwargs['text'].lower()
-        df = df[df['name'].str.lower().str.contains(text, na=False)]
-        
-    if kwargs.get('sort') and kwargs['sort'] in df.columns:
-        df = df.sort_values(by=kwargs['sort'])
-
-    take = kwargs.get('take', 50)
-    return df.head(take)
 
 def filter_resources(
     zip=None,
@@ -130,6 +106,24 @@ def filter_resources(
         df = df[df["id"].isin(ids)]
     return df
 
+def filter_occurrences(resource_ids=None, date_from=None, date_to=None, include_cancelled=False):
+    """
+    Filter occurrences by resource_ids and date window.
+    """
+    df = occurrences.copy()
+    if not include_cancelled and "skipped_at" in df.columns:
+        df = df[df["skipped_at"].isna()]
+    if resource_ids is not None:
+        ids = set([str(x) for x in resource_ids])
+        df = df[df["resource_id"].isin(ids)]
+    if "start_time" in df.columns:
+        df["start_time"] = pd.to_datetime(df["start_time"], errors="coerce")
+        if date_from is not None:
+            df = df[df["start_time"] >= pd.to_datetime(date_from)]
+        if date_to is not None:
+            df = df[df["start_time"] <= pd.to_datetime(date_to)]
+    return df
+
 def _seeded_rng(seed: str) -> random.Random:
     digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
     return random.Random(int(digest[:16], 16))
@@ -156,36 +150,24 @@ def _random_date(rng: random.Random, days_back=365):
     return (now - offset).isoformat()
 
 POSITIVE_TEXTS = [
-    "Amazing variety of fresh produce today. The volunteers were incredibly kind and welcoming.",
-    "Really impressed with the selection. Got fresh vegetables, bread, and canned goods. Will definitely return.",
-    "Staff were so helpful and respectful. No judgment, just genuine kindness. Thank you.",
-    "Wonderful experience. They had meat, dairy, and fresh fruit. More than I expected.",
-    "The volunteers remembered me from last time. Such a warm community here.",
-    "Very organized and efficient. Was in and out in 15 minutes with a full bag.",
-    "Fresh bread and vegetables today. Everything was clean and well presented.",
-    "They had halal options available which was so important for my family.",
+    "Amazing variety of fresh produce today.",
+    "Really impressed with the selection.",
+    "Staff were so helpful and respectful.",
+    "Wonderful experience.",
 ]
 
 NEUTRAL_TEXTS = [
     "Decent selection but ran out of bread by the time I got there.",
-    "Wait was longer than usual today, about 45 minutes. Staff were apologetic.",
+    "Wait was longer than usual today.",
     "Got some basics but selection was more limited than previous visits.",
-    "Fine experience overall. Nothing special but nothing bad either.",
-    "They were low on fresh produce but had plenty of canned goods.",
-    "Mixed visit. Long line but staff were friendly once inside.",
-    "Okay selection today. Hoping for more variety next time.",
-    "Limited parking made it difficult but the pantry itself was well run.",
+    "Fine experience overall.",
 ]
 
 NEGATIVE_TEXTS = [
-    "Arrived at 10am and was told they were already out of food. Very disappointing.",
-    "The listing says open until 2pm but they closed at noon. Wasted my trip.",
-    "Waited over an hour only to be told they couldn't help me without an ID I didn't know I needed.",
-    "Hours on the website are completely wrong. Please update them.",
-    "The address listed is different from the actual location. Took me 30 minutes to find.",
-    "Staff were dismissive and made me feel unwelcome. Will not be returning.",
-    "Not enough staff for the number of people waiting. Chaotic and disorganized.",
-    "Food was past its use-by date. Health concern that should be addressed.",
+    "Arrived at 10am and was told they were already out of food.",
+    "The listing says open until 2pm but they closed at noon.",
+    "Waited over an hour only to be told they couldn't help me without an ID.",
+    "Hours on the website are completely wrong.",
 ]
 
 DID_NOT_ATTEND_REASONS = [
@@ -193,26 +175,10 @@ DID_NOT_ATTEND_REASONS = [
     "Arrived too late, they had stopped distributing",
     "Too far to travel without transportation",
     "Ran out of food before I reached the front",
-    "Did not have required ID documentation",
-    "Outside of their service zip code area",
-    "Could not find the location — address was incorrect",
-    "Wait time was too long, had to leave for work",
 ]
 
-def get_reviews(resource_id):
-    """
-    Generates synthetic reviews for a specific resource_id to support analysis demos.
-    """
+def _generate_reviews(resource_id, review_count=10):
     rng = _seeded_rng(resource_id)
-    row = resources[resources["id"] == str(resource_id)]
-    review_count = 10
-    if not row.empty and "review_count" in row.columns:
-        try:
-            review_count = int(pd.to_numeric(row["review_count"].iloc[0], errors="coerce"))
-        except Exception:
-            review_count = 10
-    review_count = max(5, min(review_count, 50))
-
     reviews = []
     for _ in range(review_count):
         outcome_roll = rng.random()
@@ -222,19 +188,16 @@ def get_reviews(resource_id):
             rating = _weighted_pick(rng, [5, 4, 3], [50, 35, 15])
             text = _pick(rng, POSITIVE_TEXTS)
             wait = rng.randint(5, 30)
-            info_accurate = rng.random() > 0.05
         elif outcome_roll < 0.85:
             attended = True
             rating = _weighted_pick(rng, [3, 2], [60, 40])
             text = _pick(rng, NEUTRAL_TEXTS)
             wait = rng.randint(20, 75)
-            info_accurate = rng.random() > 0.2
         else:
             attended = rng.random() > 0.4
             rating = _weighted_pick(rng, [2, 1], [40, 60])
             text = _pick(rng, NEGATIVE_TEXTS)
             wait = rng.randint(0, 90) if attended else None
-            info_accurate = rng.random() > 0.55
 
         reviews.append({
             "id": hashlib.md5(f"{resource_id}-{rng.random()}".encode("utf-8")).hexdigest(),
@@ -245,60 +208,8 @@ def get_reviews(resource_id):
             "rating": rating,
             "text": text if rng.random() > 0.1 else None,
             "wait_time_minutes": wait,
-            "information_accurate": info_accurate,
         })
-
     return pd.DataFrame(reviews)
-
-def get_wait_time_trends(resource_id):
-    """
-    Computes weekly average wait times using synthetic reviews.
-    """
-    df = get_reviews(resource_id)
-    if df.empty or "wait_time_minutes" not in df.columns:
-        return pd.DataFrame(columns=["week", "avg_wait_minutes"])
-    df = df.dropna(subset=["wait_time_minutes"]).copy()
-    if df.empty:
-        return pd.DataFrame(columns=["week", "avg_wait_minutes"])
-    df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce")
-    df = df.dropna(subset=["created_at"])
-    if df.empty:
-        return pd.DataFrame(columns=["week", "avg_wait_minutes"])
-    df["week"] = df["created_at"].dt.to_period("W").apply(lambda p: p.start_time.date())
-    trend = (
-        df.groupby("week")["wait_time_minutes"]
-        .mean()
-        .reset_index()
-        .rename(columns={"wait_time_minutes": "avg_wait_minutes"})
-        .sort_values("week")
-    )
-    return trend
-
-def fetch_json(url):
-    """
-    Fetch JSON from an allowlisted host.
-    """
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
-
-def filter_occurrences(resource_ids=None, date_from=None, date_to=None, include_cancelled=False):
-    """
-    Filter occurrences by resource_ids and date window.
-    """
-    df = occurrences.copy()
-    if not include_cancelled and "skipped_at" in df.columns:
-        df = df[df["skipped_at"].isna()]
-    if resource_ids is not None:
-        ids = set([str(x) for x in resource_ids])
-        df = df[df["resource_id"].isin(ids)]
-    if "start_time" in df.columns:
-        df["start_time"] = pd.to_datetime(df["start_time"], errors="coerce")
-        if date_from is not None:
-            df = df[df["start_time"] >= pd.to_datetime(date_from)]
-        if date_to is not None:
-            df = df[df["start_time"] <= pd.to_datetime(date_to)]
-    return df
 
 def filter_reviews(
     resource_ids=None,
@@ -313,7 +224,7 @@ def filter_reviews(
     """
     if resource_ids is None:
         resource_ids = resources["id"].head(int(max_resources)).tolist()
-    reviews = pd.concat([get_reviews(rid) for rid in resource_ids], ignore_index=True)
+    reviews = pd.concat([_generate_reviews(rid, 15) for rid in resource_ids], ignore_index=True)
     if reviews.empty:
         return reviews
     reviews["created_at"] = pd.to_datetime(reviews["created_at"], errors="coerce")
@@ -327,242 +238,60 @@ def filter_reviews(
         reviews = reviews[pd.to_numeric(reviews["rating"], errors="coerce") >= float(rating_min)]
     return reviews
 
-def categorize_feedback(reviews_df):
+def query_resources(filters=None, group_by=None, metrics=None):
     """
-    Automated NLP categorization of free-text reviews. 
+    General purpose aggregation helper for resources.
     """
-    if reviews_df.empty or 'text' not in reviews_df.columns:
-        return reviews_df
-    
-    categories = {
-        'Service': ['volunteer', 'staff', 'friendly', 'kind', 'rude', 'organized'],
-        'Food Quality': ['fresh', 'produce', 'vegetables', 'meat', 'dairy', 'eggs', 'expired'],
-        'Wait Time': ['wait', 'hour', 'minutes', 'line', 'queue', 'slow'],
-        'Access/Hours': ['closed', 'hours', 'address', 'location', 'zip', 'distance']
-    }
-    
-    def get_category(text):
-        if not isinstance(text, str): return 'Other'
-        text = text.lower()
-        for cat, keywords in categories.items():
-            if any(kw in text for kw in keywords):
-                return cat
-        return 'General'
-    
-    reviews_df['category'] = reviews_df['text'].apply(get_category)
-    return reviews_df
+    df = filter_resources(**filters) if filters else resources.copy()
+    if metrics is None:
+        metrics = {"count": ("id", "count")}
+    if group_by:
+        grouped = df.groupby(group_by)
+        agg_spec = {}
+        for out_name, spec in metrics.items():
+            if isinstance(spec, (list, tuple)) and len(spec) == 2:
+                col, agg = spec
+            else:
+                col, agg = spec, "count"
+            agg_spec[out_name] = pd.NamedAgg(column=col, aggfunc=agg)
+        result = grouped.agg(**agg_spec).reset_index()
+        return result
+    summary = {}
+    for out_name, spec in metrics.items():
+        if isinstance(spec, (list, tuple)) and len(spec) == 2:
+            col, agg = spec
+        else:
+            col, agg = spec, "count"
+        summary[out_name] = getattr(df[col], agg)() if col in df.columns else None
+    return pd.DataFrame([summary])
 
-def summarize_feedback(reviews_df):
+def trend(metric, group_by_time="week", filters=None, per=None, source="reviews"):
     """
-    Summarize structured feedback metrics and category distribution.
+    Universal trend helper. Currently supports review-based metrics.
     """
-    if reviews_df is None or reviews_df.empty:
-        return {
-            "review_count": 0,
-            "avg_rating": None,
-            "avg_wait_minutes": None,
-            "attended_rate": None,
-            "info_inaccurate_rate": None,
-            "category_counts": {},
-        }
-    df = reviews_df.copy()
-    avg_rating = pd.to_numeric(df.get("rating"), errors="coerce").mean()
-    avg_wait = pd.to_numeric(df.get("wait_time_minutes"), errors="coerce").mean()
-    attended_rate = df["attended"].mean() if "attended" in df.columns else None
-    if "information_accurate" in df.columns:
-        info_inaccurate_rate = 1.0 - df["information_accurate"].mean()
-    else:
-        info_inaccurate_rate = None
-    if "category" not in df.columns:
-        df = categorize_feedback(df)
-    category_counts = df["category"].value_counts().to_dict() if "category" in df.columns else {}
-    return {
-        "review_count": int(len(df)),
-        "avg_rating": None if pd.isna(avg_rating) else float(avg_rating),
-        "avg_wait_minutes": None if pd.isna(avg_wait) else float(avg_wait),
-        "attended_rate": None if attended_rate is None else float(attended_rate),
-        "info_inaccurate_rate": None if info_inaccurate_rate is None else float(info_inaccurate_rate),
-        "category_counts": category_counts,
-    }
-
-def extract_key_phrases(reviews_df, top_n=10):
-    """
-    Extract simple key phrases by token frequency.
-    """
-    if reviews_df is None or reviews_df.empty or "text" not in reviews_df.columns:
-        return []
-    stop = {
-        "the","and","or","to","of","a","in","is","was","were","for","on","with","it","they","we","had",
-        "this","that","at","as","be","from","by","an","if","but","not","my","our","their","your","me"
-    }
-    tokens = []
-    for text in reviews_df["text"].dropna().astype(str).tolist():
-        for token in "".join(ch.lower() if ch.isalnum() else " " for ch in text).split():
-            if len(token) > 2 and token not in stop:
-                tokens.append(token)
-    if not tokens:
-        return []
-    counts = pd.Series(tokens).value_counts().head(int(top_n))
-    return counts.to_dict()
-
-def sentiment_score(reviews_df):
-    """
-    Simple lexicon sentiment score in [-1, 1].
-    """
-    if reviews_df is None or reviews_df.empty or "text" not in reviews_df.columns:
-        return None
-    positive = {"amazing","great","good","helpful","kind","friendly","fresh","wonderful","excellent","organized","clean"}
-    negative = {"bad","rude","disappointing","chaotic","dirty","expired","long","slow","closed","wasted","unwelcoming"}
-    scores = []
-    for text in reviews_df["text"].dropna().astype(str).tolist():
-        tokens = set("".join(ch.lower() if ch.isalnum() else " " for ch in text).split())
-        score = len(tokens & positive) - len(tokens & negative)
-        scores.append(score)
-    if not scores:
-        return None
-    max_abs = max(1, max(abs(s) for s in scores))
-    return float(sum(scores) / (len(scores) * max_abs))
-
-def get_neighborhood_stats(region):
-    """
-    Performs geographic gap analysis for a specific neighborhood.
-    """
-    df = get_resources(region=region)
-    if df.empty:
-        return pd.DataFrame()
-    
-    stats = df.groupby('resource_type_id').agg({
-        'id': 'count',
-        'zip_code': 'nunique'
-    }).rename(columns={'id': 'resource_count', 'zip_code': 'unique_zip_codes'})
-    return stats
-
-def get_service_disruptions():
-    """
-    Identifies service disruptions by joining 'shifts' and 'occurrences' to find cancelled events.
-    """
-    if 'occurrences' not in globals() or 'resources' not in globals():
-        return pd.DataFrame()
-        
-    # Get occurrences that have a skipped_at date (cancelled)
-    cancelled = occurrences.dropna(subset=['skipped_at'])
-    
-    # Merge with resources to get the names
-    disruptions = pd.merge(cancelled, resources[['id', 'name']], left_on='resource_id', right_on='id', suffixes=('', '_resource'))
-    return disruptions[['resource_id', 'name', 'skipped_at', 'address', 'start_time']]
-
-def disruption_summary(date_from=None, date_to=None):
-    """
-    Summarize cancelled occurrences within a date range.
-    """
-    df = get_service_disruptions()
-    if df.empty:
-        return {"cancelled_count": 0, "top_resources": {}}
-    df["start_time"] = pd.to_datetime(df["start_time"], errors="coerce")
-    if date_from is not None:
-        df = df[df["start_time"] >= pd.to_datetime(date_from)]
-    if date_to is not None:
-        df = df[df["start_time"] <= pd.to_datetime(date_to)]
-    top_resources = df["name"].value_counts().head(5).to_dict()
-    return {"cancelled_count": int(len(df)), "top_resources": top_resources}
-
-def wait_time_trends(resource_ids=None, date_from=None, date_to=None, group_by="week"):
-    """
-    Compute wait time trends for multiple resources.
-    """
-    reviews = filter_reviews(resource_ids=resource_ids, date_from=date_from, date_to=date_to)
-    if reviews.empty:
-        return pd.DataFrame(columns=[group_by, "avg_wait_minutes"])
-    reviews = reviews.dropna(subset=["wait_time_minutes"]).copy()
+    if source != "reviews":
+        raise ValueError("Only source='reviews' is supported for trend() right now.")
+    reviews = filter_reviews(**(filters or {}))
+    if reviews.empty or metric not in reviews.columns:
+        return pd.DataFrame(columns=[group_by_time, metric])
     reviews["created_at"] = pd.to_datetime(reviews["created_at"], errors="coerce")
-    if group_by == "month":
+    reviews = reviews.dropna(subset=["created_at"])
+    if group_by_time == "month":
         reviews["period"] = reviews["created_at"].dt.to_period("M").apply(lambda p: p.start_time.date())
     else:
         reviews["period"] = reviews["created_at"].dt.to_period("W").apply(lambda p: p.start_time.date())
-    trend = (
-        reviews.groupby("period")["wait_time_minutes"]
-        .mean()
-        .reset_index()
-        .rename(columns={"period": group_by, "wait_time_minutes": "avg_wait_minutes"})
-        .sort_values(group_by)
-    )
-    return trend
+    if per:
+        merged = reviews.merge(resources[["id", per]], left_on="resource_id", right_on="id", how="left")
+        grouped = merged.groupby(["period", per])[metric].mean().reset_index()
+        return grouped.rename(columns={"period": group_by_time})
+    grouped = reviews.groupby("period")[metric].mean().reset_index()
+    return grouped.rename(columns={"period": group_by_time})
 
-def compute_resource_breakdown(resources_df):
+def gap_analysis(level="city", min_resources=1, filters=None):
     """
-    Groups food resources by their type and calculates the average wait time for each type.
+    Identify underserved areas by minimum resource count.
     """
-    summary = {}
-    for r_type, group in resources_df.groupby('resource_type_id'):
-        wait_times = pd.to_numeric(group['wait_time_minutes_average'], errors='coerce')
-        avg_wait = wait_times.mean()
-        summary[r_type] = {
-            "total_count": len(group),
-            "avg_wait_minutes": float(avg_wait) if not pd.isna(avg_wait) else 0.0
-        }
-    return {"breakdown": summary, "total_resources_analyzed": len(resources_df)}
-
-def resource_type_breakdown(
-    zip=None,
-    region=None,
-    city=None,
-    resource_type=None,
-    status=None,
-    priority_min=None,
-):
-    """
-    Resource type counts and avg wait time in a filtered slice.
-    """
-    df = filter_resources(
-        zip=zip,
-        region=region,
-        city=city,
-        resource_type=resource_type,
-        status=status,
-        priority_min=priority_min,
-    )
-    if df.empty:
-        return {"breakdown": {}, "total_resources_analyzed": 0}
-    summary = {}
-    for r_type, group in df.groupby("resource_type_id"):
-        wait_times = pd.to_numeric(group["wait_time_minutes_average"], errors="coerce")
-        avg_wait = wait_times.mean()
-        summary[r_type] = {
-            "total_count": int(len(group)),
-            "avg_wait_minutes": float(avg_wait) if not pd.isna(avg_wait) else 0.0,
-        }
-    return {"breakdown": summary, "total_resources_analyzed": int(len(df))}
-
-def filter_active_high_priority(resources_df, min_priority=0):
-    """
-    Filters the dataset for resources that are currently PUBLISHED and have a 
-    priority level at or above the requested threshold.
-    """
-    published = resources_df[resources_df['resource_status_id'] == 'PUBLISHED'].copy()
-    published['priority'] = pd.to_numeric(published['priority'], errors='coerce').fillna(-1)
-    filtered = published[published['priority'] >= min_priority]
-    filtered = filtered.sort_values(by=['priority', 'rating_average'], ascending=[False, False])
-    return filtered[['id', 'name', 'city', 'priority']].to_dict(orient='records')
-
-def get_neighborhood_coverage(resources_df):
-    """
-    Analyzes which cities/neighborhoods have the most food assistance coverage versus
-    which ones are sparsely populated with resources.
-    """
-    coverage = resources_df['city'].value_counts()
-    top_served = coverage.head(5).to_dict()
-    underserved = coverage[coverage == 1].index.tolist()
-    return {
-        "most_served_cities": top_served,
-        "underserved_cities_count": len(underserved),
-        "underserved_city_names": underserved
-    }
-
-def coverage_by_area(level="city"):
-    """
-    Coverage counts for city, zip_code, or region_ids.
-    """
-    df = resources.copy()
+    df = filter_resources(**filters) if filters else resources.copy()
     if level == "zip":
         counts = df["zip_code"].value_counts()
     elif level == "region":
@@ -572,102 +301,16 @@ def coverage_by_area(level="city"):
         counts = exploded.value_counts()
     else:
         counts = df["city"].value_counts()
-    top = counts.head(10).to_dict()
-    underserved = counts[counts == 1].index.tolist()
-    return {"counts": top, "underserved": underserved}
+    underserved = counts[counts <= int(min_resources)].index.tolist()
+    return {"counts": counts.head(25).to_dict(), "underserved": underserved}
 
-def _ensure_export_dir():
-    export_dir = "/home/user/exports"
-    os.makedirs(export_dir, exist_ok=True)
-    return export_dir
-
-def plot_trend(df, x, y, title="Trend"):
+def fetch_json(url):
     """
-    Save a line plot to /home/user/exports and return path.
+    Fetch JSON from an allowlisted host.
     """
-    export_dir = _ensure_export_dir()
-    fig, ax = plt.subplots()
-    ax.plot(df[x], df[y])
-    ax.set_title(title)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
-    fig.autofmt_xdate()
-    path = os.path.join(export_dir, f"trend_{int(datetime.utcnow().timestamp())}.png")
-    fig.savefig(path, bbox_inches="tight")
-    plt.close(fig)
-    return path
-
-def plot_bar(df, x, y, title="Bar Chart"):
-    """
-    Save a bar chart to /home/user/exports and return path.
-    """
-    export_dir = _ensure_export_dir()
-    fig, ax = plt.subplots()
-    ax.bar(df[x], df[y])
-    ax.set_title(title)
-    ax.set_xlabel(x)
-    ax.set_ylabel(y)
-    fig.autofmt_xdate()
-    path = os.path.join(export_dir, f"bar_{int(datetime.utcnow().timestamp())}.png")
-    fig.savefig(path, bbox_inches="tight")
-    plt.close(fig)
-    return path
-
-def plot_map(resources_df):
-    """
-    Save a scatter plot of lat/long points to /home/user/exports and return path.
-    """
-    export_dir = _ensure_export_dir()
-    df = resources_df.dropna(subset=["latitude", "longitude"]).copy()
-    if len(df) > 1000:
-        df = df.sample(1000, random_state=42)
-    fig, ax = plt.subplots()
-    ax.scatter(df["longitude"], df["latitude"], s=8, alpha=0.6)
-    ax.set_title("Resource Locations")
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
-    path = os.path.join(export_dir, f"map_{int(datetime.utcnow().timestamp())}.png")
-    fig.savefig(path, bbox_inches="tight")
-    plt.close(fig)
-    return path
-
-def generate_partner_report(region=None, date_from=None, date_to=None):
-    """
-    Generate a lightweight report dict for a region and time window.
-    """
-    filtered_resources = filter_resources(region=region)
-    resource_ids = filtered_resources["id"].tolist()
-    reviews = filter_reviews(resource_ids=resource_ids, date_from=date_from, date_to=date_to)
-    reviews = categorize_feedback(reviews)
-    summary = summarize_feedback(reviews)
-    disruptions = disruption_summary(date_from=date_from, date_to=date_to)
-    trends = wait_time_trends(resource_ids=resource_ids, date_from=date_from, date_to=date_to)
-    coverage = coverage_by_area(level="city")
-    return {
-        "region": region,
-        "resource_count": int(len(filtered_resources)),
-        "feedback_summary": summary,
-        "disruptions": disruptions,
-        "wait_time_trends": trends.to_dict(orient="records"),
-        "coverage": coverage,
-    }
-
-def export_report(report_dict, format="json"):
-    """
-    Export a report dict to /home/user/exports and return path.
-    """
-    export_dir = _ensure_export_dir()
-    ts = int(datetime.utcnow().timestamp())
-    if format == "html":
-        path = os.path.join(export_dir, f"report_{ts}.html")
-        html = "<html><body><pre>" + json.dumps(report_dict, indent=2) + "</pre></body></html>"
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(html)
-        return path
-    path = os.path.join(export_dir, f"report_{ts}.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(report_dict, f, indent=2)
-    return path
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.json()
 
 def load_public_dataset(path_or_url):
     """
@@ -685,17 +328,68 @@ def join_on_geo(resources_df, public_df, on="zip_code"):
     """
     return resources_df.merge(public_df, on=on, how="left")
 
-print(f"Loaded: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
-print("Pre-loaded Functions: get_resources(), filter_resources(), filter_occurrences(), filter_reviews(), summarize_feedback(), extract_key_phrases(), sentiment_score(), get_reviews(), get_wait_time_trends(), wait_time_trends(), categorize_feedback(), get_neighborhood_stats(), get_service_disruptions(), disruption_summary(), compute_resource_breakdown(), resource_type_breakdown(), filter_active_high_priority(), get_neighborhood_coverage(), coverage_by_area(), plot_trend(), plot_bar(), plot_map(), generate_partner_report(), export_report(), load_public_dataset(), join_on_geo(), fetch_json()")
-`;
+def _ensure_export_dir():
+    export_dir = "/home/user/exports"
+    os.makedirs(export_dir, exist_ok=True)
+    return export_dir
 
-const MAX_ITERATIONS = 12;
+def generate_pdf_report(report_dict, image_paths=None, title="Lemontree Report"):
+    """
+    Create a PDF report with text and optional images.
+    """
+    if not isinstance(report_dict, dict) or not report_dict:
+        raise ValueError("report_dict must be a non-empty dict.")
+    if image_paths is not None and not isinstance(image_paths, list):
+        raise ValueError("image_paths must be a list of file paths or None.")
+    if not isinstance(title, str) or not title.strip():
+        raise ValueError("title must be a non-empty string.")
+
+    export_dir = _ensure_export_dir()
+    ts = int(datetime.utcnow().timestamp())
+    path = os.path.join(export_dir, f"report_{ts}.pdf")
+    c = canvas.Canvas(path, pagesize=letter)
+    width, height = letter
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(1 * inch, height - 1 * inch, title.strip())
+
+    c.setFont("Helvetica", 10)
+    text = c.beginText(1 * inch, height - 1.5 * inch)
+    text.textLines(json.dumps(report_dict, indent=2))
+    c.drawText(text)
+
+    image_paths = image_paths or []
+    for img_path in image_paths:
+        c.showPage()
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(1 * inch, height - 1 * inch, "Chart")
+        try:
+            c.drawImage(
+                img_path,
+                1 * inch,
+                2 * inch,
+                width - 2 * inch,
+                height - 3 * inch,
+                preserveAspectRatio=True,
+                anchor="c",
+            )
+        except Exception:
+            c.setFont("Helvetica", 10)
+            c.drawString(1 * inch, height - 1.5 * inch, f"Could not load image: {img_path}")
+
+    c.save()
+    return path
+
+print(f"Loaded: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
+print("Pre-loaded Functions: filter_resources(), filter_occurrences(), filter_reviews(), query_resources(), trend(), gap_analysis(), fetch_json(), load_public_dataset(), join_on_geo(), generate_pdf_report()")
+
+const MAX_ITERATIONS = 5;
 const MODEL = "claude-opus-4-5";
 const MAX_CONSOLE_LINES = 20;
 
 // After COMPACT_AFTER iterations, summarize older context using a fast model.
 // The last KEEP_RECENT iteration pairs are kept fully intact.
-const COMPACT_AFTER = 4;
+const COMPACT_AFTER = 3;
 const KEEP_RECENT = 3;
 const SUMMARY_MODEL = "claude-haiku-4-5-20251001";
 
@@ -737,6 +431,7 @@ const SANDBOX_PACKAGES = [
   "seaborn",
   "scipy",
   "geopy",
+  "reportlab",
 ];
 
 // Spin up an E2B sandbox with common data science libraries and pre-loaded CSV data.
