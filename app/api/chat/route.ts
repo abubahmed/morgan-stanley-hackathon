@@ -49,6 +49,44 @@ const TOOLS: Anthropic.Tool[] = [
       },
     },
   },
+  {
+    name: "render_map",
+    description:
+      "Render an interactive map in the visualization panel showing locations with pin markers. Use this to display resources geographically.",
+    input_schema: {
+      type: "object" as const,
+      required: ["title", "markers"],
+      properties: {
+        title: { type: "string", description: "Map title" },
+        markers: {
+          type: "array",
+          description: "Array of map markers to display",
+          items: {
+            type: "object",
+            required: ["lat", "lng", "label"],
+            properties: {
+              lat: { type: "number", description: "Latitude" },
+              lng: { type: "number", description: "Longitude" },
+              label: { type: "string", description: "Marker label" },
+              color: { type: "string", description: "Marker color (hex or named)" },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
+    name: "run_analysis",
+    description:
+      "Run Python code analysis on food resource data for complex statistical or geographic queries. Use this for questions requiring data computation, aggregation, or analysis that can't be answered from search alone.",
+    input_schema: {
+      type: "object" as const,
+      required: ["job"],
+      properties: {
+        job: { type: "string", description: "A clear description of the analysis to perform" },
+      },
+    },
+  },
 ];
 
 async function executeTool(
@@ -154,6 +192,9 @@ export async function POST(req: NextRequest) {
               if (block.name === "generate_chart") {
                 // Stream chart spec directly to client
                 controller.enqueue(encodeSSE({ type: "chart", spec: block.input }));
+              } else if (block.name === "render_map") {
+                // Stream map spec directly to client
+                controller.enqueue(encodeSSE({ type: "map", spec: block.input }));
               }
             }
           }
@@ -170,6 +211,34 @@ export async function POST(req: NextRequest) {
                   tool_use_id: toolUse.id,
                   content: "Chart rendered successfully in the visualization panel.",
                 });
+              } else if (toolUse.name === "render_map") {
+                // Map already sent to client — return success to Claude
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolUse.id,
+                  content: "Map rendered successfully in the visualization panel.",
+                });
+              } else if (toolUse.name === "run_analysis") {
+                try {
+                  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+                  const res = await fetch(`${baseUrl}/api/analysis`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ job: (toolUse.input as { job: string }).job }),
+                  });
+                  const data = await res.json() as { result?: string; error?: string };
+                  toolResults.push({
+                    type: "tool_result",
+                    tool_use_id: toolUse.id,
+                    content: data.result ?? data.error ?? "Analysis failed",
+                  });
+                } catch {
+                  toolResults.push({
+                    type: "tool_result",
+                    tool_use_id: toolUse.id,
+                    content: "Analysis service unavailable",
+                  });
+                }
               } else {
                 const result = await executeTool(
                   toolUse.name,

@@ -1,14 +1,16 @@
-import type { ChartSpec } from "@/types/chat";
+import type { ChartSpec, MapSpec } from "@/types/chat";
 import { BarChart3, X, TrendingUp } from "lucide-react";
 import ChartRenderer from "./ChartRenderer";
+import MapRenderer from "./MapRenderer";
 
 interface VisualizationPanelProps {
   charts: ChartSpec[];
+  maps?: MapSpec[];
   isVisible: boolean;
   onToggle: () => void;
 }
 
-export default function VisualizationPanel({ charts, isVisible, onToggle }: VisualizationPanelProps) {
+export default function VisualizationPanel({ charts, maps = [], isVisible, onToggle }: VisualizationPanelProps) {
   return (
     <div
       className={`flex flex-col border-l transition-all duration-300 ${isVisible ? "w-[42%]" : "w-0 overflow-hidden"}`}
@@ -26,12 +28,12 @@ export default function VisualizationPanel({ charts, isVisible, onToggle }: Visu
                 <BarChart3 size={12} style={{ color: "#1E9080" }} />
               </div>
               <p className="text-[13px] font-semibold" style={{ color: "#1E2D3D" }}>Visualizations</p>
-              {charts.length > 0 && (
+              {(charts.length + maps.length) > 0 && (
                 <span
                   className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
                   style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)", color: "white" }}
                 >
-                  {charts.length}
+                  {charts.length + maps.length}
                 </span>
               )}
             </div>
@@ -44,7 +46,7 @@ export default function VisualizationPanel({ charts, isVisible, onToggle }: Visu
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {charts.length === 0 ? (
+            {charts.length === 0 && maps.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-16">
                 <div
                   className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
@@ -56,7 +58,10 @@ export default function VisualizationPanel({ charts, isVisible, onToggle }: Visu
                 <p className="mt-1 text-[11px]" style={{ color: "#9AAAB8" }}>Ask a question to generate visualizations</p>
               </div>
             ) : (
-              charts.map((chart, i) => <ChartRenderer key={i} spec={chart} />)
+              <>
+                {maps.map((map, i) => <MapRenderer key={`map-${i}`} spec={map} />)}
+                {charts.map((chart, i) => <ChartRenderer key={`chart-${i}`} spec={chart} />)}
+              </>
             )}
           </div>
         </>

@@ -32,3 +32,27 @@ export interface KpiStat {
   delta?: string;
   trend?: "up" | "down" | "neutral";
 }
+
+export interface MapSpec {
+  title: string;
+  markers: { lat: number; lng: number; label?: string; color?: string }[];
+}
+
+export interface UserInfo {
+  id: string;
+  name: string;
+  email?: string;
+  organization?: string;
+  role?: "community" | "researcher" | "admin" | "coordinator";
+  createdAt: number;
+}
+
+export interface ChatSession {
+  id: string;
+  userId: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: number;
+  updatedAt: number;
+  messageCount: number;
+}

@@ -1,3 +1,4 @@
+import ReactMarkdown from "react-markdown";
 import type { ChatMessage, AIMode } from "@/types/chat";
 
 const modeBadge: Record<AIMode, { label: string; bg: string; color: string }> = {
@@ -47,7 +48,36 @@ export default function ChatMessageBubble({ message }: ChatMessageProps) {
             boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
           }}
         >
-          {message.content}
+          <ReactMarkdown
+            components={{
+              h1: (p) => <h1 className="text-lg font-bold mb-2 mt-1" {...p} />,
+              h2: (p) => <h2 className="text-base font-bold mb-1.5 mt-1" {...p} />,
+              h3: (p) => <h3 className="text-[14px] font-semibold mb-1 mt-1" {...p} />,
+              p: (p) => <p className="mb-2 last:mb-0" {...p} />,
+              ul: (p) => <ul className="list-disc pl-5 mb-2 space-y-0.5" {...p} />,
+              ol: (p) => <ol className="list-decimal pl-5 mb-2 space-y-0.5" {...p} />,
+              li: (p) => <li className="text-[14px]" {...p} />,
+              strong: (p) => <strong className="font-semibold" {...p} />,
+              em: (p) => <em className="italic" {...p} />,
+              code: ({ className, children, ...p }) =>
+                className ? (
+                  <pre className="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto text-[13px] font-mono my-2">
+                    <code {...p}>{children}</code>
+                  </pre>
+                ) : (
+                  <code className="bg-gray-100 rounded px-1 py-0.5 text-[13px] font-mono" {...p}>{children}</code>
+                ),
+              blockquote: (p) => (
+                <blockquote
+                  className="border-l-4 pl-3 italic my-2 text-[13px]"
+                  style={{ borderColor: "#3DBFAC", color: "#4A6070" }}
+                  {...p}
+                />
+              ),
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
           {message.isStreaming && (
             <span
               className="ml-1 inline-block h-3.5 w-0.5 animate-pulse rounded-full"
