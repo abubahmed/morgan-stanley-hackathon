@@ -5,7 +5,6 @@ export type IntentResult =
   | { kind: "analysis"; mode: IntentMode }
   | { kind: "lookup" };
 
-// Shape the real sandbox must conform to
 export interface SandboxChartData {
   type: "bar" | "line" | "pie" | "scatter";
   title: string;
@@ -29,4 +28,24 @@ export interface ChatMessage {
   isAnalysis?: boolean;
   isLoading?: boolean;
   error?: string;
+  timestamp?: number;
+}
+
+export interface UserInfo {
+  id: string;
+  name: string;
+  email?: string;
+  organization?: string;
+  role?: "community" | "researcher" | "admin" | "coordinator";
+  createdAt: number;
+}
+
+export interface ChatSession {
+  id: string;
+  userId: string;
+  title: string;
+  messages: ChatMessage[];
+  createdAt: number;
+  updatedAt: number;
+  messageCount: number;
 }
