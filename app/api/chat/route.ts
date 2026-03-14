@@ -7,6 +7,7 @@ import {
   searchResources,
   getResourcesOpenToday,
 } from "@/lib/lemontree_api";
+import { addMessageToSession } from "@/lib/chatStore";
 import type { ChatMessage } from "@/types/chat";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -24,7 +25,6 @@ function extractZip(message: string): string | null {
 }
 
 function extractLocation(message: string): string | null {
-  // "near X", "in X", "around X", "close to X", "by X"
   const match = message.match(
     /\b(?:near|in|around|close to|by|to)\s+([A-Za-z][A-Za-z\s,]{2,30}?)(?:\?|$|,|\.|!)/i
   );
@@ -35,9 +35,9 @@ function isOpenQuery(message: string): boolean {
   return /\bopen (now|today|tonight|this week)\b/i.test(message);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function formatResources(resources: any[]): string {
   if (!resources.length) return "No pantries found for that location.";
-
   return resources
     .slice(0, 5)
     .map((r, i) => {
@@ -48,45 +48,57 @@ function formatResources(resources: any[]): string {
       const accepting = r.acceptingNewClients ? "Yes" : "No";
       const appt = r.openByAppointment ? "Yes" : "No";
       const site = r.website ?? "N/A";
-      return `${i + 1}. ${r.name} (${type})
-   Address: ${address || "Not listed"}
-   Accepting new clients: ${accepting} | Appointment needed: ${appt}
-   Website: ${site}`;
+      return `${i + 1}. ${r.name} (${type})\n   Address: ${address || "Not listed"}\n   Accepting new clients: ${accepting} | Appointment needed: ${appt}\n   Website: ${site}`;
     })
     .join("\n\n");
 }
 
 async function fetchLookupContext(message: string): Promise<string> {
   const zip = extractZip(message);
-
   if (isOpenQuery(message)) {
     const data = await getResourcesOpenToday({ take: 5 });
     return `Pantries open today:\n\n${formatResources(data.resources ?? [])}`;
   }
-
   if (zip) {
     const data = await getResourcesByZip(zip, { take: 5, sort: "distance" });
     return `Pantries near ${zip}:\n\n${formatResources(data.resources ?? [])}`;
   }
-
   const location = extractLocation(message);
   if (location) {
     const data = await searchResources(location, { take: 5 });
     return `Pantries matching "${location}":\n\n${formatResources(data.resources ?? [])}`;
   }
-
-  // Fallback: generic search using the full message
   const data = await searchResources(message, { take: 5 });
   return `Pantries found:\n\n${formatResources(data.resources ?? [])}`;
+}
+
+// Persist a message to the session — non-fatal if it fails
+function persistMessage(sessionId: string | undefined, message: ChatMessage) {
+  if (!sessionId) return;
+  try {
+    addMessageToSession(sessionId, message);
+  } catch (err) {
+    console.error("[chatStore] Failed to persist message:", err);
+  }
 }
 
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  const { message, history } = (await req.json()) as {
+  const { message, history, sessionId } = (await req.json()) as {
     message: string;
     history: ChatMessage[];
+    sessionId?: string;
   };
+
+  // Persist the user's message immediately
+  const userMsg: ChatMessage = {
+    id: crypto.randomUUID(),
+    role: "user",
+    content: message,
+    timestamp: Date.now(),
+  };
+  persistMessage(sessionId, userMsg);
 
   const intent = detectIntent(message);
 
@@ -94,6 +106,16 @@ export async function POST(req: NextRequest) {
   if (intent.kind === "analysis") {
     try {
       const result = await triggerSandbox({ query: message, mode: intent.mode });
+      const assistantMsg: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: result.summary,
+        isAnalysis: true,
+        mode: intent.mode,
+        sandboxResult: result,
+        timestamp: Date.now(),
+      };
+      persistMessage(sessionId, assistantMsg);
       return NextResponse.json({
         type: "analysis",
         mode: intent.mode,
@@ -123,7 +145,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Pass real pantry data to Claude as context
     const groundedSystem = `${SYSTEM_PROMPT}
 
 The following pantry data was retrieved live from the Lemon Tree network for this query. Use it to answer the user. Do not add pantries that aren't listed here.
@@ -139,6 +160,13 @@ ${lookupContext}`;
       });
       const text =
         response.content[0].type === "text" ? response.content[0].text : "";
+      const assistantMsg: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: text,
+        timestamp: Date.now(),
+      };
+      persistMessage(sessionId, assistantMsg);
       return NextResponse.json({ type: "conversation", content: text });
     } catch (err) {
       const errorMsg =
@@ -166,10 +194,15 @@ ${lookupContext}`;
       system: SYSTEM_PROMPT,
       messages,
     });
-
     const text =
       response.content[0].type === "text" ? response.content[0].text : "";
-
+    const assistantMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: text,
+      timestamp: Date.now(),
+    };
+    persistMessage(sessionId, assistantMsg);
     return NextResponse.json({ type: "conversation", content: text });
   } catch (err) {
     const errorMsg =
