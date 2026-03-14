@@ -142,127 +142,235 @@ Quality/moderation flags on resources. One row per flag. Join to resources via `
 
 The following helper functions are pre-loaded in your sandbox environment to facilitate data exploration and analysis.
 
+### How To Choose A Function
+Use the smallest function that directly answers the question.
+
+- Use `filter_resources` to get a DataFrame slice you can reuse across multiple steps.
+- Use `filter_reviews` and `summarize_feedback` for questions about experience, wait times, or quality.
+- Use `wait_time_trends` for time series trends.
+- Use `disruption_summary` for cancellations and schedule issues.
+- Use `coverage_by_area` for gaps by city, zip, or region.
+- Use `plot_*` functions when a chart or visual is requested.
+- Use `generate_partner_report` when the user wants a summary report for a region.
+
+If the user request mentions a timeframe, always pass `date_from` and `date_to` when available.
+
+---
+
 ### `get_resources(**kwargs)`
-Fetches food resources by filtering the local `resources` DataFrame.
-- **`zip`**: (str) Zip code filter (e.g., "10001"). Alias: `zip_code`.
-- **`region`**: (str) Neighborhood name (e.g., "Bronx").
-- **`text`**: (str) Search term for names/descriptions.
-- **`take`**: (int) Number of records (default: 50).
-- **`sort`**: (str) Sort field (e.g., "distance").
-- **Returns**: `pd.DataFrame` (id, name, resourceTypeId, zip, distance, etc.)
+Purpose: Quick, lightweight access to a small sample of resources.
+
+Inputs:
+- `zip` (str) Zip code filter. Alias: `zip_code`.
+- `region` (str) Neighborhood name.
+- `text` (str) Name search term.
+- `take` (int) Max rows returned (default: 50).
+- `sort` (str) Column to sort by.
+
+Returns: `pd.DataFrame`
+
+Example:
+```python
+df = get_resources(zip="10001", take=10)
+```
 
 ### `filter_resources(zip=None, region=None, city=None, resource_type=None, status=None, priority_min=None, resource_ids=None)`
-Flexible filter over `resources`.
-- **Returns**: `pd.DataFrame`
+Purpose: Flexible filtering across the full `resources` table.
+
+Returns: `pd.DataFrame`
+
+Example:
+```python
+pantries = filter_resources(resource_type="FOOD_PANTRY", status="PUBLISHED", city="Bronx")
+```
 
 ### `filter_occurrences(resource_ids=None, date_from=None, date_to=None, include_cancelled=False)`
-Filter occurrences by resource and time window.
-- **Returns**: `pd.DataFrame`
+Purpose: Filter scheduled occurrences by resource and time window.
+
+Returns: `pd.DataFrame`
+
+Example:
+```python
+events = filter_occurrences(resource_ids=pantries["id"], date_from="2025-01-01", date_to="2025-03-31")
+```
 
 ### `filter_reviews(resource_ids=None, date_from=None, date_to=None, attended=None, rating_min=None, max_resources=25)`
-Aggregate and filter synthetic reviews across resources.
-- **Returns**: `pd.DataFrame`
+Purpose: Aggregate and filter synthetic reviews across resources.
+
+Returns: `pd.DataFrame`
+
+Example:
+```python
+reviews = filter_reviews(resource_ids=pantries["id"], rating_min=3)
+```
 
 ### `get_reviews(resource_id)`
-Generates synthetic feedback and reviews for a specific resource.
-- **`resource_id`**: (str) Unique ID of the resource.
-- **Returns**: `pd.DataFrame` (text, rating, waitTimeMinutes, attended, etc.)
+Purpose: Generate synthetic feedback for one resource.
+
+Returns: `pd.DataFrame` with columns like `text`, `rating`, `wait_time_minutes`, `attended`.
+
+Example:
+```python
+reviews = get_reviews("resource_id_here")
+```
 
 ### `get_wait_time_trends(resource_id)`
-Analyzes wait time trends over time using synthetic reviews.
-- **`resource_id`**: (str) Unique ID of the resource.
-- **Returns**: `pd.DataFrame` (week, avg_wait_minutes)
+Purpose: Weekly average wait times for a single resource.
+
+Returns: `pd.DataFrame` with columns `week`, `avg_wait_minutes`.
+
+Example:
+```python
+trend = get_wait_time_trends("resource_id_here")
+```
 
 ### `wait_time_trends(resource_ids=None, date_from=None, date_to=None, group_by="week")`
-Wait time trends for multiple resources.
-- **Returns**: `pd.DataFrame` (week/month, avg_wait_minutes)
+Purpose: Weekly or monthly wait time trends for multiple resources.
+
+Returns: `pd.DataFrame`
+
+Example:
+```python
+trend = wait_time_trends(resource_ids=pantries["id"], group_by="month")
+```
 
 ### `get_neighborhood_stats(region)`
-Aggregates resource metrics for a neighborhood.
-- **`region`**: (str) Neighborhood name.
-- **Returns**: `pd.DataFrame` (resource_count, unqiue_zip_codes grouped by resourceTypeId)
+Purpose: Aggregate resource metrics for a neighborhood.
+
+Returns: `pd.DataFrame` grouped by `resource_type_id`.
 
 ### `categorize_feedback(reviews_df)`
-Categorizes free-text reviews into 'Service', 'Food Quality', 'Wait Time', or 'Access/Hours'.
-- **`reviews_df`**: (`pd.DataFrame`) A DataFrame with a 'text' column.
-- **Returns**: `pd.DataFrame` with an added 'category' column.
+Purpose: Label review text into a small set of categories.
+
+Returns: `pd.DataFrame` with new `category` column.
+
+Example:
+```python
+reviews = categorize_feedback(reviews)
+```
 
 ### `summarize_feedback(reviews_df)`
-Summarize ratings, wait times, attendance, and category counts.
-- **Returns**: `dict`
+Purpose: Aggregate ratings, wait times, attendance, and category counts.
+
+Returns: `dict`
+
+Example:
+```python
+summary = summarize_feedback(reviews)
+```
 
 ### `extract_key_phrases(reviews_df, top_n=10)`
-Simple keyword frequency extraction.
-- **Returns**: `dict`
+Purpose: Extract top keywords from review text.
+
+Returns: `dict` of token counts.
+
+Example:
+```python
+keywords = extract_key_phrases(reviews, top_n=8)
+```
 
 ### `sentiment_score(reviews_df)`
-Lexicon sentiment score in [-1, 1].
-- **Returns**: `float | None`
+Purpose: Simple lexicon sentiment in range [-1, 1].
+
+Returns: `float | None`
+
+Example:
+```python
+score = sentiment_score(reviews)
+```
 
 ### `get_service_disruptions()`
-Identifies service disruptions by joining 'shifts' and 'occurrences' to find cancelled events.
-- **Returns**: `pd.DataFrame` (resource_id, name, skipped_at, address, start_time)
+Purpose: Identify cancelled occurrences.
+
+Returns: `pd.DataFrame` with `resource_id`, `name`, `skipped_at`, `address`, `start_time`.
 
 ### `disruption_summary(date_from=None, date_to=None)`
-Summary counts of disruptions and top affected resources.
-- **Returns**: `dict`
+Purpose: Summary counts of disruptions and top affected resources.
+
+Returns: `dict`
+
+Example:
+```python
+disruptions = disruption_summary(date_from="2025-01-01", date_to="2025-03-31")
+```
 
 ### `compute_resource_breakdown(resources_df)`
-Groups food resources by their type and calculates the average wait time for each type.
-- **`resources_df`**: (`pd.DataFrame`) A DataFrame of resources.
-- **Returns**: `dict` containing breakdown and total_resources_analyzed.
+Purpose: Group by type and compute average wait time for each type.
+
+Returns: `dict`
 
 ### `resource_type_breakdown(zip=None, region=None, city=None, resource_type=None, status=None, priority_min=None)`
-Breakdown by type for a filtered slice.
-- **Returns**: `dict`
+Purpose: Type breakdown on a filtered slice.
+
+Returns: `dict`
+
+Example:
+```python
+breakdown = resource_type_breakdown(region="Bronx")
+```
 
 ### `filter_active_high_priority(resources_df, min_priority=0)`
-Filters the dataset for resources that are currently PUBLISHED and have a priority level at or above the threshold.
-- **`resources_df`**: (`pd.DataFrame`) A DataFrame of resources.
-- **`min_priority`**: (`int`) Minimum priority score (default: 0).
-- **Returns**: `list` of dictionaries with id, name, city, priority.
+Purpose: Filter to PUBLISHED resources with priority >= min.
+
+Returns: `list` of dicts with `id`, `name`, `city`, `priority`.
 
 ### `get_neighborhood_coverage(resources_df)`
-Analyzes which cities/neighborhoods have the most food assistance coverage versus sparsely populated areas.
-- **`resources_df`**: (`pd.DataFrame`) A DataFrame of resources.
-- **Returns**: `dict` with most_served_cities, underserved_cities_count, underserved_city_names.
+Purpose: Coverage stats by city for a given resource slice.
+
+Returns: `dict`
 
 ### `coverage_by_area(level="city")`
-Coverage counts for city, zip, or region.
-- **Returns**: `dict`
+Purpose: Coverage counts by city, zip, or region.
+
+Returns: `dict`
+
+Example:
+```python
+coverage = coverage_by_area(level="zip")
+```
 
 ### `plot_trend(df, x, y, title="Trend")`
-Save a trend plot to `/home/user/exports`.
-- **Returns**: `str` path
+Purpose: Save a line chart to `/home/user/exports`.
+
+Returns: `str` path to image.
 
 ### `plot_bar(df, x, y, title="Bar Chart")`
-Save a bar plot to `/home/user/exports`.
-- **Returns**: `str` path
+Purpose: Save a bar chart to `/home/user/exports`.
+
+Returns: `str` path to image.
 
 ### `plot_map(resources_df)`
-Save a lat/long scatter to `/home/user/exports`.
-- **Returns**: `str` path
+Purpose: Save a lat/long scatter to `/home/user/exports`.
+
+Returns: `str` path to image.
 
 ### `generate_partner_report(region=None, date_from=None, date_to=None)`
-Generate a lightweight report dict.
-- **Returns**: `dict`
+Purpose: Generate a lightweight report dict for partners.
+
+Returns: `dict`
 
 ### `export_report(report_dict, format="json")`
-Export a report to `/home/user/exports`.
-- **Returns**: `str` path
+Purpose: Export a report to `/home/user/exports`.
+
+Returns: `str` path to file.
 
 ### `load_public_dataset(path_or_url)`
-Load a dataset from a local path or allowlisted URL.
-- **Returns**: `pd.DataFrame`
+Purpose: Load a dataset from a local path or allowlisted URL.
+
+Returns: `pd.DataFrame`
 
 ### `join_on_geo(resources_df, public_df, on="zip_code")`
-Join Lemontree data with public datasets.
-- **Returns**: `pd.DataFrame`
+Purpose: Join Lemontree data with public datasets on a geographic key.
+
+Returns: `pd.DataFrame`
 
 ### `fetch_json(url)`
-Generic JSON fetcher for allowlisted domains.
-- **`url`**: (str) Full URL (must be `https://platform.foodhelpline.org/...`).
-- **Returns**: `dict`
+Purpose: Fetch JSON from allowlisted domains only.
+
+Inputs:
+- `url` must start with `https://platform.foodhelpline.org/`.
+
+Returns: `dict`
 
 ---
 

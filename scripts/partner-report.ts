@@ -1,4 +1,4 @@
-import { runCode } from "../lib/claude";
+import { runAgent } from "../sandbox/agent";
 
 /**
  * PROJECT MISSION: Partner Insight Report Demonstration
@@ -12,73 +12,33 @@ import { runCode } from "../lib/claude";
 async function runPartnerInsightWorkflow() {
   console.log("=== Launching Lemontree Partner Insight Report ===\n");
 
-  const reportPythonScript = `
-import pandas as pd
-import matplotlib.pyplot as plt
+  const jobDescription = `
+Create a Partner Insight Report for the 'Bronx' analyzing gaps, trends, and disruptions:
+1. Print the neighborhood resource mix using get_neighborhood_stats('Bronx').
+2. Identify any service disruptions using get_service_disruptions() and print the first 5.
+3. Fetch reviews for a specific resource in the Bronx (e.g., the first one returned by get_resources), categorize them with categorize_feedback(), and print the category distribution.
+4. Provide a 2-3 sentence summary of the biggest challenges for resources in this area based on the data.
+`;
 
-# 1. Neighborhood Overview (Geographic Gaps)
-print("Analyzing Geographic Gaps in 'Bronx'...")
-neighborhood_stats = get_neighborhood_stats("Bronx")
-print("\\nNeighborhood Resource Mix:")
-print(neighborhood_stats)
-
-# 2. Deep Dive: Service Reliability (Wait Times & Categorization)
-# Step A: Fetch resources to pick a target
-resources = get_resources(region="Bronx", take=10)
-if not resources.empty:
-    target_id = resources.iloc[0]['id']
-    target_name = resources.iloc[0]['name']
-    print(f"\\n--- Deep Dive: {target_name} ({target_id}) ---")
-
-    # Step B: Fetch and Categorize Reviews
-    reviews = get_reviews(target_id)
-    categorized_reviews = categorize_feedback(reviews)
-    
-    cat_summary = categorized_reviews['category'].value_counts()
-    print("\\nAutomated Feedback Categorization:")
-    print(cat_summary)
-
-    # Step C: Temporal Trend Analysis (Wait Times)
-    trends = get_wait_time_trends(target_id)
-    print("\\nWeekly Wait Time Trends (Last 8 Weeks):")
-    print(trends.tail(8))
-
-    # 3. Visualization: Trend vs Distribution
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
-
-    # Plot 1: Monthly Wait Times
-    trends.plot(x='week', y='avg_wait_minutes', ax=ax1, marker='o', color='red')
-    ax1.set_title('Avg Wait Time Over Time')
-    ax1.set_ylabel('Minutes')
-    ax1.grid(True)
-
-    # Plot 2: Category Distribution
-    cat_summary.plot(kind='bar', color='skyblue', ax=ax2)
-    ax2.set_title('Community Feedback by Category')
-    ax2.set_ylabel('Number of Reviews')
-    plt.xticks(rotation=45)
-
-    plt.tight_layout()
-    plt.show()
-
-    print("\\nINSIGHT GENERATED: Visualization captured and results summarized for Partner Report.")
-else:
-    print("No resources found for analysis.")
-  `.trim();
-
-  console.log("[Notice] Partner Insight Logic:");
+  console.log("[Notice] Partner Insight Job Description:");
   console.log("-------------------------------------------------------------------------");
-  console.log(reportPythonScript);
+  console.log(jobDescription.trim());
   console.log("-------------------------------------------------------------------------\n");
   
   console.log("To generate this JSON report and PDF chart, run:");
   console.log("    npx tsx scripts/partner-report.ts\n");
 
-  /* Uncomment below to execute live */
-  /*
-  const result = await runCode(reportPythonScript);
-  console.log(result.stdout);
-  */
+  // Uncomment below to execute live
+  
+  try {
+      console.log("Executing via E2B Sandbox Agent...");
+      const result = await runAgent(jobDescription);
+      console.log("\\n=== FINAL REPORT ===");
+      console.log(result ? result.answer : "No report generated.");
+  } catch (err) {
+      console.error(err);
+  }
+  
 }
 
 runPartnerInsightWorkflow().catch(console.error);
