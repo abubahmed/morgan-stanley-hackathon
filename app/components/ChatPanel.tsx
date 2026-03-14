@@ -288,8 +288,12 @@ export default function ChatPanel() {
 
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [hasSpeech, setHasSpeech] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
 
   // Auto-scroll to latest message
   useEffect(() => {
@@ -415,6 +419,45 @@ export default function ChatPanel() {
     }
   };
 
+  // Speech recognition
+  useEffect(() => {
+    setHasSpeech(
+      typeof window !== "undefined" &&
+        !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition)
+    );
+  }, []);
+
+  const toggleListening = useCallback(() => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+
+    const recognition = new SR();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (e: any) => {
+      const transcript = Array.from(e.results as any[])
+        .map((r: any) => r[0].transcript)
+        .join("");
+      setInput(transcript);
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [isListening]);
+
   // Auto-resize textarea
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -454,6 +497,22 @@ export default function ChatPanel() {
       {/* ── Input bar ── */}
       <div className="bg-white border-t border-gray-200 px-4 py-3 shrink-0">
         <div className="max-w-2xl mx-auto flex gap-2 items-end">
+          {hasSpeech && (
+            <button
+              onClick={toggleListening}
+              disabled={isProcessing}
+              title={isListening ? "Stop listening" : "Speak your message"}
+              className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ${
+                isListening
+                  ? "bg-red-500 hover:bg-red-600 animate-pulse"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}
+            >
+              <svg className={`w-4 h-4 ${isListening ? "text-white" : "text-gray-600"}`} fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-1 16.93A8.001 8.001 0 0 1 4 10H2a10 10 0 0 0 9 9.95V22h2v-2.05A10 10 0 0 0 22 10h-2a8 8 0 0 1-7 7.93z"/>
+              </svg>
+            </button>
+          )}
           <textarea
             ref={textareaRef}
             rows={1}
