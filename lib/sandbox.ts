@@ -1,5 +1,4 @@
 import type { IntentMode, SandboxResult } from "@/types/chat";
-// IntentMode is 1 | 2 | 3 | 4 (analysis modes only — lookup is handled separately in the route)
 
 export interface SandboxRequest {
   query: string;
@@ -7,19 +6,21 @@ export interface SandboxRequest {
 }
 
 /**
- * Mock sandbox trigger — swap this implementation for the real one.
- *
- * The real function must accept SandboxRequest and return Promise<SandboxResult>.
- * Throw an error (or return a rejected promise) to signal failure.
+ * Real sandbox trigger — calls Abu's e2b agent.
+ * Falls back to mock data if E2B_API_KEY is not set.
  */
 export async function triggerSandbox(request: SandboxRequest): Promise<SandboxResult> {
-  // Simulate network/compute latency
-  await new Promise((res) => setTimeout(res, 1500));
+  if (!process.env.E2B_API_KEY) {
+    await new Promise((res) => setTimeout(res, 1500));
+    return MOCK_RESULTS[request.mode];
+  }
 
-  // Uncomment to test error handling:
-  // throw new Error("Sandbox timeout — code execution exceeded 30s");
-
-  return MOCK_RESULTS[request.mode];
+  const { runAgent } = await import("@/sandbox/agent");
+  const report = await runAgent(request.query);
+  return {
+    summary: report?.answer ?? "No analysis result returned.",
+    chartData: null,
+  };
 }
 
 // ---------------------------------------------------------------------------
