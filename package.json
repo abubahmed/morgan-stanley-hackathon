@@ -11,8 +11,9 @@
     "python": "npx tsx scripts/python.ts",
     "lemontree": "npx tsx scripts/test-lemontree.ts",
     "reviews": "npx tsx scripts/test-reviews.ts",
-    "analyze": "node agent.mjs",
-    "analyze:local": "uv run python sandbox/test.py"
+    "analyze": "npx tsx sandbox/index.ts",
+    "analyze:local": "uv run python sandbox/test.py",
+    "fetch:resources": "uv run python scripts/fetch_resources.py",
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
