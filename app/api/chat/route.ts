@@ -109,11 +109,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── Lookup path ──────────────────────────────────────────────────────────
+  // ── Build system prompt and messages for Claude ──────────────────────────
+  let systemPrompt = SYSTEM_PROMPT;
+  let claudeMessages: Anthropic.MessageParam[];
+
   if (intent.kind === "lookup") {
-    let lookupContext: string;
     try {
-      lookupContext = await fetchLookupContext(message);
+      const lookupContext = await fetchLookupContext(message);
+      systemPrompt = `${SYSTEM_PROMPT}
+
+The following pantry data was retrieved live from the Lemon Tree network for this query. Use it to answer the user. Do not add pantries that aren't listed here.
+
+${lookupContext}`;
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "Lemon Tree API call failed.";
@@ -122,55 +129,51 @@ export async function POST(req: NextRequest) {
         { status: 502 }
       );
     }
-
-    // Pass real pantry data to Claude as context
-    const groundedSystem = `${SYSTEM_PROMPT}
-
-The following pantry data was retrieved live from the Lemon Tree network for this query. Use it to answer the user. Do not add pantries that aren't listed here.
-
-${lookupContext}`;
-
-    try {
-      const response = await anthropic.messages.create({
-        model: "claude-opus-4-6",
-        max_tokens: 1024,
-        system: groundedSystem,
-        messages: [{ role: "user", content: message }],
-      });
-      const text =
-        response.content[0].type === "text" ? response.content[0].text : "";
-      return NextResponse.json({ type: "conversation", content: text });
-    } catch (err) {
-      const errorMsg =
-        err instanceof Error ? err.message : "Claude API call failed.";
-      return NextResponse.json(
-        { type: "conversation_error", error: errorMsg },
-        { status: 502 }
-      );
-    }
+    claudeMessages = [{ role: "user", content: message }];
+  } else {
+    claudeMessages = [
+      ...history.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
+      { role: "user", content: message },
+    ];
   }
 
-  // ── Conversational path ──────────────────────────────────────────────────
-  const messages: Anthropic.MessageParam[] = [
-    ...history.map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content,
-    })),
-    { role: "user", content: message },
-  ];
-
+  // ── Stream Claude's response ──────────────────────────────────────────────
   try {
-    const response = await anthropic.messages.create({
+    const stream = await anthropic.messages.create({
       model: "claude-opus-4-6",
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages,
+      stream: true,
+      system: systemPrompt,
+      messages: claudeMessages,
     });
 
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const event of stream) {
+            if (
+              event.type === "content_block_delta" &&
+              event.delta.type === "text_delta"
+            ) {
+              controller.enqueue(encoder.encode(event.delta.text));
+            }
+          }
+        } finally {
+          controller.close();
+        }
+      },
+    });
 
-    return NextResponse.json({ type: "conversation", content: text });
+    return new Response(readable, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache",
+      },
+    });
   } catch (err) {
     const errorMsg =
       err instanceof Error ? err.message : "Claude API call failed.";

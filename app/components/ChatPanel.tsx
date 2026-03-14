@@ -74,33 +74,10 @@ const MODE_COLORS: Record<IntentMode, string> = {
   4: "from-green-400 to-emerald-500",
 };
 
-// ─── The one function to swap when integrating the real sandbox ──────────────
-// Replace this implementation with your real runCodeJob(prompt) when ready.
-// Contract: POST /api/chat → returns one of the ChatAPIResponse variants below.
-type ChatAPIResponse =
-  | { type: "conversation"; content: string }
+type AnalysisAPIResponse =
   | { type: "analysis"; mode: IntentMode; sandboxResult: SandboxResult }
   | { type: "analysis_error"; error: string }
   | { type: "conversation_error"; error: string };
-
-async function sendToAPI(
-  message: string,
-  history: ChatMessage[]
-): Promise<ChatAPIResponse> {
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, history }),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error ?? `Request failed (${res.status})`);
-  }
-
-  return data as ChatAPIResponse;
-}
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -242,12 +219,22 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     );
   }
 
-  // Plain assistant message
+  // Plain assistant message (streaming or complete)
   return (
     <div className="flex justify-start items-end gap-2">
       <LemonAvatar />
       <div className="max-w-[78%] bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-gray-800 shadow-sm leading-relaxed">
-        {renderMarkdown(message.content)}
+        {message.isStreaming ? (
+          <span className="whitespace-pre-wrap">
+            {message.content
+              .replace(/\*\*([^*]+)\*\*/g, "$1")
+              .replace(/\*([^*]+)\*/g, "$1")
+              .replace(/\*+/g, "")}
+            <span className="inline-block w-[2px] h-[1em] bg-gray-600 ml-0.5 animate-pulse align-middle" />
+          </span>
+        ) : (
+          renderMarkdown(message.content)
+        )}
       </div>
     </div>
   );
@@ -309,37 +296,73 @@ export default function ChatPanel() {
     setIsProcessing(true);
 
     try {
-      const response = await sendToAPI(text, historySnapshot);
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, history: historySnapshot }),
+      });
 
-      let assistantMsg: ChatMessage;
-
-      if (response.type === "analysis") {
-        assistantMsg = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: response.sandboxResult.summary,
-          isAnalysis: true,
-          mode: response.mode,
-          sandboxResult: response.sandboxResult,
-        };
-      } else if (response.type === "conversation") {
-        assistantMsg = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: response.content,
-        };
-      } else {
-        assistantMsg = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: "",
-          error: response.error ?? "Something went wrong. Please try again.",
-        };
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? `Request failed (${res.status})`);
       }
 
-      setMessages((prev) =>
-        prev.map((m) => (m.id === loadingId ? assistantMsg : m))
-      );
+      const contentType = res.headers.get("Content-Type") ?? "";
+
+      if (contentType.includes("text/plain")) {
+        // ── Streaming conversation response ──────────────────────────────────
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === loadingId
+              ? { id: loadingId, role: "assistant" as const, content: "", isStreaming: true }
+              : m
+          )
+        );
+
+        let content = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          content += decoder.decode(value, { stream: true });
+          const captured = content;
+          setMessages((prev) =>
+            prev.map((m) => (m.id === loadingId ? { ...m, content: captured } : m))
+          );
+        }
+
+        setMessages((prev) =>
+          prev.map((m) => (m.id === loadingId ? { ...m, isStreaming: false } : m))
+        );
+      } else {
+        // ── JSON response (analysis) ──────────────────────────────────────────
+        const data = (await res.json()) as AnalysisAPIResponse;
+        let assistantMsg: ChatMessage;
+
+        if (data.type === "analysis") {
+          assistantMsg = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: data.sandboxResult.summary,
+            isAnalysis: true,
+            mode: data.mode,
+            sandboxResult: data.sandboxResult,
+          };
+        } else {
+          assistantMsg = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: "",
+            error: data.error ?? "Something went wrong. Please try again.",
+          };
+        }
+
+        setMessages((prev) =>
+          prev.map((m) => (m.id === loadingId ? assistantMsg : m))
+        );
+      }
     } catch (err) {
       const errMsg: ChatMessage = {
         id: crypto.randomUUID(),

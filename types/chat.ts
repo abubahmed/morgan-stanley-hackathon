@@ -28,5 +28,6 @@ export interface ChatMessage {
   sandboxResult?: SandboxResult;
   isAnalysis?: boolean;
   isLoading?: boolean;
+  isStreaming?: boolean;
   error?: string;
 }
