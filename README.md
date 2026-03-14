@@ -20,6 +20,16 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Insights data layer (Lemontree + public datasets)
+
+The app exposes a **layered insights API** so an agent or UI can get Lemontree metrics and public context (e.g. NYC food insecurity) in one consistent shape.
+
+- **Ingest public data:** `npm run ingest-public` (writes to `data/public/`). For Census and BLS, set `CENSUS_API_KEY` and `BLS_API_KEY` in `.env.local` (see `.env.example`).
+- **API:** `GET /api/insights?city=nyc&year=2025&limit=20` — merged areas with `lemontree` and `public` fields.  
+  `GET /api/public-datasets` lists sources; `POST /api/public-datasets` refreshes the cache.
+- **Testing:** See [docs/TESTING.md](docs/TESTING.md) for step-by-step checks.
+- **Agent contract:** See [docs/agent-api.md](docs/agent-api.md) for query params and response shape.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

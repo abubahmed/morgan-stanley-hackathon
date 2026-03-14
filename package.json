@@ -10,7 +10,8 @@
     "claude": "npx tsx scripts/claude.ts",
     "python": "npx tsx scripts/python.ts",
     "lemontree": "npx tsx scripts/test-lemontree.ts",
-    "reviews": "npx tsx scripts/test-reviews.ts"
+    "reviews": "npx tsx scripts/test-reviews.ts",
+    "ingest-public": "npx tsx scripts/ingest-public-datasets.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -28,6 +29,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "5.9.3"
   }
 }

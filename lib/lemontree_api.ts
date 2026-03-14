@@ -15,7 +15,7 @@ async function fetchLemontree(path: string, params: Record<string, any> = {}) {
 // Resources 
 
 // Get a page of resources — provide location (zip) OR lat+lng
-export async function getResources(params: {
+export type GetResourcesParams = {
   lat?: number
   lng?: number
   location?: string          // zip code e.g. "10001"
@@ -27,12 +27,13 @@ export async function getResources(params: {
   sort?: "distance" | "referrals" | "reviews" | "confidence" | "createdAt"
   take?: number
   cursor?: string
-} = {}) {
+}
+export async function getResources(params: GetResourcesParams = {}) {
   return fetchLemontree("/api/resources", params)
 }
 
 // Fetch ALL resources, auto-paginating
-export async function getAllResources(params: Omit<Parameters<typeof getResources>[0], "cursor"> = {}) {
+export async function getAllResources(params: Omit<GetResourcesParams, "cursor"> = {}) {
   const all: any[] = []
   let cursor: string | undefined
   do {
