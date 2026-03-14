@@ -6,64 +6,124 @@ import type { ChatMessage, SandboxResult, IntentMode } from "@/types/chat";
 // ─── Lightweight markdown renderer ──────────────────────────────────────────
 // Handles: **bold**, *italic*, numbered lists, bullet lists, newlines.
 // Avoids adding a full markdown library dependency.
+function parseTableRow(line: string): string[] {
+  return line
+    .split("|")
+    .slice(1, -1)
+    .map((cell) => cell.trim());
+}
+
+function isTableSeparator(line: string): boolean {
+  return /^\|[-| :]+\|$/.test(line.trim());
+}
+
+function renderTable(tableLines: string[], key: number): React.ReactNode {
+  const rows = tableLines.filter((l) => !isTableSeparator(l));
+  if (rows.length === 0) return null;
+  const [header, ...body] = rows;
+  const headers = parseTableRow(header);
+  return (
+    <div key={key} className="overflow-x-auto my-2">
+      <table className="w-full text-xs border-collapse">
+        <thead>
+          <tr>
+            {headers.map((h, i) => (
+              <th key={i} className="text-left px-3 py-1.5 bg-gray-100 border border-gray-200 font-semibold text-gray-700">
+                {inlineMarkdown(h)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((row, ri) => (
+            <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+              {parseTableRow(row).map((cell, ci) => (
+                <td key={ci} className="px-3 py-1.5 border border-gray-200 text-gray-800">
+                  {inlineMarkdown(cell)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function renderMarkdown(text: string): React.ReactNode {
   const lines = text.split("\n");
   const nodes: React.ReactNode[] = [];
+  let i = 0;
 
-  lines.forEach((line, li) => {
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Collect table blocks (consecutive lines starting with |)
+    if (line.trim().startsWith("|")) {
+      const tableLines: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        tableLines.push(lines[i]);
+        i++;
+      }
+      const tableNode = renderTable(tableLines, nodes.length);
+      if (tableNode) nodes.push(tableNode);
+      continue;
+    }
+
     // H1
     const h1Match = line.match(/^#\s+(.*)/);
     if (h1Match) {
-      nodes.push(<div key={li} className="font-bold text-base mt-1">{inlineMarkdown(h1Match[1])}</div>);
-      return;
+      nodes.push(<div key={i} className="font-bold text-base mt-1">{inlineMarkdown(h1Match[1])}</div>);
+      i++; continue;
     }
     // H2
     const h2Match = line.match(/^##\s+(.*)/);
     if (h2Match) {
-      nodes.push(<div key={li} className="font-bold text-sm mt-1">{inlineMarkdown(h2Match[1])}</div>);
-      return;
+      nodes.push(<div key={i} className="font-bold text-sm mt-1">{inlineMarkdown(h2Match[1])}</div>);
+      i++; continue;
     }
     // H3
     const h3Match = line.match(/^###\s+(.*)/);
     if (h3Match) {
-      nodes.push(<div key={li} className="font-semibold text-sm mt-1">{inlineMarkdown(h3Match[1])}</div>);
-      return;
+      nodes.push(<div key={i} className="font-semibold text-sm mt-1">{inlineMarkdown(h3Match[1])}</div>);
+      i++; continue;
     }
     // Horizontal rule
     if (line.trim() === "---") {
-      nodes.push(<hr key={li} className="border-gray-200 my-1.5" />);
-      return;
+      nodes.push(<hr key={i} className="border-gray-200 my-1.5" />);
+      i++; continue;
     }
     // Numbered list item
     const numMatch = line.match(/^(\d+)\.\s+(.*)/);
     if (numMatch) {
       nodes.push(
-        <div key={li} className="flex gap-1.5">
+        <div key={i} className="flex gap-1.5">
           <span className="shrink-0 font-semibold">{numMatch[1]}.</span>
           <span>{inlineMarkdown(numMatch[2])}</span>
         </div>
       );
-      return;
+      i++; continue;
     }
     // Bullet list item
     const bulletMatch = line.match(/^[-*]\s+(.*)/);
     if (bulletMatch) {
       nodes.push(
-        <div key={li} className="flex gap-1.5">
+        <div key={i} className="flex gap-1.5">
           <span className="shrink-0">·</span>
           <span>{inlineMarkdown(bulletMatch[1])}</span>
         </div>
       );
-      return;
+      i++; continue;
     }
     // Blank line → spacer
     if (line.trim() === "") {
-      nodes.push(<div key={li} className="h-1.5" />);
-      return;
+      nodes.push(<div key={i} className="h-1.5" />);
+      i++; continue;
     }
     // Regular line
-    nodes.push(<div key={li}>{inlineMarkdown(line)}</div>);
-  });
+    nodes.push(<div key={i}>{inlineMarkdown(line)}</div>);
+    i++;
+  }
 
   return <>{nodes}</>;
 }
@@ -248,6 +308,9 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         {message.isStreaming ? (
           <span className="whitespace-pre-wrap">
             {message.content
+              .split("\n")
+              .filter((line) => !line.includes("|"))
+              .join("\n")
               .replace(/\*\*([^*]+)\*\*/g, "$1")
               .replace(/\*([^*]+)\*/g, "$1")
               .replace(/\*+/g, "")}
