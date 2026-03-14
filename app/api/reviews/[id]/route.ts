@@ -1,101 +1,103 @@
 /**
- * app/api/reviews/[id]/route.ts
- * PATCH /api/reviews/:id   — take an action on a review
- * DELETE /api/reviews/:id  — soft delete a review (admin only)
- *
- * PATCH body: { action: "clientFlag" | "resourceFlag" | "shareSocial" | "followUp" | "moderate" | "approvePhoto" }
- * For "moderate": also pass { inaccurate: boolean, inaccurateNote?: string, reviewerName: string }
+ * app/api/reviews/[id]/route.ts — Supabase version
+ * PATCH /api/reviews/:id  — take an action on a review
+ * DELETE /api/reviews/:id — soft delete
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/db/client";
+import { supabase } from "@/lib/supabase";
 import { toReviewEntry } from "@/db/types";
 import type { ReviewRow } from "@/db/types";
+
+function normalize(r: any): ReviewRow {
+  return {
+    ...r,
+    attended:                 r.attended              === true ? 1 : r.attended === false ? 0 : null,
+    information_accurate:     r.information_accurate  === true ? 1 : r.information_accurate === false ? 0 : null,
+    photo_public:             r.photo_public          === true ? 1 : r.photo_public === false ? 0 : null,
+    share_text_with_resource: r.share_text_with_resource ? 1 : 0,
+    client_flag_created:      r.client_flag_created   ? 1 : 0,
+    resource_flag_created:    r.resource_flag_created ? 1 : 0,
+    shared_social:            r.shared_social         ? 1 : 0,
+    follow_up_sent:           r.follow_up_sent        ? 1 : 0,
+    is_synthetic:             r.is_synthetic          ? 1 : 0,
+  } as ReviewRow;
+}
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const body   = await req.json();
+  const { id }     = await params;
+  const body       = await req.json();
   const { action } = body;
 
   try {
-    const existing = db.prepare(
-      "SELECT * FROM reviews WHERE id = ? AND deleted_at IS NULL"
-    ).get(id) as ReviewRow | undefined;
+    const { data: existing, error: fetchErr } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("id", id)
+      .is("deleted_at", null)
+      .single();
 
-    if (!existing) {
+    if (fetchErr || !existing) {
       return NextResponse.json({ error: "Review not found" }, { status: 404 });
     }
 
+    let update: Record<string, any> = {};
+
     switch (action) {
       case "clientFlag":
-        db.prepare(
-          `UPDATE reviews SET client_flag_created = 1, status = 'Flagged' WHERE id = ?`
-        ).run(id);
+        update = { client_flag_created: true, status: "Flagged" };
         break;
-
       case "resourceFlag":
-        db.prepare(
-          `UPDATE reviews SET resource_flag_created = 1, status = 'Flagged' WHERE id = ?`
-        ).run(id);
+        update = { resource_flag_created: true, status: "Flagged" };
         break;
-
       case "shareSocial":
-        db.prepare(
-          `UPDATE reviews SET shared_social = 1 WHERE id = ?`
-        ).run(id);
+        update = { shared_social: true };
         break;
-
       case "followUp":
-        db.prepare(
-          `UPDATE reviews SET follow_up_sent = 1 WHERE id = ?`
-        ).run(id);
+        update = { follow_up_sent: true };
         break;
-
       case "moderate": {
         const { inaccurate, inaccurateNote, reviewerName } = body;
-        db.prepare(`
-          UPDATE reviews
-          SET reviewed_by_name    = ?,
-              moderation_date     = date('now'),
-              information_accurate = ?,
-              inaccurate_note     = ?,
-              status              = 'Completed'
-          WHERE id = ?
-        `).run(
-          reviewerName ?? "Admin",
-          inaccurate ? 0 : 1,
-          inaccurateNote ?? null,
-          id
-        );
+        update = {
+          reviewed_by_name:     reviewerName ?? "Admin",
+          moderation_date:      new Date().toISOString().split("T")[0],
+          information_accurate: !inaccurate,
+          inaccurate_note:      inaccurateNote ?? null,
+          status:               "Completed",
+        };
         break;
       }
-
       case "approvePhoto":
-        db.prepare(
-          `UPDATE reviews SET photo_status = 'Approved', photo_public = 1 WHERE id = ?`
-        ).run(id);
+        update = { photo_status: "Approved", photo_public: true };
         break;
-
       default:
         return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
     }
 
-    // Return the updated review in UI shape
-    const updated = db.prepare(`
-      SELECT rv.*, r.name as resource_name
-      FROM reviews rv
-      JOIN resources r ON r.id = rv.resource_id
-      WHERE rv.id = ?
-    `).get(id) as (ReviewRow & { resource_name: string }) | undefined;
+    const { error: updateErr } = await supabase
+      .from("reviews")
+      .update(update)
+      .eq("id", id);
 
-    if (!updated) {
-      return NextResponse.json({ error: "Review not found after update" }, { status: 404 });
+    if (updateErr) throw updateErr;
+
+    const { data: updated, error: refetchErr } = await supabase
+      .from("reviews")
+      .select("*, resources(name)")
+      .eq("id", id)
+      .single();
+
+    if (refetchErr || !updated) {
+      return NextResponse.json({ error: "Failed to fetch updated review" }, { status: 500 });
     }
 
-    return NextResponse.json({ review: toReviewEntry(updated, updated.resource_name) });
+    return NextResponse.json({
+      review: toReviewEntry(normalize(updated), updated.resources?.name ?? "Unknown"),
+    });
+
   } catch (err) {
     console.error(`[PATCH /api/reviews/${id}]`, err);
     return NextResponse.json({ error: "Failed to update review" }, { status: 500 });
@@ -109,13 +111,13 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    const result = db.prepare(
-      `UPDATE reviews SET deleted_at = datetime('now') WHERE id = ? AND deleted_at IS NULL`
-    ).run(id);
+    const { error } = await supabase
+      .from("reviews")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id)
+      .is("deleted_at", null);
 
-    if (result.changes === 0) {
-      return NextResponse.json({ error: "Review not found" }, { status: 404 });
-    }
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (err) {

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,6 +46,13 @@ export default function ReviewsPage() {
   const [stats,    setStats]     = useState<ReviewStats>({ total: 0, avgRating: 0, totalTickets: 0, pendingCount: 0 });
   const [loading,  setLoading]   = useState(true);
   const [error,    setError]     = useState<string | null>(null);
+
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.role === "admin";
+
+  useEffect(() => {
+    if (!isAdmin) setActiveTab("add");
+  }, [isAdmin]);
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -97,11 +106,11 @@ export default function ReviewsPage() {
           </p>
         </div>
 
-        {/* Tabs */}
+        {isAdmin && (
         <div className="flex gap-1 mb-8 p-1 rounded-xl" style={{ background: "#ede8df", width: "fit-content" }}>
           {([
-            { key: "reviews" as ActiveTab, label: "Reviews",    icon: "☰" },
-            { key: "add"     as ActiveTab, label: "Add Review", icon: "+" },
+            { key: "reviews" as ActiveTab, label: "Moderation", icon: "☰" },
+            { key: "add"     as ActiveTab, label: "Add Review",  icon: "+" },
           ]).map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all"
@@ -114,9 +123,23 @@ export default function ReviewsPage() {
             </button>
           ))}
         </div>
+      )}
 
+      {(!isAdmin || activeTab === "add") && (
+        <AddReviewForm
+          onSubmitted={() => {
+            if (isAdmin) {
+              setActiveTab("reviews");
+              fetchReviews();
+            } else {
+              // User — show a success state in place
+              fetchReviews();
+            }
+          }}
+        />
+      )}
         {/* ── Reviews tab ──────────────────────────────────────────────────── */}
-        {activeTab === "reviews" && (
+        {isAdmin && activeTab === "reviews" && (
           <>
             <div className="grid grid-cols-4 gap-4 mb-8">
               {[
@@ -184,12 +207,6 @@ export default function ReviewsPage() {
           </>
         )}
 
-        {/* ── Add Review tab ───────────────────────────────────────────────── */}
-        {activeTab === "add" && (
-          <AddReviewForm
-            onSubmitted={() => { setActiveTab("reviews"); fetchReviews(); }}
-          />
-        )}
       </div>
     </main>
   );
@@ -223,6 +240,9 @@ function AddReviewForm({ onSubmitted }: { onSubmitted: () => void }) {
 
   const [resources, setResources] = useState<ResourceOption[]>([]);
   const selectingRef = useRef(false); 
+
+  const { data: session } = useSession();
+const isAdmin = (session?.user as any)?.role === "admin";
 
 useEffect(() => {
   fetch("/api/resources?limit=500")
@@ -323,11 +343,15 @@ useEffect(() => {
             style={{ background: "white", color: "#374151", border: "1px solid #e5e0d5" }}>
             Submit another
           </button>
-          <button onClick={onSubmitted}
-            className="px-5 py-2.5 rounded-xl text-sm font-medium"
-            style={{ background: "#1a1a2e", color: "white" }}>
-            View all reviews
-          </button>
+          {
+            isAdmin && (
+              <button onClick={onSubmitted}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium"
+                style={{ background: "#1a1a2e", color: "white" }}>
+                View all reviews
+              </button>
+            )
+          }
         </div>
       </div>
     );

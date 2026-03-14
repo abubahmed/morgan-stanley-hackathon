@@ -1,7 +1,10 @@
+"use client";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/Navbar";
+import NavBar from "./components/Navbar";
+import { SessionProvider } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,24 +16,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Lemon Tree Insights",
-  description: "AI-powered food access intelligence platform",
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const NO_NAV = ["/login"];
+ 
+function LayoutInner({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const showNav  = !NO_NAV.includes(pathname ?? "");
+ 
+  return (
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      {showNav && <NavBar />}
+      <div style={{ flex: 1 }}>{children}</div>
+    </div>
+  );
+}
+ 
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{ backgroundColor: "#FAF7F0" }}
-      >
-        <Navbar />
-        {children}
+      <body>
+        <SessionProvider>
+          <LayoutInner>{children}</LayoutInner>
+        </SessionProvider>
       </body>
     </html>
   );
