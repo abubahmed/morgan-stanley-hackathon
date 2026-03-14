@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/sandbox", label: "Sandbox" },
-  { href: "/reviews", label: "Reviews" },
-];
+import { useSession, signOut } from "next-auth/react";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.role === "admin";
+
+  const navLinks = [
+    { href: "/",          label: "Home",      adminOnly: false },
+    { href: "/dashboard", label: "Dashboard", adminOnly: false },
+    { href: "/sandbox",   label: "Sandbox",   adminOnly: true  },
+    { href: "/reviews",   label: "Reviews",   adminOnly: false  },
+  ].filter(l => !l.adminOnly || isAdmin);
 
   return (
     <nav
@@ -44,6 +47,32 @@ export default function Navbar() {
             );
           })}
         </div>
+
+        {/* User info + sign out */}
+        {session?.user && (
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-xs font-medium" style={{ color: "#374151" }}>
+                {session.user.name}
+              </p>
+              <p className="text-xs" style={{ color: "#9ca3af" }}>
+                {isAdmin ? "Admin" : "User"}
+              </p>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="text-xs px-3 py-1.5 rounded-lg"
+              style={{
+                border: "1px solid #e5e0d5",
+                background: "white",
+                color: "#6b7280",
+                cursor: "pointer",
+              }}
+            >
+              Sign out
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );
