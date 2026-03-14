@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
   const nta = searchParams.get("nta") ?? undefined;
   const minWeightedScore = parseNumber(searchParams.get("minWeightedScore"));
   const maxWeightedScore = parseNumber(searchParams.get("maxWeightedScore"));
+  const minPantries = parseNumber(searchParams.get("minPantries"));
   const limit = parseNumber(searchParams.get("limit"));
 
   const filters: InsightsFilters = {
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
     nta,
     minWeightedScore,
     maxWeightedScore,
+    minPantries,
     limit,
   };
 

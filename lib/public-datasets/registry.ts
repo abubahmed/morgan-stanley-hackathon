@@ -37,18 +37,26 @@ export interface PublicDatasetConfig {
   options?: {
     censusYear?: number;
     censusVariables?: string[];
+    /** State FIPS (e.g. "36") or "*" for all states (national). */
     censusStateFips?: string;
+    /** County FIPS suffixes (e.g. ["005","047"]) or omit when censusStateFips is "*" (county:* per state). */
     censusCounties?: string[];
-    /** BLS series IDs for county unemployment (for bls_json) */
+    /** When true, fetch all states (uses data/geo/us-state-fips.json). */
+    censusNational?: boolean;
+    /** BLS series IDs for county unemployment (for bls_json). Omit when blsNational is true. */
     blsSeriesIds?: string[];
     blsStartYear?: number;
     blsEndYear?: number;
+    /** When true, build series from census-acs5-county cache (run Census ingest first). */
+    blsNational?: boolean;
     /** Esri: outFields comma list (for esri_rest) */
     esriOutFields?: string;
-    /** Esri: limit to these county FIPS (e.g. NYC boroughs) to reduce payload */
+    /** Esri: limit to these county FIPS; omit or empty for national (where=1=1). */
     esriCountyFips?: string[];
     /** Esri: when true, layer is tract-level; geoKeyColumn is GEOID10 (11-char), county_fips = first 5 chars, and where uses LIKE '36xxx%' */
     esriCountyFipsFromGeoId?: boolean;
+    /** When true, query all features (national). */
+    esriNational?: boolean;
   };
 }
 
@@ -80,7 +88,7 @@ export const PUBLIC_DATASETS: PublicDatasetConfig[] = [
     },
     enabled: true,
   },
-  // Census ACS 5-year: poverty, population at county level (NYC 5 boroughs)
+  // Census ACS 5-year: poverty, population at county level (national: all states)
   {
     id: "census-acs5-county",
     name: "Census ACS 5-Year (County)",
@@ -99,11 +107,10 @@ export const PUBLIC_DATASETS: PublicDatasetConfig[] = [
     options: {
       censusYear: 2022,
       censusVariables: ["NAME", "B01003_001E", "B17001_002E", "B17001_001E"],
-      censusStateFips: "36",
-      censusCounties: ["005", "047", "061", "081", "085"],
+      censusNational: true,
     },
   },
-  // BLS LAUS: county unemployment rates
+  // BLS LAUS: county unemployment rates (national; uses census cache for county list)
   {
     id: "bls-laus-county",
     name: "BLS LAUS County Unemployment",
@@ -118,7 +125,7 @@ export const PUBLIC_DATASETS: PublicDatasetConfig[] = [
     },
     enabled: true,
     options: {
-      blsSeriesIds: BLS_NYC_SERIES,
+      blsNational: true,
       blsStartYear: 2022,
       blsEndYear: 2024,
     },
@@ -144,7 +151,7 @@ export const PUBLIC_DATASETS: PublicDatasetConfig[] = [
       esriCountyFips: NYC_COUNTY_FIPS,
     },
   },
-  // USDA ERS Food Access Research Atlas 2019 (tract-level; we aggregate to county). Layer 1 = feature layer. Year 2022 so it merges with Census/BLS in insights.
+  // USDA ERS Food Access Research Atlas 2019 (tract-level; we aggregate to county). National.
   {
     id: "usda-fara-2019",
     name: "USDA Food Access Research Atlas 2019",
@@ -161,8 +168,8 @@ export const PUBLIC_DATASETS: PublicDatasetConfig[] = [
     enabled: true,
     options: {
       esriOutFields: "GEOID10,St_Name,Cnty_Name,lapop1share",
-      esriCountyFips: NYC_COUNTY_FIPS,
       esriCountyFipsFromGeoId: true,
+      esriNational: true,
       censusYear: 2022,
     },
   },

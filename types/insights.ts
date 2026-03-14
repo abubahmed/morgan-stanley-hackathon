@@ -2,7 +2,7 @@
  * Stable types for the insights API. The agent and visualizations depend on this shape.
  */
 
-export type GeoLevel = "local_area" | "tract";
+export type GeoLevel = "local_area" | "county" | "tract";
 
 export interface InsightsFilters {
   city: string;
@@ -11,6 +11,8 @@ export interface InsightsFilters {
   nta?: string;
   minWeightedScore?: number;
   maxWeightedScore?: number;
+  /** When geo=county: only include areas with at least this many pantries (so you can see need + supply together). */
+  minPantries?: number;
   limit?: number;
 }
 
