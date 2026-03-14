@@ -1,92 +1,106 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { getAllResources } from '@/lib/lemontree_api';
+import React, { useEffect, useState, useRef } from "react";
+import { getResources } from '@/lib/lemontree_api';
 import InteractiveMap, { FoodResource } from "./components/InteractiveMap";
 import AttendanceChart from "./components/AttendanceChart";
 
 export default function Home() {
   const [resources, setResources] = useState<FoodResource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [focusedPantry, setFocusedPantry] = useState<FoodResource | null>(null);
   
-  // Placeholder for AI Insight
-  const aiInsightPlaceholder = "AI INSIGHT PLACEHOLDER TEXT";
+  // Use a ref to track the cursor so we don't lose our place
+  const cursorRef = useRef<string | null>(null);
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchAllPages() {
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
+
       try {
-        const data = await getAllResources({ take: 30 });
-        setResources(data);
+        let hasMore = true;
+        let firstBatch = true;
+
+        while (hasMore) {
+          // Fetch one page at a time (100 items per "drip")
+          const response = await getResources({ 
+            take: 100, 
+            cursor: cursorRef.current || undefined 
+          });
+
+          const newItems = response.resources || [];
+          
+          // 🚀 Update the map immediately with the new items
+          setResources(prev => [...prev, ...newItems]);
+
+          // Hide the spinner as soon as the first 100 points land
+          if (firstBatch) {
+            setLoading(false);
+            firstBatch = false;
+          }
+
+          // Check if there's another page
+          if (response.cursor && response.cursor !== cursorRef.current) {
+            cursorRef.current = response.cursor;
+            // Optional: Add a tiny delay so the browser doesn't choke
+            await new Promise(resolve => setTimeout(resolve, 100));
+          } else {
+            hasMore = false;
+          }
+        }
       } catch (err) {
-        console.error("Fetch error:", err);
+        console.error("Streaming error:", err);
+        setLoading(false);
+      } finally {
+        isFetchingRef.current = false;
       }
     }
-    fetchData();
+
+    fetchAllPages();
   }, []);
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6 lg:p-12 text-zinc-900 dark:text-zinc-100">
-      <div className="max-w-7xl mx-auto flex flex-col gap-8">
-        
+    <main className="min-h-screen bg-zinc-50 p-6 lg:p-10 text-zinc-900">
+      <div className="max-w-[1600px] mx-auto flex flex-col gap-6">
         <header className="flex justify-between items-end">
           <div>
-            <h1 className="text-4xl font-black tracking-tighter">RESOURCE INSIGHTS</h1>
-            <p className="text-zinc-500 font-medium">NY-NJ Regional Food Security Dashboard</p>
-          </div>
-          <div className="flex gap-2">
-            <span className="bg-green-100 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-              Live Data
-            </span>
+            <h1 className="text-3xl font-bold tracking-tight">National Live-Sync Dashboard</h1>
+            <p className="text-zinc-500 text-sm">
+              Status: {loading ? "Connecting..." : `Streaming Data (${resources.length} points synced)`}
+            </p>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Map Column */}
-          <div className="lg:col-span-8 h-[600px] bg-white rounded-3xl border border-zinc-200 overflow-hidden shadow-xl dark:bg-zinc-900 dark:border-zinc-800">
-            <InteractiveMap dataPoints={resources} />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[700px]">
+          <div className="lg:col-span-8 rounded-3xl overflow-hidden border border-zinc-200 shadow-xl bg-white relative">
+            <InteractiveMap 
+              dataPoints={resources} 
+              onViewTrends={(p) => setFocusedPantry(p)} 
+            />
           </div>
 
-          {/* Data & Insights Column */}
           <div className="lg:col-span-4 flex flex-col gap-6">
-            
-            {/* Trend Chart */}
-            <div className="p-6 bg-white rounded-3xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
-              <h3 className="text-[10px] font-black uppercase text-zinc-400 mb-6 tracking-widest">Historical Demand</h3>
-              <AttendanceChart data={[
-                { year: '2023', attendance: 3100 },
-                { year: '2024', attendance: 4200 },
-                { year: '2025', attendance: 5800 }
-              ]} />
-            </div>
-
-            {/* AI Insight Card */}
-            <div className="p-8 bg-zinc-900 text-white rounded-3xl shadow-2xl flex flex-col justify-between h-full">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">AI Overview</span>
+            <div className={`p-8 rounded-3xl border transition-all ${focusedPantry ? 'bg-zinc-900 text-white' : 'bg-white'}`}>
+              <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4">Live Insights</h3>
+              {focusedPantry ? (
+                <div className="space-y-2">
+                  <h2 className="text-lg font-bold">{focusedPantry.name}</h2>
+                  <p className="text-sm opacity-80">{focusedPantry.addressStreet1}</p>
+                  <p className="text-sm font-semibold text-blue-400">{focusedPantry.waitTimeMinutesAverage ?? 'Unknown'}m Wait Time</p>
                 </div>
-                <h3 className="text-xl font-bold mb-4">Regional Analysis</h3>
-                <p className="text-sm leading-relaxed text-zinc-400 italic">
-                  "{aiInsightPlaceholder}"
-                </p>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-zinc-800">
-                <button 
-                  onClick={() => window.print()}
-                  className="w-full bg-white text-black text-xs font-bold py-3 rounded-xl hover:bg-zinc-200 transition-colors uppercase tracking-widest"
-                >
-                  Export Insight PDF
-                </button>
-                <p className="text-[9px] text-zinc-600 mt-4 text-center uppercase font-medium">
-                  Compiled via Census, BLS, and Lemontree API
-                </p>
-              </div>
+              ) : (
+                <p className="text-sm text-zinc-400 italic">Select a point to view live wait metrics.</p>
+              )}
             </div>
-
+            {/* The chart still works based on focusedPantry */}
+            <div className="bg-white p-6 rounded-3xl border border-zinc-200 flex-1">
+              <AttendanceChart data={[]} /> 
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

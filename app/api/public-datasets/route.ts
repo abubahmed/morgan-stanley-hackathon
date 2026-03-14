@@ -8,7 +8,26 @@ import { fetchAndNormalize, writeCached } from "@/lib/public-datasets";
 import type { PublicDatasetMeta } from "@/types/insights";
 import { existsSync, statSync } from "fs";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get("type");
+
+  if (type === "data") {
+  const foodInsecurityData = readCached("nyc-food-insecurity") || [];
+  
+  const resources = foodInsecurityData.map((item: any) => ({
+    id: item.id || item.nta_code || Math.random().toString(),
+    name: item.name || item.nta_name || "Food Access Point",
+    latitude: item.latitude,
+    longitude: item.longitude,
+    waitTimeMinutesAverage: item.waitTimeMinutesAverage, 
+    zipCode: item.zipCode || item.zip_code || "10001"
+  }));
+
+  return Response.json(resources);
+}
+
+  // DEFAULT: Existing logic that returns the list of datasets
   const datasets = getEnabledDatasets();
   const list: PublicDatasetMeta[] = datasets.map((d) => {
     const path = getCachePath(d.id);
@@ -17,21 +36,14 @@ export async function GET() {
       try {
         const mtime = statSync(path).mtimeMs;
         lastIngestedAt = new Date(mtime).toISOString();
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
     }
     return {
-      id: d.id,
-      name: d.name,
-      provider: d.provider,
-      baseUrl: d.baseUrl,
-      format: d.format,
-      geoLevel: d.geoLevel,
-      enabled: d.enabled,
-      lastIngestedAt,
+      id: d.id, name: d.name, provider: d.provider, baseUrl: d.baseUrl,
+      format: d.format, geoLevel: d.geoLevel, enabled: d.enabled, lastIngestedAt,
     };
   });
+  
   return Response.json({ datasets: list });
 }
 

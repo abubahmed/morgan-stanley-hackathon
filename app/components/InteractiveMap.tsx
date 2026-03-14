@@ -20,14 +20,23 @@ interface MapProps {
 }
 
 export default function InteractiveMap({ dataPoints, onViewTrends }: MapProps) {
+  console.log("Map render. Points count:", dataPoints?.length); // <--- Add this
   const [selectedPantry, setSelectedPantry] = useState<FoodResource | null>(null);
 
-  const getStatusColor = (waitTime: number) => {
-    if (waitTime > 45) return 'bg-red-500';
-    if (waitTime > 20) return 'bg-amber-500';
-    return 'bg-emerald-500';
-  };
-
+  const getStatusColor = (waitTime: number | undefined | null) => {
+  if (waitTime === undefined || waitTime === null) return 'bg-zinc-400';
+  if (waitTime > 45) return 'bg-red-500';
+  if (waitTime > 20) return 'bg-amber-500';
+  return 'bg-emerald-500';
+};
+  // Filter out any points that don't have valid numbers for lat/lng
+  const validPoints = React.useMemo(() => {
+  return dataPoints?.filter(point => {
+      const lat = Number(point.latitude);
+      const lng = Number(point.longitude);
+      return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+    }) || [];
+  }, [dataPoints]);
   return (
     <div className="w-full h-full relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50">
       <Map
@@ -42,30 +51,29 @@ export default function InteractiveMap({ dataPoints, onViewTrends }: MapProps) {
       >
         <NavigationControl position="top-right" />
 
-        {dataPoints?.map((point) => {
-          const waitTime = point.waitTimeMinutesAverage || 0;
+        {validPoints.map((point) => {
+          const waitTime = point.waitTimeMinutesAverage;
           return (
-            <Marker
-              key={point.id}
-              longitude={Number(point.longitude)}
-              latitude={Number(point.latitude)}
-              anchor="bottom"
-              onClick={(e: any) => {
-                // Using any here prevents the "no exported member" error 
-                // while still allowing us to stop event bubbling.
-                e.originalEvent.stopPropagation();
-                setSelectedPantry(point);
-              }}
-            >
-              <div className="cursor-pointer group relative flex flex-col items-center">
-                {waitTime > 45 && (
-                  <div className="absolute inset-0 w-5 h-5 bg-red-400 rounded-full animate-ping opacity-20" />
-                )}
-                <div className={`w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm transition-all group-hover:scale-110 ${getStatusColor(waitTime)}`} />
-              </div>
-            </Marker>
-          );
-        })}
+          <Marker
+            key={point.id}
+            longitude={Number(point.longitude)}
+            latitude={Number(point.latitude)}
+            anchor="bottom"
+            onClick={(e: any) => {
+              e.originalEvent.stopPropagation();
+              setSelectedPantry(point);
+            }}
+          >
+            <div className="cursor-pointer group relative flex flex-col items-center">
+              {/* Only ping if it's a real number above 45 */}
+              {waitTime !== null && waitTime !== undefined && waitTime > 45 && (
+                <div className="absolute inset-0 w-5 h-5 bg-red-400 rounded-full animate-ping opacity-20" />
+              )}
+              <div className={`w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm transition-all group-hover:scale-110 ${getStatusColor(waitTime)}`} />
+            </div>
+          </Marker>
+        );
+      })}
 
         {selectedPantry && (
           <Popup
@@ -90,7 +98,11 @@ export default function InteractiveMap({ dataPoints, onViewTrends }: MapProps) {
               <div className="flex gap-2 mb-4">
                 <div className="flex-1 bg-zinc-100/50 p-2 rounded-lg border border-zinc-200/40 text-center">
                   <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Wait Time</p>
-                  <p className="text-xs font-semibold text-zinc-700">{selectedPantry.waitTimeMinutesAverage || 0}m</p>
+                  <p className="text-xs font-semibold text-zinc-700">
+                    {selectedPantry.waitTimeMinutesAverage != null 
+                      ? `${selectedPantry.waitTimeMinutesAverage}m` 
+                      : 'Unknown'}
+                  </p>
                 </div>
                 <div className="flex-1 bg-zinc-100/50 p-2 rounded-lg border border-zinc-200/40 text-center">
                   <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Zip Code</p>
