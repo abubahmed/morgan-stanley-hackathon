@@ -88,7 +88,7 @@ export default function Home() {
                 <div className="space-y-2">
                   <h2 className="text-lg font-bold">{focusedPantry.name}</h2>
                   <p className="text-sm opacity-80">{focusedPantry.addressStreet1}</p>
-                  <p className="text-sm font-semibold text-blue-400">{focusedPantry.waitTimeMinutesAverage ?? 'Unknown'}m Wait Time</p>
+                  <p className="text-sm font-semibold text-blue-400">Wait Time: {focusedPantry.waitTimeMinutesAverage !== null && focusedPantry.waitTimeMinutesAverage !== undefined ? `${focusedPantry.waitTimeMinutesAverage} minutes` : 'Unknown'}</p>
                 </div>
               ) : (
                 <p className="text-sm text-zinc-400 italic">Select a point to view live wait metrics.</p>
