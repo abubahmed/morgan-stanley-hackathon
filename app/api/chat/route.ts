@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 import Anthropic from "@anthropic-ai/sdk";
@@ -82,10 +82,7 @@ function formatResources(resources: any[]): string {
       const accepting = r.acceptingNewClients ? "Yes" : "No";
       const appt = r.openByAppointment ? "Yes" : "No";
       const site = r.website ?? "N/A";
-      return `${i + 1}. ${r.name} (${type})
-   Address: ${address || "Not listed"}
-   Accepting new clients: ${accepting} | Appointment needed: ${appt}
-   Website: ${site}`;
+      return `${i + 1}. ${r.name} (${type})\n   Address: ${address || "Not listed"}\n   Accepting new clients: ${accepting} | Appointment needed: ${appt}\n   Website: ${site}`;
     })
     .join("\n\n");
 }
@@ -111,6 +108,12 @@ async function callTool(name: string, input: Record<string, any>): Promise<strin
   } catch (err) {
     return `Error: ${err instanceof Error ? err.message : "Tool call failed"}`;
   }
+}
+
+// ── SSE helpers ────────────────────────────────────────────────────────────────
+
+function sseEvent(event: string, data: string): string {
+  return `event: ${event}\ndata: ${data}\n\n`;
 }
 
 // ── Route handler ──────────────────────────────────────────────────────────────
@@ -144,7 +147,11 @@ export async function POST(req: NextRequest) {
       });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Claude API call failed.";
-      return NextResponse.json({ type: "conversation_error", error: errorMsg }, { status: 502 });
+      const encoder = new TextEncoder();
+      return new Response(
+        encoder.encode(sseEvent("error", errorMsg) + sseEvent("done", "")),
+        { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" } }
+      );
     }
 
     if (response.stop_reason !== "tool_use") break;
@@ -191,51 +198,60 @@ export async function POST(req: NextRequest) {
     ];
   }
 
-  // ── Analysis result — return as JSON so the AnalysisCard renders ──────────
-  if (analysisResult) {
-    return NextResponse.json({
-      type: "analysis",
-      mode: analysisResult.mode,
-      sandboxResult: analysisResult.result,
-    });
-  }
+  // ── Stream SSE response ────────────────────────────────────────────────────
+  const encoder = new TextEncoder();
 
-  // ── Stream Claude's final response ────────────────────────────────────────
-  try {
-    const stream = await anthropic.messages.create({
-      model: "claude-opus-4-6",
-      max_tokens: 1024,
-      stream: true,
-      system: SYSTEM_PROMPT,
-      messages,
-    });
+  const readable = new ReadableStream({
+    async start(controller) {
+      const send = (event: string, data: string) => {
+        controller.enqueue(encoder.encode(sseEvent(event, data)));
+      };
 
-    const encoder = new TextEncoder();
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              controller.enqueue(encoder.encode(event.delta.text));
-            }
-          }
-        } finally {
-          controller.close();
+      try {
+        // Analysis result — send as a single event then close
+        if (analysisResult) {
+          send("analysis", JSON.stringify({
+            mode: analysisResult.mode,
+            sandboxResult: analysisResult.result,
+          }));
+          send("done", "");
+          return;
         }
-      },
-    });
 
-    return new Response(readable, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache",
-      },
-    });
-  } catch (err) {
-    const errorMsg = err instanceof Error ? err.message : "Claude API call failed.";
-    return NextResponse.json({ type: "conversation_error", error: errorMsg }, { status: 502 });
-  }
+        // Stream Claude's final text response chunk by chunk
+        const stream = await anthropic.messages.create({
+          model: "claude-opus-4-6",
+          max_tokens: 1024,
+          stream: true,
+          system: SYSTEM_PROMPT,
+          messages,
+        });
+
+        for await (const event of stream) {
+          if (
+            event.type === "content_block_delta" &&
+            event.delta.type === "text_delta"
+          ) {
+            // JSON-encode each chunk so newlines inside the text don't break SSE framing
+            send("text", JSON.stringify(event.delta.text));
+          }
+        }
+
+        send("done", "");
+      } catch (err) {
+        send("error", err instanceof Error ? err.message : "Claude API call failed.");
+        send("done", "");
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+    },
+  });
 }

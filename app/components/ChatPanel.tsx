@@ -100,11 +100,6 @@ const MODE_COLORS: Record<IntentMode, string> = {
   4: "from-green-400 to-emerald-500",
 };
 
-type AnalysisAPIResponse =
-  | { type: "analysis"; mode: IntentMode; sandboxResult: SandboxResult }
-  | { type: "analysis_error"; error: string }
-  | { type: "conversation_error"; error: string };
-
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function LoadingDots() {
@@ -337,62 +332,85 @@ export default function ChatPanel() {
         throw new Error(data.error ?? `Request failed (${res.status})`);
       }
 
-      const contentType = res.headers.get("Content-Type") ?? "";
+      // ── SSE parser ───────────────────────────────────────────────────────────
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
 
-      if (contentType.includes("text/plain")) {
-        // ── Streaming conversation response ──────────────────────────────────
-        const reader = res.body!.getReader();
-        const decoder = new TextDecoder();
+      // Switch loading placeholder to streaming mode
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === loadingId
+            ? { id: loadingId, role: "assistant" as const, content: "", isStreaming: true }
+            : m
+        )
+      );
 
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === loadingId
-              ? { id: loadingId, role: "assistant" as const, content: "", isStreaming: true }
-              : m
-          )
-        );
+      let buffer = "";
+      let eventName = "";
+      let textContent = "";
 
-        let content = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          content += decoder.decode(value, { stream: true });
-          const captured = content;
-          setMessages((prev) =>
-            prev.map((m) => (m.id === loadingId ? { ...m, content: captured } : m))
-          );
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? ""; // keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith("event: ")) {
+            eventName = line.slice(7).trim();
+          } else if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+
+            if (eventName === "text") {
+              // Data is JSON-encoded to safely carry newlines
+              textContent += JSON.parse(data) as string;
+              const captured = textContent;
+              setMessages((prev) =>
+                prev.map((m) => (m.id === loadingId ? { ...m, content: captured } : m))
+              );
+            } else if (eventName === "analysis") {
+              const parsed = JSON.parse(data) as { mode: IntentMode; sandboxResult: SandboxResult };
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === loadingId
+                    ? {
+                        id: loadingId,
+                        role: "assistant" as const,
+                        content: parsed.sandboxResult.summary,
+                        isAnalysis: true,
+                        mode: parsed.mode,
+                        sandboxResult: parsed.sandboxResult,
+                        isStreaming: false,
+                      }
+                    : m
+                )
+              );
+            } else if (eventName === "error") {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === loadingId
+                    ? { id: loadingId, role: "assistant" as const, content: "", error: data, isStreaming: false }
+                    : m
+                )
+              );
+            } else if (eventName === "done") {
+              setMessages((prev) =>
+                prev.map((m) => (m.id === loadingId ? { ...m, isStreaming: false } : m))
+              );
+            }
+          } else if (line === "") {
+            // Blank line = event boundary, reset event name
+            eventName = "";
+          }
         }
-
-        setMessages((prev) =>
-          prev.map((m) => (m.id === loadingId ? { ...m, isStreaming: false } : m))
-        );
-      } else {
-        // ── JSON response (analysis) ──────────────────────────────────────────
-        const data = (await res.json()) as AnalysisAPIResponse;
-        let assistantMsg: ChatMessage;
-
-        if (data.type === "analysis") {
-          assistantMsg = {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: data.sandboxResult.summary,
-            isAnalysis: true,
-            mode: data.mode,
-            sandboxResult: data.sandboxResult,
-          };
-        } else {
-          assistantMsg = {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: "",
-            error: data.error ?? "Something went wrong. Please try again.",
-          };
-        }
-
-        setMessages((prev) =>
-          prev.map((m) => (m.id === loadingId ? assistantMsg : m))
-        );
       }
+
+      // Ensure streaming flag is cleared if done event wasn't received
+      setMessages((prev) =>
+        prev.map((m) => (m.id === loadingId ? { ...m, isStreaming: false } : m))
+      );
     } catch (err) {
       const errMsg: ChatMessage = {
         id: crypto.randomUUID(),
