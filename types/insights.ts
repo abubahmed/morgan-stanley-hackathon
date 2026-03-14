@@ -28,6 +28,16 @@ export interface LemontreeAggregate {
   sample_resource_ids: string[];
 }
 
+/**
+ * Public dataset indicators merged per area for layering on Lemontree visuals.
+ * All fields are optional; null/undefined when dataset not available for that geography/year.
+ *
+ * Sources:
+ * - NYC food insecurity (NTA): food_insecure_pct, supply_gap_lbs, vulnerable_pop, weighted_score, rank
+ * - Census ACS (county→NTA): population, poverty_count, poverty_total; derived: poverty_rate
+ * - BLS LAUS (county→NTA): unemployment_rate
+ * - USDA FARA (county→NTA): low_access_share (% pop with low access to food stores)
+ */
 export interface PublicIndicators {
   food_insecure_pct: number | null;
   unemployment_rate: number | null;
@@ -35,6 +45,11 @@ export interface PublicIndicators {
   vulnerable_pop: number | null;
   weighted_score: number | null;
   rank?: number | null;
+  population?: number | null;
+  poverty_count?: number | null;
+  poverty_total?: number | null;
+  poverty_rate?: number | null;
+  low_access_share?: number | null;
   [key: string]: number | null | undefined;
 }
 

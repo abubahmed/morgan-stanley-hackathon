@@ -47,7 +47,7 @@ async function fetchSocrata(
     };
     for (const [stdKey, sourceKey] of Object.entries(mapping)) {
       const val = r[sourceKey];
-      out[stdKey] = toNum(val) ?? val;
+      out[stdKey] = toNum(val) ?? null;
     }
     return out;
   });

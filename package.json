@@ -11,7 +11,8 @@
     "python": "npx tsx scripts/python.ts",
     "lemontree": "npx tsx scripts/test-lemontree.ts",
     "reviews": "npx tsx scripts/test-reviews.ts",
-    "ingest-public": "npx tsx scripts/ingest-public-datasets.ts"
+    "ingest-public": "npx tsx scripts/ingest-public-datasets.ts",
+    "verify-public-data": "npx tsx scripts/verify-public-data.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

@@ -93,7 +93,51 @@ function ntaToCountyFips(ntaCode: string): string | null {
 }
 
 /**
+ * Pick the best-available row per geo key: latest year <= requested year.
+ * Ensures all dataset layers are used for visuals even when exact year is missing (e.g. Census 2022 + request 2025).
+ */
+function bestRowByGeoKey<T extends { year: number }>(
+  rows: T[],
+  year: number,
+  getGeoKey: (row: T) => string
+): Map<string, T> {
+  const byKey = new Map<string, T>();
+  for (const row of rows) {
+    if (row.year > year) continue;
+    const key = getGeoKey(row);
+    if (!key) continue;
+    const existing = byKey.get(key);
+    if (!existing || row.year > existing.year) byKey.set(key, row);
+  }
+  return byKey;
+}
+
+/**
+ * Build PublicIndicators from a cached row (all numeric fields except year/geo keys).
+ */
+function rowToIndicators(row: CachedDatasetRow, excludeKeys: string[]): PublicIndicators {
+  const indicators: PublicIndicators = {};
+  for (const [k, v] of Object.entries(row)) {
+    if (excludeKeys.includes(k)) continue;
+    if (typeof v === "number" && Number.isFinite(v)) (indicators as Record<string, number | null>)[k] = v;
+  }
+  return indicators;
+}
+
+/**
+ * Add derived indicators useful for visualizations (e.g. poverty_rate from Census).
+ */
+function addDerivedIndicators(indicators: PublicIndicators): void {
+  const total = indicators.poverty_total;
+  const count = indicators.poverty_count;
+  if (typeof total === "number" && total > 0 && typeof count === "number" && Number.isFinite(count)) {
+    (indicators as Record<string, number | null>).poverty_rate = count / total;
+  }
+}
+
+/**
  * Load public indicators for city/year from all enabled dataset caches.
+ * Uses best-available year per dataset when exact year is missing so all layers can be visualized.
  * - local_area datasets: keyed by local_area_code (NTA).
  * - county datasets: keyed by county_fips; merged into each NTA by NTA->county lookup.
  */
@@ -105,58 +149,61 @@ function loadPublicIndicators(
   const byCounty = new Map<string, PublicIndicators>();
   const datasets = getEnabledDatasets();
 
+  // County-level: one best row per county_fips, then merge all dataset indicators per county
   for (const config of datasets) {
-    const rows = readCached(config.id);
+    if (config.geoLevel !== "county") continue;
+    const rows = readCached(config.id) as CachedDatasetRow[] | null;
     if (!rows?.length) continue;
-    if (config.geoLevel === "county") {
-      for (const row of rows as CachedDatasetRow[]) {
-        const county_fips = String(row.county_fips ?? "").trim();
-        if (!county_fips || row.year !== year) continue;
-        const indicators: PublicIndicators = {};
-        for (const [k, v] of Object.entries(row)) {
-          if (k === "year" || k === "county_fips") continue;
-          if (typeof v === "number" && Number.isFinite(v)) (indicators as Record<string, number | null>)[k] = v;
-        }
-        byCounty.set(county_fips, { ...byCounty.get(county_fips), ...indicators });
-      }
+    const bestByCounty = bestRowByGeoKey(rows, year, (r) => String(r.county_fips ?? "").trim());
+    for (const [county_fips, row] of bestByCounty) {
+      if (!county_fips) continue;
+      const indicators = rowToIndicators(row, ["year", "county_fips"]);
+      addDerivedIndicators(indicators);
+      byCounty.set(county_fips, { ...byCounty.get(county_fips), ...indicators });
     }
   }
+
+  // Local-area (NTA): best row per local_area_code for this city
   for (const config of datasets) {
     if (config.geoLevel === "county") continue;
-    const rows = readCached(config.id);
+    const rows = readCached(config.id) as CachedDatasetRow[] | null;
     if (!rows?.length) continue;
-    for (const row of rows as CachedDatasetRow[]) {
-      if (row.city_code !== cityCode || row.year !== year) continue;
-      const code = String(row.local_area_code ?? "");
+    const cityRows = rows.filter((r) => r.city_code === cityCode);
+    const bestByNta = bestRowByGeoKey(cityRows, year, (r) => String(r.local_area_code ?? "").trim());
+    for (const [code, row] of bestByNta) {
       if (!code) continue;
       const name = typeof row.local_area_name === "string" ? row.local_area_name : undefined;
-      const indicators: PublicIndicators = {
-        food_insecure_pct: null,
-        unemployment_rate: null,
-        supply_gap_lbs: null,
-        vulnerable_pop: null,
-        weighted_score: null,
-      };
-      for (const [k, v] of Object.entries(row)) {
-        if (["year", "local_area_code", "local_area_name", "city_code"].includes(k)) continue;
-        if (typeof v === "number" && Number.isFinite(v)) (indicators as Record<string, number | null>)[k] = v;
-      }
+      const indicators = rowToIndicators(row, ["year", "local_area_code", "local_area_name", "city_code"]);
+      addDerivedIndicators(indicators);
       const countyFips = ntaToCountyFips(code);
       const countyIndicators = countyFips ? byCounty.get(countyFips) : undefined;
       const merged = { ...indicators, ...countyIndicators };
+      addDerivedIndicators(merged);
       byArea.set(code, { indicators: merged, name });
     }
   }
+
+  // When only county data exists (no NTA rows), expose borough-level entries for visuals
   if (byCounty.size > 0 && byArea.size === 0) {
+    const boroughNames: Record<string, string> = {
+      BX: "Bronx",
+      BK: "Brooklyn",
+      MN: "Manhattan",
+      QN: "Queens",
+      SI: "Staten Island",
+    };
     for (const [prefix, countyFips] of Object.entries(NTA_PREFIX_TO_COUNTY)) {
       const countyIndicators = byCounty.get(countyFips);
-      if (countyIndicators) byArea.set(prefix, { indicators: countyIndicators });
+      if (countyIndicators) byArea.set(prefix, { indicators: countyIndicators, name: boroughNames[prefix] ?? prefix });
     }
   } else if (byCounty.size > 0) {
     for (const [code, entry] of byArea) {
       const countyFips = ntaToCountyFips(code);
       const countyIndicators = countyFips ? byCounty.get(countyFips) : undefined;
-      if (countyIndicators) entry.indicators = { ...entry.indicators, ...countyIndicators };
+      if (countyIndicators) {
+        entry.indicators = { ...entry.indicators, ...countyIndicators };
+        addDerivedIndicators(entry.indicators);
+      }
     }
   }
   return byArea;
