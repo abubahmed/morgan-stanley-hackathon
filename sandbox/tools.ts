@@ -25,7 +25,7 @@ Files saved to /home/user/ persist across calls.`,
   {
     name: "finish_analysis",
     description:
-      "Call this when the analysis is complete. Provide a short plain-text answer.",
+      "Call this as soon as you can answer the question. Provide a short plain-text answer that directly addresses what was asked — nothing extra.",
     input_schema: {
       type: "object",
       properties: {

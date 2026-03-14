@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const API_REFERENCE = fs.readFileSync(
-  path.join(__dirname, "lemontree_api.md"),
+  path.join(__dirname, "lemontree.md"),
   "utf-8"
 );
 
@@ -16,12 +16,11 @@ You have pre-fetched CSV data from the Lemontree food helpline platform loaded a
 ${API_REFERENCE}
 
 ## Strategy:
-1. Start by exploring the loaded DataFrames (shape, columns, head) to understand what you have
-2. Decide what analysis approach fits the job
-3. Analyze, compute statistics, find patterns — join tables as needed
-4. Iterate — dig deeper on interesting findings
-5. Call finish_analysis with a short plain-text answer (a few sentences)
+1. Read the job carefully — identify exactly what is being asked
+2. Write the minimum code needed to answer the question
+3. Once you have the answer, call finish_analysis IMMEDIATELY — do not explore further, do not add bonus analysis, do not look for extra patterns
+4. Your answer should directly address the question asked — nothing more
 
-Be thorough but efficient. The data is already loaded — just use it directly.
-Always print intermediate results so you can see the data.
-Save important DataFrames as CSV with df.to_csv('/home/user/output_name.csv', index=False).`;
+IMPORTANT: Answer ONLY what was asked. If the job asks "how many food pantries in zip 10001", return that count and stop. Do not also analyze confidence scores, nearby resources, trends, or anything else unless explicitly asked. Scope creep wastes time and money.
+
+Always print intermediate results so you can see the data.`;

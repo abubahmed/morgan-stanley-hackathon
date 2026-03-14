@@ -6,6 +6,7 @@ separate CSV files in data/resources/.
 
 Output files:
   data/resources/resources.csv       — core resource data with simple fields flattened inline
+  data/resources/descriptions.csv    — resource descriptions (resource_id, description)
   data/resources/shifts.csv          — one row per shift
   data/resources/occurrences.csv     — one row per occurrence
   data/resources/tags.csv            — deduplicated tag lookup
@@ -23,14 +24,80 @@ OUTPUT_DIR = "data/resources"
 PAGE_SIZE = 100
 
 # ---------------------------------------------------------------------------
+# Value normalization
+# ---------------------------------------------------------------------------
+
+# Fields that must always be written as strings (never interpreted as numbers)
+STRING_FIELDS = {
+    "id", "resource_id", "shift_id", "resource_type_id", "resource_status_id",
+    "source_id", "tag_category_id", "zip_code",
+}
+
+# Fields that should be normalized to lowercase true/false
+BOOL_FIELDS = {
+    "accepting_new_clients", "appointment_required", "open_by_appointment",
+    "usage_limit_calendar_reset", "is_all_day", "managing",
+}
+
+# Fields that contain JSON arrays (empty = "[]")
+JSON_FIELDS = {
+    "phones", "image_urls", "tag_ids", "region_ids", "regions_served_ids",
+    "regional_zip_codes", "holidays", "proposed_changes",
+}
+
+
+def clean_row(row: dict) -> dict:
+    """Normalize all values in a row before writing to CSV."""
+    cleaned = {}
+    for key, value in row.items():
+        # JSON array fields: ensure [] not ""
+        if key in JSON_FIELDS:
+            cleaned[key] = value if value else "[]"
+            continue
+
+        # Null normalization: None, "None", "null", "" all become ""
+        if value is None or value == "None" or value == "null":
+            cleaned[key] = ""
+            continue
+
+        # Boolean fields: normalize to lowercase true/false
+        if key in BOOL_FIELDS:
+            if isinstance(value, bool):
+                cleaned[key] = "true" if value else "false"
+            elif value == "":
+                cleaned[key] = ""
+            else:
+                cleaned[key] = "true" if value else "false"
+            continue
+
+        # String ID fields: force to string, strip whitespace
+        if key in STRING_FIELDS:
+            cleaned[key] = str(value).strip() if value else ""
+            continue
+
+        # String fields: strip whitespace
+        if isinstance(value, str):
+            cleaned[key] = value.strip()
+            continue
+
+        # Numbers pass through as-is
+        cleaned[key] = value
+
+    return cleaned
+
+
+# ---------------------------------------------------------------------------
 # CSV table definitions
 # ---------------------------------------------------------------------------
 
 TABLES = {
+    "descriptions": [
+        "resource_id",
+        "description",
+    ],
     "resources": [
         "id",
         "name",
-        "description",
         "resource_type_id",
         "resource_status_id",
         "address_street1",
@@ -126,6 +193,16 @@ def fetch_page(cursor: str | None = None) -> dict:
     return raw.get("json", raw)
 
 
+class CleanWriter:
+    """Wrapper around csv.DictWriter that normalizes values before writing."""
+    def __init__(self, writer: csv.DictWriter):
+        self._writer = writer
+    def writerow(self, row: dict):
+        self._writer.writerow(clean_row(row))
+    def writeheader(self):
+        self._writer.writeheader()
+
+
 def collect_parent_notes(flag: dict) -> str:
     """Walk the recursive parent chain and collect all notes."""
     notes = []
@@ -138,7 +215,7 @@ def collect_parent_notes(flag: dict) -> str:
     return " | ".join(notes) if notes else ""
 
 
-def collect_tags(tags: list, seen_tags: set, tag_writer: csv.DictWriter) -> str:
+def collect_tags(tags: list, seen_tags: set, tag_writer: CleanWriter) -> str:
     """Write new tags to lookup table, return JSON list of tag IDs."""
     ids = []
     for t in tags or []:
@@ -157,7 +234,7 @@ def collect_tags(tags: list, seen_tags: set, tag_writer: csv.DictWriter) -> str:
     return json.dumps(ids) if ids else "[]"
 
 
-def process_resource(r: dict, writers: dict[str, csv.DictWriter], seen_tags: set):
+def process_resource(r: dict, writers: dict[str, CleanWriter], seen_tags: set):
     """Extract one resource into all the CSV writers."""
     rid = r.get("id")
     rt = r.get("resourceType") or {}
@@ -174,12 +251,19 @@ def process_resource(r: dict, writers: dict[str, csv.DictWriter], seen_tags: set
     # Collect resource-level tags
     tag_ids_str = collect_tags(r.get("tags") or [], seen_tags, writers["tags"])
 
+    # --- descriptions.csv ---
+    desc = r.get("description")
+    if desc:
+        writers["descriptions"].writerow({
+            "resource_id": rid,
+            "description": desc,
+        })
+
     # --- resources.csv ---
     writers["resources"].writerow(
         {
             "id": rid,
             "name": r.get("name"),
-            "description": r.get("description"),
             "resource_type_id": rt.get("id"),
             "resource_status_id": status.get("id"),
             "address_street1": r.get("addressStreet1"),
@@ -290,13 +374,13 @@ def main():
 
     # Open all CSV files and create writers
     files: dict[str, object] = {}
-    writers: dict[str, csv.DictWriter] = {}
+    writers: dict[str, CleanWriter] = {}
     for name, fields in TABLES.items():
         f = open(os.path.join(OUTPUT_DIR, f"{name}.csv"), "w", newline="", encoding="utf-8")
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         files[name] = f
-        writers[name] = w
+        writers[name] = CleanWriter(w)
 
     seen_tags: set[str] = set()
     cursor = None

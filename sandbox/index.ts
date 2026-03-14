@@ -5,7 +5,7 @@ dotenv.config({ path: ".env.local" });
 
 // Example prompts that exercise different capabilities of the agent:
 const EXAMPLE_JOBS = [
-  // Simple lookup — tests basic API usage and aggregation
+  // Simple lookup — tests basic filtering and aggregation
   "Find all food pantries in zip code 10001. How many are there, and what's the average confidence score?",
 
   // Geographic analysis — tests coordinate math and distance calculations
@@ -23,7 +23,7 @@ const EXAMPLE_JOBS = [
 
 const job =
   process.argv.slice(2).join(" ").replace(/^--job\s+/, "").trim() ||
-  EXAMPLE_JOBS[0];
+  EXAMPLE_JOBS[2];
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("ANTHROPIC_API_KEY is not set");

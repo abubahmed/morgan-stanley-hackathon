@@ -11,20 +11,29 @@ import { TOOLS } from "./tools";
 
 // CSV files to upload into the sandbox
 const CSV_DIR = path.join(__dirname, "..", "data", "resources");
-const CSV_FILES = ["resources.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
+const CSV_FILES = ["resources.csv", "descriptions.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
 
 // Python bootstrap that loads all CSVs into DataFrames
 const PYTHON_BOOTSTRAP = `
 import pandas as pd
 import json
 
-resources = pd.read_csv("/home/user/data/resources.csv")
-shifts = pd.read_csv("/home/user/data/shifts.csv")
-occurrences = pd.read_csv("/home/user/data/occurrences.csv")
-tags = pd.read_csv("/home/user/data/tags.csv")
-flags = pd.read_csv("/home/user/data/flags.csv")
+# Force string types on ID/zip columns so they don't get read as numbers
+_str_cols = {"id", "resource_id", "shift_id", "resource_type_id", "resource_status_id",
+             "source_id", "tag_category_id", "zip_code"}
 
-print(f"Loaded: resources={len(resources)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
+def _load(path):
+    df = pd.read_csv(path, dtype={c: str for c in _str_cols}, keep_default_na=True)
+    return df
+
+resources = _load("/home/user/data/resources.csv")
+descriptions = _load("/home/user/data/descriptions.csv")
+shifts = _load("/home/user/data/shifts.csv")
+occurrences = _load("/home/user/data/occurrences.csv")
+tags = _load("/home/user/data/tags.csv")
+flags = _load("/home/user/data/flags.csv")
+
+print(f"Loaded: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
 `;
 
 const MAX_ITERATIONS = 12;
@@ -194,7 +203,7 @@ async function compactContext(
     messages: [
       {
         role: "user",
-        content: `You are summarizing the work-in-progress of a data analysis agent. Below is a transcript of the agent's earlier steps — the code it ran and the outputs it received. Summarize what was done, what data was fetched, what variables and files exist in the sandbox, and any key findings so far. Be specific about numbers, column names, variable names, and file paths. Be concise.\n\n${transcript}`,
+        content: `You are summarizing the work-in-progress of a data analysis agent. Below is a transcript of the agent's earlier steps — the code it ran and the outputs it received. Summarize what was done, what was computed, what variables and files exist in the sandbox, and any key findings so far. Be specific about numbers, column names, variable names, and file paths. Be concise.\n\n${transcript}`,
       },
     ],
   });
@@ -236,7 +245,7 @@ export async function runAgent(job: string) {
   const messages: Anthropic.MessageParam[] = [
     {
       role: "user",
-      content: `Complete the following data analysis job:\n\n${job}\n\nUse the available data functions to fetch real data, analyze it, and produce concrete findings. Start with an exploratory fetch to understand what's available.`,
+      content: `Complete the following data analysis job:\n\n${job}\n\nThe data is already loaded as DataFrames. Answer exactly what is asked — nothing more. Call finish_analysis as soon as you have the answer.`,
     },
   ];
 
@@ -284,11 +293,21 @@ export async function runAgent(job: string) {
       if (block.name === "execute_python") {
         const { code, reasoning } = block.input as { code: string; reasoning: string };
         console.log(`\n  > ${reasoning}`);
+        console.log(`  --- code ---\n${code}\n  --- end ---`);
         const output = await executePython(sandbox, code);
+        const hasError = output.includes("ERROR:") || output.includes("Traceback");
+        const budget = `[Step ${i}/${MAX_ITERATIONS}]`;
+        let result = `${budget}\n${output}`;
+        if (hasError) {
+          result += "\n\nThe code above errored. Fix the issue and try again. Do not retry the exact same code.";
+        }
+        if (i >= MAX_ITERATIONS - 2) {
+          result += "\n\nYou are running low on steps. Call finish_analysis with your best answer on the next step.";
+        }
         toolResults.push({
           type: "tool_result",
           tool_use_id: block.id,
-          content: output,
+          content: result,
         });
       }
     }
@@ -302,11 +321,11 @@ export async function runAgent(job: string) {
     if (toolResults.length) {
       messages.push({ role: "user", content: toolResults });
     } else if (response.stop_reason === "end_turn") {
-      // Claude stopped without using a tool or finishing — nudge it to continue
+      // Claude stopped without using a tool or finishing — nudge it to finish
       messages.push({
         role: "user",
         content:
-          "Continue the analysis. Use execute_python to fetch more data or call finish_analysis if you have enough findings.",
+          `[Step ${i}/${MAX_ITERATIONS}] You stopped without calling finish_analysis. If you have enough data to answer the question, call finish_analysis now. Only run more code if you truly cannot answer yet.`,
       });
     }
   }
