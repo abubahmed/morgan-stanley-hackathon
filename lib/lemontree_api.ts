@@ -32,11 +32,12 @@ export async function getResources(params: {
 }
 
 // Fetch ALL resources, auto-paginating
-export async function getAllResources(params: Omit<Parameters<typeof getResources>[0], "cursor"> = {}) {
+type GetResourcesParams = Parameters<typeof getResources>[0];
+export async function getAllResources(params: Omit<GetResourcesParams, "cursor"> = {}) {
   const all: any[] = []
   let cursor: string | undefined
   do {
-    const res = await getResources({ ...params, cursor, take: params.take ?? 40 })
+    const res = await getResources({ ...(params as GetResourcesParams), cursor, take: (params as { take?: number }).take ?? 40 })
     all.push(...res.resources)
     cursor = res.cursor
   } while (cursor)
