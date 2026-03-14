@@ -138,6 +138,134 @@ Quality/moderation flags on resources. One row per flag. Join to resources via `
 
 ---
 
+## Functions Reference
+
+The following helper functions are pre-loaded in your sandbox environment to facilitate data exploration and analysis.
+
+### `get_resources(**kwargs)`
+Fetches food resources by filtering the local `resources` DataFrame.
+- **`zip`**: (str) Zip code filter (e.g., "10001"). Alias: `zip_code`.
+- **`region`**: (str) Neighborhood name (e.g., "Bronx").
+- **`text`**: (str) Search term for names/descriptions.
+- **`take`**: (int) Number of records (default: 50).
+- **`sort`**: (str) Sort field (e.g., "distance").
+- **Returns**: `pd.DataFrame` (id, name, resourceTypeId, zip, distance, etc.)
+
+### `filter_resources(zip=None, region=None, city=None, resource_type=None, status=None, priority_min=None, resource_ids=None)`
+Flexible filter over `resources`.
+- **Returns**: `pd.DataFrame`
+
+### `filter_occurrences(resource_ids=None, date_from=None, date_to=None, include_cancelled=False)`
+Filter occurrences by resource and time window.
+- **Returns**: `pd.DataFrame`
+
+### `filter_reviews(resource_ids=None, date_from=None, date_to=None, attended=None, rating_min=None, max_resources=25)`
+Aggregate and filter synthetic reviews across resources.
+- **Returns**: `pd.DataFrame`
+
+### `get_reviews(resource_id)`
+Generates synthetic feedback and reviews for a specific resource.
+- **`resource_id`**: (str) Unique ID of the resource.
+- **Returns**: `pd.DataFrame` (text, rating, waitTimeMinutes, attended, etc.)
+
+### `get_wait_time_trends(resource_id)`
+Analyzes wait time trends over time using synthetic reviews.
+- **`resource_id`**: (str) Unique ID of the resource.
+- **Returns**: `pd.DataFrame` (week, avg_wait_minutes)
+
+### `wait_time_trends(resource_ids=None, date_from=None, date_to=None, group_by="week")`
+Wait time trends for multiple resources.
+- **Returns**: `pd.DataFrame` (week/month, avg_wait_minutes)
+
+### `get_neighborhood_stats(region)`
+Aggregates resource metrics for a neighborhood.
+- **`region`**: (str) Neighborhood name.
+- **Returns**: `pd.DataFrame` (resource_count, unqiue_zip_codes grouped by resourceTypeId)
+
+### `categorize_feedback(reviews_df)`
+Categorizes free-text reviews into 'Service', 'Food Quality', 'Wait Time', or 'Access/Hours'.
+- **`reviews_df`**: (`pd.DataFrame`) A DataFrame with a 'text' column.
+- **Returns**: `pd.DataFrame` with an added 'category' column.
+
+### `summarize_feedback(reviews_df)`
+Summarize ratings, wait times, attendance, and category counts.
+- **Returns**: `dict`
+
+### `extract_key_phrases(reviews_df, top_n=10)`
+Simple keyword frequency extraction.
+- **Returns**: `dict`
+
+### `sentiment_score(reviews_df)`
+Lexicon sentiment score in [-1, 1].
+- **Returns**: `float | None`
+
+### `get_service_disruptions()`
+Identifies service disruptions by joining 'shifts' and 'occurrences' to find cancelled events.
+- **Returns**: `pd.DataFrame` (resource_id, name, skipped_at, address, start_time)
+
+### `disruption_summary(date_from=None, date_to=None)`
+Summary counts of disruptions and top affected resources.
+- **Returns**: `dict`
+
+### `compute_resource_breakdown(resources_df)`
+Groups food resources by their type and calculates the average wait time for each type.
+- **`resources_df`**: (`pd.DataFrame`) A DataFrame of resources.
+- **Returns**: `dict` containing breakdown and total_resources_analyzed.
+
+### `resource_type_breakdown(zip=None, region=None, city=None, resource_type=None, status=None, priority_min=None)`
+Breakdown by type for a filtered slice.
+- **Returns**: `dict`
+
+### `filter_active_high_priority(resources_df, min_priority=0)`
+Filters the dataset for resources that are currently PUBLISHED and have a priority level at or above the threshold.
+- **`resources_df`**: (`pd.DataFrame`) A DataFrame of resources.
+- **`min_priority`**: (`int`) Minimum priority score (default: 0).
+- **Returns**: `list` of dictionaries with id, name, city, priority.
+
+### `get_neighborhood_coverage(resources_df)`
+Analyzes which cities/neighborhoods have the most food assistance coverage versus sparsely populated areas.
+- **`resources_df`**: (`pd.DataFrame`) A DataFrame of resources.
+- **Returns**: `dict` with most_served_cities, underserved_cities_count, underserved_city_names.
+
+### `coverage_by_area(level="city")`
+Coverage counts for city, zip, or region.
+- **Returns**: `dict`
+
+### `plot_trend(df, x, y, title="Trend")`
+Save a trend plot to `/home/user/exports`.
+- **Returns**: `str` path
+
+### `plot_bar(df, x, y, title="Bar Chart")`
+Save a bar plot to `/home/user/exports`.
+- **Returns**: `str` path
+
+### `plot_map(resources_df)`
+Save a lat/long scatter to `/home/user/exports`.
+- **Returns**: `str` path
+
+### `generate_partner_report(region=None, date_from=None, date_to=None)`
+Generate a lightweight report dict.
+- **Returns**: `dict`
+
+### `export_report(report_dict, format="json")`
+Export a report to `/home/user/exports`.
+- **Returns**: `str` path
+
+### `load_public_dataset(path_or_url)`
+Load a dataset from a local path or allowlisted URL.
+- **Returns**: `pd.DataFrame`
+
+### `join_on_geo(resources_df, public_df, on="zip_code")`
+Join Lemontree data with public datasets.
+- **Returns**: `pd.DataFrame`
+
+### `fetch_json(url)`
+Generic JSON fetcher for allowlisted domains.
+- **`url`**: (str) Full URL (must be `https://platform.foodhelpline.org/...`).
+- **Returns**: `dict`
+
+---
+
 ## Relationships
 
 ```

@@ -13,7 +13,8 @@
     "reviews": "npx tsx scripts/test-reviews.ts",
     "analyze": "npx tsx sandbox/index.ts",
     "analyze:local": "uv run python sandbox/test.py",
-    "fetch:resources": "uv run python scripts/fetch_resources.py"
+    "fetch:resources": "uv run python scripts/fetch_resources.py",
+    "smoke:sandbox": "npx tsx scripts/sandbox-smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

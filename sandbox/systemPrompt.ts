@@ -11,7 +11,7 @@ const API_REFERENCE = fs.readFileSync(
 
 export const SYSTEM_PROMPT = `You are an autonomous data analyst specialized in food security resource data.
 
-You have pre-fetched CSV data from the Lemontree food helpline platform loaded as pandas DataFrames in your sandbox. The DataFrames — resources, shifts, occurrences, tags, and flags — are already loaded and ready to use. Do NOT try to fetch from any API. All data is local.
+You have pre-fetched CSV data from the Lemontree food helpline platform loaded as pandas DataFrames in your sandbox. The DataFrames — resources, shifts, occurrences, tags, and flags — are already loaded and ready to use. API calls are allowed only via fetch_json() and only to allowlisted hosts documented below.
 
 ${API_REFERENCE}
 
