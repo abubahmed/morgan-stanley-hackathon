@@ -10,10 +10,14 @@
     "claude": "npx tsx scripts/claude.ts",
     "python": "npx tsx scripts/python.ts",
     "lemontree": "npx tsx scripts/test-lemontree.ts",
-    "reviews": "npx tsx scripts/test-reviews.ts"
+    "reviews": "npx tsx scripts/test-reviews.ts",
+    "analyze": "npx tsx sandbox/index.ts",
+    "analyze:local": "uv run python sandbox/test.py",
+    "fetch:resources": "uv run python scripts/fetch_resources.py"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
+    "@e2b/code-interpreter": "^2.3.3",
     "crypto": "^1.0.1",
     "dotenv": "^17.3.1",
     "next": "16.1.6",
