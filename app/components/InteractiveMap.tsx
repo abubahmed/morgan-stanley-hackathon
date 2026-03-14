@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { getFlyerUrl } from '@/lib/lemontree_api';
 
 export interface FoodResource {
   id: string;
@@ -12,17 +11,25 @@ export interface FoodResource {
   longitude: number;
   addressStreet1?: string;
   waitTimeMinutesAverage?: number;
+  zipCode?: string;
 }
 
 interface MapProps {
   dataPoints: FoodResource[];
+  onViewTrends?: (pantry: FoodResource) => void;
 }
 
-export default function InteractiveMap({ dataPoints }: MapProps) {
+export default function InteractiveMap({ dataPoints, onViewTrends }: MapProps) {
   const [selectedPantry, setSelectedPantry] = useState<FoodResource | null>(null);
 
+  const getStatusColor = (waitTime: number) => {
+    if (waitTime > 45) return 'bg-red-500';
+    if (waitTime > 20) return 'bg-amber-500';
+    return 'bg-emerald-500';
+  };
+
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50">
       <Map
         initialViewState={{
           longitude: -73.9442,
@@ -35,44 +42,72 @@ export default function InteractiveMap({ dataPoints }: MapProps) {
       >
         <NavigationControl position="top-right" />
 
-        {dataPoints.map((point) => (
-          <Marker
-            key={point.id}
-            longitude={Number(point.longitude)}
-            latitude={Number(point.latitude)}
-            anchor="bottom"
-          >
-            <button
-              className="p-1 bg-blue-600 rounded-full border-2 border-white shadow-md hover:bg-red-500 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
+        {dataPoints?.map((point) => {
+          const waitTime = point.waitTimeMinutesAverage || 0;
+          return (
+            <Marker
+              key={point.id}
+              longitude={Number(point.longitude)}
+              latitude={Number(point.latitude)}
+              anchor="bottom"
+              onClick={(e: any) => {
+                // Using any here prevents the "no exported member" error 
+                // while still allowing us to stop event bubbling.
+                e.originalEvent.stopPropagation();
                 setSelectedPantry(point);
               }}
             >
-              <div className="w-2 h-2 bg-white rounded-full" />
-            </button>
-          </Marker>
-        ))}
+              <div className="cursor-pointer group relative flex flex-col items-center">
+                {waitTime > 45 && (
+                  <div className="absolute inset-0 w-5 h-5 bg-red-400 rounded-full animate-ping opacity-20" />
+                )}
+                <div className={`w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm transition-all group-hover:scale-110 ${getStatusColor(waitTime)}`} />
+              </div>
+            </Marker>
+          );
+        })}
 
         {selectedPantry && (
           <Popup
             longitude={Number(selectedPantry.longitude)}
             latitude={Number(selectedPantry.latitude)}
             anchor="top"
+            offset={12}
             onClose={() => setSelectedPantry(null)}
+            closeOnClick={false}
+            maxWidth="240px"
           >
-            <div className="p-2 text-zinc-900 min-w-[150px]">
-              <h4 className="font-bold text-xs mb-1">{selectedPantry.name}</h4>
-              <p className="text-[10px] text-zinc-500 mb-3">{selectedPantry.addressStreet1}</p>
-              
-              <a 
-                href={getFlyerUrl(Number(selectedPantry.latitude), Number(selectedPantry.longitude))}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-center text-[10px] bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700"
+            <div className="p-1 font-sans text-zinc-800">
+              <div className="mb-3">
+                <h4 className="text-sm font-semibold leading-tight text-zinc-900">
+                  {selectedPantry.name}
+                </h4>
+                <p className="text-[11px] text-zinc-500 mt-0.5">
+                  {selectedPantry.addressStreet1 || "No address provided"}
+                </p>
+              </div>
+
+              <div className="flex gap-2 mb-4">
+                <div className="flex-1 bg-zinc-100/50 p-2 rounded-lg border border-zinc-200/40 text-center">
+                  <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Wait Time</p>
+                  <p className="text-xs font-semibold text-zinc-700">{selectedPantry.waitTimeMinutesAverage || 0}m</p>
+                </div>
+                <div className="flex-1 bg-zinc-100/50 p-2 rounded-lg border border-zinc-200/40 text-center">
+                  <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-tight">Zip Code</p>
+                  <p className="text-xs font-semibold text-zinc-700">{selectedPantry.zipCode || 'N/A'}</p>
+                </div>
+              </div>
+
+              <button 
+                className="w-full bg-blue-600 text-white text-[11px] font-medium py-2 rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95"
+                onClick={() => {
+                  if (onViewTrends) {
+                    onViewTrends(selectedPantry);
+                  }
+                }}
               >
-                Download Schedule PDF
-              </a>
+                View Detailed Trends
+              </button>
             </div>
           </Popup>
         )}
