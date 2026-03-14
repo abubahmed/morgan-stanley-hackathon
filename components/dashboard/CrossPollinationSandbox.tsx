@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BarChart3, Map, TrendingUp, Play, Layers, Check } from "lucide-react";
 
 type VizType = "bar" | "map" | "trend";
 
 const DATASETS = [
-  "Food Distribution Volume",
-  "Poverty Rates by Zip",
-  "Partner Demand Requests",
-  "Food Waste Metrics",
-  "Community Demographics",
-  "Delivery Routes & Times",
+  "Food Distribution Volume", "Poverty Rates by Zip",
+  "Partner Demand Requests",  "Food Waste Metrics",
+  "Community Demographics",   "Delivery Routes & Times",
+];
+
+const VIZ_OPTIONS: { type: VizType; label: string; Icon: React.ElementType }[] = [
+  { type: "bar",   label: "Bar",   Icon: BarChart3  },
+  { type: "map",   label: "Map",   Icon: Map        },
+  { type: "trend", label: "Trend", Icon: TrendingUp },
 ];
 
 export default function CrossPollinationSandbox() {
@@ -20,59 +24,68 @@ export default function CrossPollinationSandbox() {
   const [vizType, setVizType] = useState<VizType>("bar");
 
   function toggle(ds: string) {
-    setSelected((prev) =>
-      prev.includes(ds) ? prev.filter((d) => d !== ds) : [...prev, ds]
-    );
+    setSelected((prev) => prev.includes(ds) ? prev.filter((d) => d !== ds) : [...prev, ds]);
   }
 
   function handleRun() {
     if (selected.length === 0) return;
-    const query = `Analyze and compare: ${selected.join(", ")} using a ${vizType} visualization`;
-    router.push(`/sandbox?q=${encodeURIComponent(query)}`);
+    router.push(`/sandbox?q=${encodeURIComponent(`Analyze and compare: ${selected.join(", ")} using a ${vizType} visualization`)}`);
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <p className="text-sm font-semibold text-gray-800">Cross-Pollination Sandbox</p>
-      <p className="mt-1 text-xs text-gray-500">
-        Combine datasets to uncover hidden correlations. Layer any two or more variables to see
-        what stories emerge.
+    <div
+      className="rounded-2xl bg-white p-5"
+      style={{ border: "1px solid rgba(210,195,165,0.45)", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
+    >
+      <div className="mb-1 flex items-center gap-2">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg"
+          style={{ background: "linear-gradient(135deg, #C8EDE8 0%, #A8DDD6 100%)" }}>
+          <Layers size={13} style={{ color: "#1E9080" }} />
+        </div>
+        <p className="text-[14px] font-semibold" style={{ color: "#1E2D3D" }}>Cross-Pollination Sandbox</p>
+      </div>
+      <p className="mb-4 text-xs leading-relaxed" style={{ color: "#8A9AAA" }}>
+        Combine datasets to uncover hidden correlations. Layer variables to see what stories emerge.
       </p>
 
-      <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-        Select datasets to combine
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "#9AAAB8" }}>
+        Datasets
       </p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {DATASETS.map((ds) => (
-          <button
-            key={ds}
-            onClick={() => toggle(ds)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-              selected.includes(ds)
-                ? "bg-lt-green-600 text-white"
-                : "border border-gray-300 text-gray-600 hover:border-lt-green-400"
-            }`}
-          >
-            {selected.includes(ds) ? "✓ " : "+ "}{ds}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-1.5">
+        {DATASETS.map((ds) => {
+          const on = selected.includes(ds);
+          return (
+            <button
+              key={ds}
+              onClick={() => toggle(ds)}
+              className="rounded-full px-3 py-1 text-[11px] font-medium transition-all hover:-translate-y-px"
+              style={on
+                ? { background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)", color: "white", boxShadow: "0 2px 8px rgba(61,191,172,0.3)" }
+                : { background: "linear-gradient(145deg, #F8F2E4 0%, #F2EAD4 100%)", border: "1px solid rgba(200,190,165,0.5)", color: "#5A6E7D" }
+              }
+            >
+              {on && <Check size={10} className="shrink-0" />}{ds}
+            </button>
+          );
+        })}
       </div>
 
-      <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-        Visualization type
+      <p className="mb-2 mt-4 text-[11px] font-semibold uppercase tracking-widest" style={{ color: "#9AAAB8" }}>
+        Visualization
       </p>
-      <div className="mt-2 flex gap-2">
-        {(["bar", "map", "trend"] as VizType[]).map((t) => (
+      <div className="flex gap-2">
+        {VIZ_OPTIONS.map(({ type, label, Icon }) => (
           <button
-            key={t}
-            onClick={() => setVizType(t)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              vizType === t
-                ? "bg-lt-green-600 text-white"
-                : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-            }`}
+            key={type}
+            onClick={() => setVizType(type)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-[12px] font-semibold transition-all"
+            style={vizType === type
+              ? { background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)", color: "white", boxShadow: "0 2px 8px rgba(61,191,172,0.25)" }
+              : { background: "linear-gradient(145deg, #F8F2E4 0%, #F2EAD4 100%)", border: "1px solid rgba(200,190,165,0.4)", color: "#5A6E7D" }
+            }
           >
-            {t === "bar" ? "📊 Bar Chart" : t === "map" ? "🗺️ Map View" : "📈 Trend Line"}
+            <Icon size={12} />
+            {label}
           </button>
         ))}
       </div>
@@ -80,9 +93,11 @@ export default function CrossPollinationSandbox() {
       <button
         onClick={handleRun}
         disabled={selected.length === 0}
-        className="mt-4 w-full rounded-lg bg-lt-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-lt-green-700 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-semibold text-white transition-all hover:shadow-md hover:-translate-y-px disabled:opacity-35 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none"
+        style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #1A8E80 100%)" }}
       >
-        Run Analysis →
+        <Play size={13} />
+        Run Analysis
       </button>
     </div>
   );

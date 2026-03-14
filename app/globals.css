@@ -23,6 +23,15 @@
   --color-lt-green-800: #166534;
   --color-lt-green-900: #14532d;
   --color-lt-accent:    #84cc16;
+
+  /* Lemon Tree brand palette (from Figma) */
+  --color-lt-cream:     #F5EDD8;
+  --color-lt-cream-dark:#EDE2C4;
+  --color-lt-teal:      #3DBFAC;
+  --color-lt-teal-dark: #2EA898;
+  --color-lt-teal-light:#E8F7F5;
+  --color-lt-amber:     #E8A030;
+  --color-lt-navy:      #1E2D3D;
 }
 
 @media (prefers-color-scheme: dark) {

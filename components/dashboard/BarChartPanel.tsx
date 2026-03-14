@@ -9,21 +9,17 @@ interface BarChartPanelProps {
   color?: string;
 }
 
-export default function BarChartPanel({
-  data,
-  xKey,
-  yKey,
-  title,
-  subtitle,
-  color,
-}: BarChartPanelProps) {
+export default function BarChartPanel({ data, xKey, yKey, title, subtitle, color }: BarChartPanelProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <p className="text-sm font-semibold text-gray-800">{title}</p>
-      {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
-      <div className="mt-3">
-        <RechartsBarChart data={data} xKey={xKey} yKey={yKey} color={color} />
+    <div
+      className="rounded-2xl bg-white p-5"
+      style={{ border: "1px solid rgba(210,195,165,0.45)", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
+    >
+      <div className="mb-1 flex items-start justify-between">
+        <p className="text-[14px] font-semibold" style={{ color: "#1E2D3D" }}>{title}</p>
       </div>
+      {subtitle && <p className="mb-4 text-xs" style={{ color: "#8A9AAA" }}>{subtitle}</p>}
+      <RechartsBarChart data={data} xKey={xKey} yKey={yKey} color={color ?? "#3DBFAC"} />
     </div>
   );
 }

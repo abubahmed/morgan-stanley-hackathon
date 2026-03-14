@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { BarChart3 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ChatThread from "@/components/sandbox/ChatThread";
 import ChatInput from "@/components/sandbox/ChatInput";
@@ -144,26 +145,31 @@ function SandboxInner() {
   }, []);
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50">
+    <div className="flex h-screen flex-col" style={{ backgroundColor: "#F5EDD8" }}>
       <Navbar />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Chat panel */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+          <div
+            className="flex items-center justify-between border-b bg-white px-4 py-3"
+            style={{ borderColor: "#EDE2C4" }}
+          >
             <div>
-              <p className="text-sm font-semibold text-gray-800">AI Sandbox</p>
-              <p className="text-xs text-gray-400">
+              <p className="text-sm font-semibold" style={{ color: "#1E2D3D" }}>AI Sandbox</p>
+              <p className="text-xs" style={{ color: "#4A5E6D" }}>
                 Query · Exploration · Investigation modes
               </p>
             </div>
             {!panelOpen && (
               <button
                 onClick={() => setPanelOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+                className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition hover:bg-[#F5EDD8]"
+                style={{ borderColor: "#EDE2C4", color: "#4A5E6D", backgroundColor: "white" }}
               >
-                📊 {charts.length > 0 ? `${charts.length} chart${charts.length > 1 ? "s" : ""}` : "Visualizations"}
+                <BarChart3 size={13} />
+                {charts.length > 0 ? `${charts.length} chart${charts.length > 1 ? "s" : ""}` : "Visualizations"}
               </button>
             )}
           </div>
