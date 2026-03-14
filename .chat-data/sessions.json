@@ -1,0 +1,36 @@
+{
+  "88f5fa62-19c6-47de-8610-b266277bf75f": {
+    "id": "88f5fa62-19c6-47de-8610-b266277bf75f",
+    "userId": "c23cf9ed-b244-46df-91fe-1e1d1d89f677",
+    "title": "hey chat how are you?",
+    "messages": [
+      {
+        "id": "9866b3fe-b497-4783-9b69-8b0725ad5c79",
+        "role": "user",
+        "content": "hey chat how are you?",
+        "timestamp": 1773456337440
+      },
+      {
+        "id": "bb540cbc-33e2-4555-95f6-3217487f5201",
+        "role": "assistant",
+        "content": "Hey! I'm doing great, thanks for asking! 😊\n\nI'm here and ready to help you dig into your pantry network data. Whether it's visit trends, client patterns, distribution stats, or anything else — just let me know what you'd like to explore!",
+        "timestamp": 1773456340247
+      },
+      {
+        "id": "ee7734be-4dd3-43cd-8e8d-66c6edfa5fde",
+        "role": "user",
+        "content": "can you tell me about pantries near newark?",
+        "timestamp": 1773456359995
+      },
+      {
+        "id": "11b087c3-2ef4-4a98-aea3-b6474ca261c1",
+        "role": "assistant",
+        "content": "# Food Pantries Near Newark, NJ\n\nHere are **5 pantries** in and around the Newark area, all of which are **accepting new clients** and require **no appointment**:\n\n---\n\n### 1. 🏠 Newark Spanish 7th Day Adventist Church\n- **Address:** 58 2nd Avenue, Newark, NJ 07104\n- **Type:** Food pantry (groceries)\n- **Website:** [newarkspanishnj.adventistchurch.org](https://newarkspanishnj.adventistchurch.org/)\n\n### 2. 💧 Newark Water Coalition - Wilson Avenue\n- **Address:** 7 Wilson Avenue, Newark, NJ 07105\n- **Type:** Food pantry (groceries)\n- **Website:** [newarkwatercoalition.org](https://www.newarkwatercoalition.org/)\n\n### 3. 🔔 The Salvation Army - Newark (Central)\n- **Address:** 699 Springfield Avenue, West Side, NJ 07103\n- **Type:** Food pantry (groceries)\n\n### 4. ⛪ Grace Church in Newark\n- **Address:** 950 Broad St, Newark, NJ 07102\n- **Type:** Food pantry (groceries)\n- **Website:** [gracechurchinnewark.org](https://www.gracechurchinnewark.org/the-food-ministry)\n\n### 5. 🔔 Salvation Army - Kearny\n- **Address:** 443 Chestnut Street, Kearny, NJ 07032\n- **Type:** Food pantry (groceries)\n- **Website:** [easternusa.salvationarmy.org](https://easternusa.salvationarmy.org/new-jersey/kearny/)\n\n---\n\nAll five locations offer **groceries** and are open to new clients with **no appointment required**. Would you like more details about any specific pantry, or are you interested in visit trends or operational data for this area?",
+        "timestamp": 1773456367538
+      }
+    ],
+    "createdAt": 1773456330568,
+    "updatedAt": 1773456367539,
+    "messageCount": 4
+  }
+}

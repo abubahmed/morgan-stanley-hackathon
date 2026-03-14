@@ -11,6 +11,29 @@ function renderMarkdown(text: string): React.ReactNode {
   const nodes: React.ReactNode[] = [];
 
   lines.forEach((line, li) => {
+    // H1
+    const h1Match = line.match(/^#\s+(.*)/);
+    if (h1Match) {
+      nodes.push(<div key={li} className="font-bold text-base mt-1">{inlineMarkdown(h1Match[1])}</div>);
+      return;
+    }
+    // H2
+    const h2Match = line.match(/^##\s+(.*)/);
+    if (h2Match) {
+      nodes.push(<div key={li} className="font-bold text-sm mt-1">{inlineMarkdown(h2Match[1])}</div>);
+      return;
+    }
+    // H3
+    const h3Match = line.match(/^###\s+(.*)/);
+    if (h3Match) {
+      nodes.push(<div key={li} className="font-semibold text-sm mt-1">{inlineMarkdown(h3Match[1])}</div>);
+      return;
+    }
+    // Horizontal rule
+    if (line.trim() === "---") {
+      nodes.push(<hr key={li} className="border-gray-200 my-1.5" />);
+      return;
+    }
     // Numbered list item
     const numMatch = line.match(/^(\d+)\.\s+(.*)/);
     if (numMatch) {
@@ -46,14 +69,17 @@ function renderMarkdown(text: string): React.ReactNode {
 }
 
 function inlineMarkdown(text: string): React.ReactNode {
-  // Split on **bold** and *italic* tokens
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g);
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return <strong key={i}>{part.slice(2, -2)}</strong>;
     }
     if (part.startsWith("*") && part.endsWith("*")) {
       return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (linkMatch) {
+      return <a key={i} href={linkMatch[2]} target="_blank" rel="noreferrer" className="text-teal-600 underline">{linkMatch[1]}</a>;
     }
     return <Fragment key={i}>{part}</Fragment>;
   });
