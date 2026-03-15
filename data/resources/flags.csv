@@ -467,8 +467,8 @@ cmmpx8cgt01iu23oih415rovs,cm594v1go01ne260vytgabo6y,OCCURRENCE_HOLIDAY,"Opening 
 cmmoz5mgy00070bla3b25pdu9,cle9htc0e0210xu02p637nhmb,REVIEW,"Called: no answer, left voicemail, sent email and SMS",,,2026-04-13T14:10:40.456Z,"Called: no answer, left voicemail | Called: no answer, left voicemail and sent an email | Client attended on 3/3/26 at 11am and found it closed.","[{""field"": ""SHIFTS"", ""value"": null}]"
 cml0japqt00vmsp4h06o0ha7k,178,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmj04kcx200kv2dh3l8biuj33,1264,NEW_RESOURCE,New resource: review and publish,,,,,[]
-cmmfx098g007825pw1shtay3e,ckyenuvxm003e04vtaacp8vi9,EXTERNAL_RESOURCE,External Resource data change from Community Food Bank of New Jersey,,,,,"[{""field"": ""PHONE"", ""value"": [{""email"": null, ""phone"": ""+19733422802""}]}]"
 cmkc8t5d600y8y3271555rtvn,679,STALE_DATA,Stale data: call to verify our information,,,,,[]
+cmmfx098g007825pw1shtay3e,ckyenuvxm003e04vtaacp8vi9,EXTERNAL_RESOURCE,External Resource data change from Community Food Bank of New Jersey,,,,,"[{""field"": ""PHONE"", ""value"": [{""email"": null, ""phone"": ""+19733422802""}]}]"
 cmlq97zyh01csyn4dd3z2l4ka,1313,OCCURRENCE_HOLIDAY,"Opening on Memorial Day, please confirm availability on 05/25/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmkeakvgk03ndvyfli4dfzeth,clhhwsnxf0000l40f3quowqz0,OCCURRENCE_HOLIDAY,Called: no answer,,,2026-01-21T17:25:37.526Z,"Opening on Independence Day, please confirm availability on 07/04/2026","[{""field"": ""SHIFTS"", ""value"": null}]"
 cmkeakvgo03nfvyflqwu0kg9c,clhhwsnxf0000l40f3quowqz0,STALE_DATA,Called: no answer,,,2026-01-21T17:25:37.526Z,"Called: no answer, sent an sms | Stale data: call to verify our information",[]
@@ -1200,13 +1200,13 @@ cmm13f6sf0g2zytfny5imo05f,cluhfg8zz0gmujyjm80h94nml,REVIEW,"Called: no answer, l
 cmmjeodrv00480bkybok0otuw,cleg7wbav000gl00fwyrhtims,CLIENT,,,,,,"[{""field"": ""SKIP_OCCURRENCE_RANGE"", ""value"": null}]"
 cmehska4h02hvwze75fxp0rtf,cle82fq4u046n0d02wxlg81zd,VOLUNTEER,No Image provided,,,,,"[{""field"": ""IMAGES"", ""value"": null}]"
 cmk1fycie06y9yr0xrzeuazwt,cl0deqk2m005504yesvcgj9bc,OCCURRENCE_HOLIDAY,"Opening on Juneteenth, please confirm availability on 06/19/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
-cmls7wu8g008xyjeexwnnhe6b,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | There is no schedule listed.","[{""field"": ""SHIFTS"", ""value"": null}]"
+cmls7wu8t0096yjeezzd0ccoq,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | No schedule information","[{""field"": ""SHIFTS"", ""value"": null}]"
 cmls7wu8k008zyjee68mrfyaz,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | Requirements and schedule not posted","[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}, {""field"": ""SHIFTS"", ""value"": null}]"
 cmls7wu8n0092yjeenkxsn8re,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email","[{""field"": ""SHIFTS"", ""value"": null}]"
+cmls7wu8g008xyjeexwnnhe6b,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | There is no schedule listed.","[{""field"": ""SHIFTS"", ""value"": null}]"
 cmls7wu90009ayjee8s31y7iy,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | missing schedule","[{""field"": ""SHIFTS"", ""value"": null}]"
-cmls7wu8q0094yjeefnevnwpo,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | No days listed","[{""field"": ""SHIFTS"", ""value"": null}]"
-cmls7wu8t0096yjeezzd0ccoq,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | No schedule information","[{""field"": ""SHIFTS"", ""value"": null}]"
 cmls7wu8w0098yjeejle3zd3d,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | No days are listed","[{""field"": ""SHIFTS"", ""value"": null}]"
+cmls7wu8q0094yjeefnevnwpo,cm55ow8ea00hox70vds9i5xvx,VOLUNTEER,"Called: no answer, left voicemail. Resent email",,,2026-03-18T15:59:16.270Z,"Called: no answer, left voicemail. Resent email | Called: no answer, left voicemail. Sent email | No days listed","[{""field"": ""SHIFTS"", ""value"": null}]"
 cmk1fyez707wiyr0xatlzx29q,clhk5x9ob085qs60h6tdv38jv,OCCURRENCE_HOLIDAY,"Opening on Independence Day, please confirm availability on 07/04/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmm3rt2ni01bkeb178y9yw9ty,clhgneb380008jo0fyaqt27e9,STALE_DATA,"Called: no answer, left voicemail",,,2026-02-28T18:01:51.024Z,Stale data: call to verify our information,[]
 cmh1l4bxy00101b26u87zn7v3,ckz7eou1l5033813mwawg35r3h7,STALE_DATA,Stale data: call to verify our information,,,,,[]
@@ -2346,6 +2346,8 @@ cmj1mq0uz08wyxcfk4iysjdb4,cmj1mq0uz08wxxcfko6vndo8h,NEW_RESOURCE,New resource: r
 cmit19oi102prvoee19is6rgt,cmit19oi102pqvoeebk8npql8,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmihzsbby0okh44flabs1t4du,cmhmid56503aqzocz5qza4i35,VOLUNTEER,No schedule,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmmjoavzb00140bjv70c29i2r,club8yxv90l17zm6s59qmqmpa,REVIEW,called no answer,,,2026-04-09T21:10:33.174Z,"Called: no answer, left voicemail | Called: no answer coldn't leave mail | Reviewed as information inaccurate","[{""field"": ""RESOURCE_TYPE"", ""value"": null}]"
+cmlqphwwe0athx8foakvgjqph,cl3v5h2q4000804yj6aqaa4x0,SPECIALIST,"Called: no answer, left voicemail,sms sent",,,2026-03-17T14:37:57.399Z,"Called: no answer, sent an sms | Called: no answer, left voicemail and sms | Called: messaged sent on website","[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
+cmlqphwwb0atfx8fogsl4twxj,cl3v5h2q4000804yj6aqaa4x0,REVIEW,"Called: no answer, left voicemail,sms sent",,,2026-03-17T14:37:57.399Z,"Called: no answer, sent an sms | Called: no answer, left voicemail and sms | Called: messaged sent on website","[{""field"": ""SHIFTS"", ""value"": null}]"
 cmjhm4m770f03zxecbtd8v8fp,cmiemgmlj0e780zecm2bn3bew,NEW_RESOURCE,"Called: no answer,",,,2025-12-29T20:32:56.238Z,"Called: no answer, | New resource: review and publish",[]
 cmi7ieoxn08yk0xgqz5jqlorf,cmi7ieoxn08yj0xgq8nx9cezv,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmmkobvfl00010bl52x3sk5qg,cmi63lzl01j3rt5ebwk2vc5ky,CLIENT,"Called: no answer, left voicemail",,,2026-03-17T13:56:40.769Z,"Called: no answer, left voicemail | Que días está abierto?","[{""field"": ""SHIFTS"", ""value"": null}]"
@@ -2356,8 +2358,6 @@ cmkr8vvov00gwypedtv77sdqg,clr86jkfu0ej5n7hjemx0wrkd,REVIEW,"Called: added contac
 cml73rmtb01iz2febcgtjude6,clgrlv7k00014mk0g0dleyl7v,SPECIALIST,is this 12 AM or PM?,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmih340ur000f934cpszm1urh,clgfhpibt01ib0c6sp06t2grh,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmk1fyj1a099cyr0xn7tm5aw8,cleg45tr90008md0f34nc3asi,OCCURRENCE_HOLIDAY,"Opening on Christmas Day, please confirm availability on 12/25/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
-cmlqphwwe0athx8foakvgjqph,cl3v5h2q4000804yj6aqaa4x0,SPECIALIST,"Called: no answer, left voicemail,sms sent",,,2026-03-17T14:37:57.399Z,"Called: no answer, sent an sms | Called: no answer, left voicemail and sms | Called: messaged sent on website","[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
-cmlqphwwb0atfx8fogsl4twxj,cl3v5h2q4000804yj6aqaa4x0,REVIEW,"Called: no answer, left voicemail,sms sent",,,2026-03-17T14:37:57.399Z,"Called: no answer, sent an sms | Called: no answer, left voicemail and sms | Called: messaged sent on website","[{""field"": ""SHIFTS"", ""value"": null}]"
 cmk1fyeda07ldyr0x00oewbah,ckypoj7ck373583yyp1nr0a1me,OCCURRENCE_HOLIDAY,"Opening on Independence Day, please confirm availability on 07/04/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmjyhvlw81ae01cfnphpvmwgb,cmjyhvlw71ady1cfnmc2byapl,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmit0i6x202k5voeedbjls03o,cmit0i6x202k4voee48f6uax2,NEW_RESOURCE,New resource: review and publish,,,,,[]
@@ -2508,6 +2508,7 @@ cmkh8nuhj03jc00ec52fwz96e,cmjygxkzh0fmr17ea7mgk2ne6,SPECIALIST,"they say the cor
 cmjygxkzi0fmt17eawwh1chq7,cmjygxkzh0fmr17ea7mgk2ne6,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmjlnkuqo0mcr02fpb4g7elj9,cmjlnkuqo0mcp02fp2lxpm75t,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmjbjrlb307mpycef5mv099at,cmjbjrlb207mnycefh3xzx7lq,NEW_RESOURCE,New resource: review and publish,,,,,[]
+cmixbph3p0ea83zfmqf098war,cmixbph3p0ea73zfm0ml1wwdy,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmkz1r7fa00wtyp26fbg0r9ci,cmhbj3ao501ld3z49ij6oxo0s,EXTERNAL_RESOURCE,External Resource data change from Plentiful,,,,,"[{""field"": ""LOCATION"", ""value"": ""314 Belgrove Dr, Kearny, NJ 07032""}, {""field"": ""NAME"", ""value"": ""Fresh by Ujamaa Cafe - Kearny - American Legion Post 99""}]"
 cmhcftoog08qi0be8rzsqsywq,cmh0n0hql03h7yyec31mvumq3,NEW_RESOURCE,"Called: no answer, left voicemail",,,2025-10-31T20:17:54.372Z,New resource: review and publish,[]
 cmmnnpmx500030bla3yvkt099,cm6ixnwg101oruy28qksd8ss8,RESOURCE_CARD,"Must be a resident of Jamesburg, NJ",,,,,"[{""field"": ""TAGS_REQUIREMENTS"", ""value"": [""ckyvuaunc1433653lqbkgsscmzf"", ""ckwy1kmgf01963mzzzbthvgzr""]}]"
@@ -2521,7 +2522,6 @@ cmkw6unet00vosc37c6hvavsd,cmkw6unet00vmsc3701mmzwm0,NEW_RESOURCE,New resource: r
 cmmpxabn8021f23oiu6kvc17x,cmk28gab80ori17ea1tvk27du,OCCURRENCE_HOLIDAY,"Opening on Juneteenth, please confirm availability on 06/19/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmk28gab90ork17eah86jxnb1,cmk28gab80ori17ea1tvk27du,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmjra3rso08qexbfosi8dwdj0,cmjra3rso08qcxbfouutmxxpy,NEW_RESOURCE,New resource: review and publish,,,,,[]
-cmixbph3p0ea83zfmqf098war,cmixbph3p0ea73zfm0ml1wwdy,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmix9zrsz03ts1cfqk0uqnglz,cmix9zrsz03tp1cfq280et1nl,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmmnws428002a0bl275pcku1n,cljjjc9n401djzw11r45q90xb,VOLUNTEER,"Called: no answer, left voicemail",,,2026-03-14T20:16:30.603Z,"Called: no answer, left voicemail and sent an email | Called: no answer, left voicemail | Called: no answer, left voicemail","[{""field"": ""SHIFTS"", ""value"": null}]"
 cmmpx5iam00t623oigjwvkvh6,ckxexc1jx023404137txr449m,OCCURRENCE_HOLIDAY,"Opening on Juneteenth, please confirm availability on 06/19/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
@@ -2874,10 +2874,10 @@ cmk1fybbe06f3yr0xr0dfm3co,clvb5bdg503mcel1jxmhq61ij,OCCURRENCE_HOLIDAY,"Opening 
 cmhv1va5i0gh71ifm3h1pa6mf,clrrz2j3c3ndskswqesqu3n8r,REVIEW,The client was told they need to be a vet to get help,,,,,"[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
 cml2g6ktz0573y4ed3v7660sj,cllqngdm100mamx0g1ei0h7i8,SPECIALIST,"is making an appointment a requirement to pick up food? do they only give out gift cards and no food? is calling only for the 
 gift card?",,,,,"[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
-cmkojk3qd000buleb38qcmkfp,cllqngdm100mamx0g1ei0h7i8,NEW_RESOURCE,"Called: no answer,",,,2026-02-21T21:35:43.177Z,"Called: no answer, left voicemail | Called: no answer, left voicemail | New resource: review and publish",[]
+cmkojk3qg000culebx8pjmuc6,cllqngdm100mamx0g1ei0h7i8,SPECIALIST,"Called: no answer,",,,2026-02-21T21:35:43.177Z,Is it a requirement to make an appointment to receive food? Or make an appointment to receive a gift card?,"[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
 cmkojk3q70006uleb576huxid,cllqngdm100mamx0g1ei0h7i8,REVIEW,"Called: no answer,",,,2026-02-21T21:35:43.177Z,Client said she went on 3/23/2024 at 9:30am and that the gates were closed,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmkojk3qa0008ulebs8e6ptgc,cllqngdm100mamx0g1ei0h7i8,REVIEW,"Called: no answer,",,,2026-02-21T21:35:43.177Z,El día de hoy me dirigí a la dirección que me dieron pero cuando llegué estaba cerrado. Como si no hubiera gente allí. Estuve allí a las 10am,"[{""field"": ""RESOURCE_STATUS"", ""value"": null}, {""field"": ""LOCATION"", ""value"": null}]"
-cmkojk3qg000culebx8pjmuc6,cllqngdm100mamx0g1ei0h7i8,SPECIALIST,"Called: no answer,",,,2026-02-21T21:35:43.177Z,Is it a requirement to make an appointment to receive food? Or make an appointment to receive a gift card?,"[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
+cmkojk3qd000buleb38qcmkfp,cllqngdm100mamx0g1ei0h7i8,NEW_RESOURCE,"Called: no answer,",,,2026-02-21T21:35:43.177Z,"Called: no answer, left voicemail | Called: no answer, left voicemail | New resource: review and publish",[]
 cmlytv1oc000e533giaav5mxu,cljvug6d40132lj0hjkh3h4jv,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmk1fyig1094fyr0xde7lnvol,clhkb6poj08xtqd0hd3kdtbwi,OCCURRENCE_HOLIDAY,"Opening on Thanksgiving Day, please confirm availability on 11/26/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmk7yhlq2003z153kmprx1ji4,clh38a5zm0000l70f4lw8l214,STALE_DATA,Stale data: call to verify our information,,,,,[]
@@ -2910,6 +2910,7 @@ cm48tbw1q02q2260wnzu7laot,cm21ejf7y00ayyv1ewm2lqqbu,VOLUNTEER,This is just a pic
 cm21ejf7y00b0yv1etx4axh8p,cm21ejf7y00ayyv1ewm2lqqbu,NEW_RESOURCE,New resource: review and publish,,,,,[]
 clr6iwpwz1uj41gs8lvnpizas,clr6iwpwy1uj21gs8xsqqvr0h,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmkc8t5gf00z6y3278280br0n,cljiq3f5900ijpe0h83krb3ma,STALE_DATA,Stale data: call to verify our information,,,,,[]
+cml9vrblh010eynef5r8alwj3,cljbyqcqj019jrs0hp8t6f2zj,REVIEW,client visited Thursday 2/5 at 1pm and found it closed,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmih340v6000h934chtfghqix,cli5i5uwy06u7lt0ggvyec7mk,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmk1fyhx808upyr0xxht3synz,cli4y1uin03v3vy02di4sgh7v,OCCURRENCE_HOLIDAY,"Opening on Thanksgiving Day, please confirm availability on 11/26/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmk1fyhx608u8yr0x185x3our,cli4y1uin03v3vy02di4sgh7v,OCCURRENCE_HOLIDAY,"Opening on Thanksgiving Day, please confirm availability on 11/26/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
@@ -2948,7 +2949,6 @@ cmhnwjy4j0acjy5eby1rui8jc,cm9tgy5wb004f2b2cqyv0p64a,VOLUNTEER,,,,,,"[{""field"":
 cmdoodro900363mkpmnubv6io,cm9tgy5wb004f2b2cqyv0p64a,NEW_RESOURCE,"Called: no answer, left voicemail",,,2025-07-31T15:11:57.484Z,New resource: review and publish,[]
 clr6fq26h1sqz1gs87bh9lgl4,clr6fq26h1sqx1gs8rsmk5dk1,NEW_RESOURCE,New resource: review and publish,,,,,[]
 clq5q9cc40dl5ukuxobss5a5r,cllop5k0a01ls2jkhr3easxcy,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-12-16T21:43:30.753Z,"Called: no answer, left voicemail | New resource: review and publish",[]
-cml9vrblh010eynef5r8alwj3,cljbyqcqj019jrs0hp8t6f2zj,REVIEW,client visited Thursday 2/5 at 1pm and found it closed,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cluss0dw00c3q428y81djsy6b,cliuinvg30351mg0hyo9vxw6r,SPECIALIST,Client visited 4/9 and it was closed,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cm4yrjcl900w0yj0vjk0yp4jk,cleqvk7db001amg0fz8jyti4m,REVIEW,Reviewed as information inaccurate,,,,,"[{""field"": ""RESOURCE_TYPE"", ""value"": null}]"
 cli26onxg0fvpnn0eg6cbyuwu,cleqvk7db001amg0fz8jyti4m,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-05-26T20:54:26.547Z,"Called: no answer, left voicemail | New resource: review and publish",[]
@@ -2991,8 +2991,8 @@ Thur 12-7
 Fri-9-4",,,,,"[{""field"": ""LOCATION"", ""value"": null}, {""field"": ""PHONE"", ""value"": null}, {""field"": ""OTHER"", ""value"": null}]"
 clo7mx5ef00tyo20ffkdr0p3x,cli5iotpb06w1lt0gbi59195v,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-28T20:26:17.681Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cm9bwiddg01i0x20vi2lusdbx,clgrm2l83000omc0fwvgfzwkd,REVIEW,Client visited on Thurs April 10 at 4:15 and found it closed,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
-cmlplghwq0fnb3ree183ly0f3,clefsiolm0005l70fxk7qgza0,STALE_DATA,"Called: no answer, left voicemail and sent an email",,,2026-02-18T19:55:05.371Z,Stale data: call to verify our information,[]
 cmlplghwu0fnc3reevo0itfga,clefsiolm0005l70fxk7qgza0,NEW_RESOURCE,"Called: no answer, left voicemail and sent an email",,,2026-02-18T19:55:05.371Z,New resource: review and publish,[]
+cmlplghwq0fnb3ree183ly0f3,clefsiolm0005l70fxk7qgza0,STALE_DATA,"Called: no answer, left voicemail and sent an email",,,2026-02-18T19:55:05.371Z,Stale data: call to verify our information,[]
 cmmpx9ub401wt23oizsfgz0zf,cmll0ewx6050101ecxido4ch4,OCCURRENCE_HOLIDAY,"Opening on Juneteenth, please confirm availability on 06/19/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmjrdp31v00j82ffkhxapx27y,cmjrdp31v00j62ffk06ylvl8b,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmjk6dpcg00tjyufoykwb4kqp,cmjk6dpcg00thyufo9otz6to2,NEW_RESOURCE,New resource: review and publish,,,,,[]
@@ -3051,6 +3051,7 @@ cloy8q1tq0tgcp80fpwhm89ll,clmxpoor90ccopd0ftkpm1z39,CLIENT,,,,,,"[{""field"": ""
 clntaushw0f86s50flfzslznk,clmxpoor90ccopd0ftkpm1z39,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-23T19:39:27.681Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 clk8h51sf06wiog0g3fi172ng,cljj1g25201zqpe0h3hkb7jzt,NEW_RESOURCE,"Called: no answer, left facebook message",,,2023-07-20T15:53:15.894Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cmlq9aa88023kyn4d84nx754z,clj6cxpe409skml0hb406p5my,OCCURRENCE_HOLIDAY,"Opening on Memorial Day, please confirm availability on 05/25/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
+cmjjo04cy00iky32qqzrgib9m,cliuhn80o02sfqw0fr3k7bkrq,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmk452lja0l7z0zfr6xf9fbnc,cli4y0o3302s9vy02qexxo00k,SPECIALIST,put county requirements so that this resource doesn't get automatically referred to people,,,,,"[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
 clk03n9ku03g9qq0g255vvqnb,clhkavrzj09bus60htngheob4,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-14T19:13:22.534Z,"Called: no answer, left voicemail | Updated resource from manual entry, check audit",[]
 clk03n9kt03g8qq0g2vj4jx12,clhkavrzj09bus60htngheob4,NEW_RESOURCE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-14T19:13:22.534Z,"Called: no answer, left voicemail | New resource: review and publish",[]
@@ -3092,7 +3093,6 @@ cm786v0ec01jpwd0wmndkhf5d,clnkkzaf704m5rw0fqg9chab6,REVIEW,Accurate days & times
 clny58pvl01jx3x29j4v09y4l,cllx9sq6e03xq164uig0db03n,EXTERNAL_RESOURCE,External Resource data change from 211 Maryland,,,,,"[{""field"": ""PHONE"", ""value"": [{""email"": null, ""phone"": ""+14105753858""}]}]"
 cllx9sq6e03xs164uyam9w5vb,cllx9sq6e03xq164uig0db03n,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmguii5y904l33ufk5nk8deg9,cllovruq900gnn10gmujeevr8,MANUAL_ENTRY_DUPLICATE,Proposed changes from manually entered duplicate,,,,,"[{""field"": ""SHIFTS"", ""value"": [{""endTime"": ""2025-10-16T19:30:00.000Z"", ""isAllDay"": false, ""startTime"": ""2025-10-16T13:00:00.000Z"", ""durationMinutes"": 390, ""recurrencePattern"": ""DTSTART;TZID=America/New_York:20251016T130000\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH""}, {""endTime"": ""2025-10-16T18:00:00.000Z"", ""isAllDay"": false, ""startTime"": ""2025-10-16T13:00:00.000Z"", ""durationMinutes"": 300, ""recurrencePattern"": ""DTSTART;TZID=America/New_York:20251016T130000\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=FR""}]}, {""field"": ""NAME"", ""value"": ""DRMM-Lighthouse Outreach""}, {""field"": ""WEBSITE"", ""value"": ""https://www.forgottenharvest.org/find-food/""}]"
-cmjjo04cy00iky32qqzrgib9m,cliuhn80o02sfqw0fr3k7bkrq,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cm37fk6oh00kng4enzt0n1ixr,cli5idl4906vplt0grtyximfs,REVIEW,"client was told that this is a food distributor that distributes to pantries, not individuals",,,,,"[{""field"": ""RESOURCE_TYPE"", ""value"": null}]"
 clxanulrp04ftq0dseojbtfrh,cli4xzxn601ybvy02f4se7kwh,REVIEW,"Restructuring the building, need to call back after 6 months",,,2024-12-11T00:00:00.000Z,"Called: no answer, left voicemail | Called: no answer, left voicemail | It was not open","[{""field"": ""SHIFTS"", ""value"": null}, {""field"": ""OTHER"", ""value"": null}]"
 cml1yqkwx029r2a26nb4pmn1a,cli4xp0ip04tzlt0glbinj2nw,STALE_DATA,Stale data: call to verify our information,,,,,[]
@@ -3176,6 +3176,8 @@ clxnmi4y603rx2bswvyc2rlaq,cllns9z72006hlb0gaifj49q0,REVIEW,This place has been c
 cllns9z73006jlb0gl1kcoxfk,cllns9z72006hlb0gaifj49q0,NEW_RESOURCE,New resource: review and publish,,,,,[]
 clk9ra0au00m5le0hdqrcu83c,cljj1roq40678l30hyzrataef,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-21T13:24:58.590Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 clka0pha201vcph0hs5j7op7n,cljhqslig03vkl30h8ywx0e5l,NEW_RESOURCE,called: hang up,,,2023-07-21T17:49:00.871Z,"called, no answer  | New resource: review and publish",[]
+clk2p5agi06t6qq0go8612eon,cliuliq4l03e7qw0fijga0w9e,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-07-16T14:51:00.844Z,"Called: no answer, no voicemail. Sent email and SMS | Updated resource from manual entry, check audit",[]
+clk2p5agh06t5qq0g18eprij0,cliuliq4l03e7qw0fijga0w9e,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-16T14:51:00.844Z,"Called: no answer, no voicemail. Sent email and SMS | New resource: review and publish",[]
 cmacydrjh00171g0xrb9evltf,cli4xzsyd01sbvy021sb9t69i,SPECIALIST,client said you can only visit once a month,,,,,"[{""field"": ""SHIFTS"", ""value"": null}, {""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
 clk8d2abb06lnog0gkdk9i0xd,cleokhgzm0002jr0fh24e1vej,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-20T13:59:22.152Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cmm1oqqpy00241k35tknl6gu8,cle8stb9i000kmp0flhbzgvpi,STALE_DATA,Stale data: call to verify our information,,,,,[]
@@ -3198,6 +3200,7 @@ cmixb4zsa0e56voeeofj0f7e1,cmixb4zsa0e55voeemiqgnft4,NEW_RESOURCE,New resource: r
 cmkpqjgoh044n3leeqrr8zzdn,cmisz3awz02hs1jee2jpu3dc4,VOLUNTEER,days and hours are not listed,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmisz3awz02ht1jeexmycdvos,cmisz3awz02hs1jee2jpu3dc4,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmj8w0jgd08ov1sfnuck08nis,cmip03owz0bjr1cfl5rv89qkw,VOLUNTEER,no schedule,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
+cmig5z5ua0jqm0zecnsn5cqwx,cmig5z5ua0jqk0zecgqnniadf,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmidahhmw0ale3tflobu4c82y,cmidahhmv0ald3tfld1o1dxr8,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmi4salih0wa0zoedvjwj6ha5,cmi4salif0w9zzoedkdyq61n6,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmi4oxazj0vrhzoedt4d2d2bc,cmi4oxazj0vrgzoedc8eq0jpw,NEW_RESOURCE,New resource: review and publish,,,,,[]
@@ -3213,8 +3216,7 @@ clrqtdpix39jkkswqfbsg473t,clrqtdpix39jikswqwzhh1lcd,NEW_RESOURCE,New resource: r
 clr9jvk3v01l5d8z8qcgggt6g,clr9jvk3v01l2d8z8rizjnjep,NEW_RESOURCE,New resource: review and publish,,,,,[]
 clr6hd37w1tm61gs88typk3gf,clr6hd37w1tm41gs8cjvzj8d6,NEW_RESOURCE,New resource: review and publish,,,,,[]
 clp8v2dsq0u1wqm8hscnaupqp,cljj1gjcj01zvpe0hwlcat7cn,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-11-23T21:41:49.553Z,"Called: no answer, left voicemail. Sent SMS | Called: no answer, left voicemail | New resource: review and publish",[]
-clk2p5agi06t6qq0go8612eon,cliuliq4l03e7qw0fijga0w9e,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-07-16T14:51:00.844Z,"Called: no answer, no voicemail. Sent email and SMS | Updated resource from manual entry, check audit",[]
-clk2p5agh06t5qq0g18eprij0,cliuliq4l03e7qw0fijga0w9e,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-16T14:51:00.844Z,"Called: no answer, no voicemail. Sent email and SMS | New resource: review and publish",[]
+cmlfgrzx70b36uzecturmcp15,cliuguwen02s9mg0hd8wmyjo9,REVIEW,"Called: no answer, left voicemail and sent an sms",,,2026-02-11T17:46:32.323Z,It was closed,[]
 cmmpx7xkk01f923oiehul79fj,cli4y1tnh03u3vy02358zkjir,OCCURRENCE_HOLIDAY,"Opening on Juneteenth, please confirm availability on 06/19/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmlq9h5l404nyyn4dlfjrty9e,clh1gr8qb0000mn0gmyemnzpj,OCCURRENCE_HOLIDAY,"Opening on Memorial Day, please confirm availability on 05/25/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmih340u9000d934c5mr4ye68,clgfhp4e800kf0c6su15uuymb,STALE_DATA,Stale data: call to verify our information,,,,,[]
@@ -3240,7 +3242,6 @@ cmjd7tqfq0556ykfpa9h5u2gb,cmjbla5iq02yxzofo4cn61xsx,VOLUNTEER,No image,,,,,"[{""
 cmjbla5iq02yzzofo78qgmxbj,cmjbla5iq02yxzofo4cn61xsx,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmj2wpb980069zzflmbc8eqvr,cmj2wpb980068zzfll6f156b2,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmiszf44p02c03zfmopvpm3gn,cmiszf44o02bz3zfm3jov3gtn,NEW_RESOURCE,New resource: review and publish,,,,,[]
-cmig5z5ua0jqm0zecnsn5cqwx,cmig5z5ua0jqk0zecgqnniadf,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmk1fyh0408jcyr0x10avfxiu,cmiemfcq10e5a00cq479c6q6s,OCCURRENCE_HOLIDAY,"Opening on Veterans Day, please confirm availability on 11/11/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmiemfcq10e5c00cqm3numwl2,cmiemfcq10e5a00cq479c6q6s,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmid9hn5p0ab940f5mik14rfq,cmid9hn5p0ab840f5l7lucxn5,NEW_RESOURCE,New resource: review and publish,,,,,[]
@@ -3269,7 +3270,6 @@ cm50za3721513wk0uhjng8m60,cljk5bgnp071dl30htfwtjt8f,CLIENT,"Been three times sti
 Gotten any help",,,,,"[{""field"": ""RESOURCE_TYPE"", ""value"": null}]"
 cm4t1k3tf01nl170vpo9o6aqr,cljk5bgnp071dl30htfwtjt8f,CLIENT,"Contact number for foodbank
 Been coming no Contact with anyone",,,,,"[{""field"": ""RESOURCE_TYPE"", ""value"": null}]"
-cmlfgrzx70b36uzecturmcp15,cliuguwen02s9mg0hd8wmyjo9,REVIEW,"Called: no answer, left voicemail and sent an sms",,,2026-02-11T17:46:32.323Z,It was closed,[]
 cm683zglp00m21i0wd3bm9tfg,clioo4t6e00e8mg0hw28umy0d,VOLUNTEER,"Hours of operation or requirements are not listed for this pantry on the Lemontree website.
 
 According to an internet search the location offers services 24/7.",,,,,"[{""field"": ""OTHER"", ""value"": null}]"
@@ -3469,6 +3469,8 @@ cmjdfg1z604w1y6ec2w595fdb,cmjdfg1z504w0y6ecdk8rzk7f,NEW_RESOURCE,New resource: r
 cmjyjdtui1bhkxmcrrqvt3vvp,cmja3817o03nmyceftjrl8334,NEW_RESOURCE,"Called: no answer, sent an sms",,,2026-01-05T16:47:50.031Z,New resource: review and publish,[]
 cmj8qdn6s0bgczsfod4amwd0n,cmj8qdn6s0bgbzsfo72io3fne,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmj2x73z40e924vecdbabpr2y,cmj2x73z40e914veck4p12zdd,NEW_RESOURCE,New resource: review and publish,,,,,[]
+cmkg535e20556ykfk4nkcot9w,cmj1m6uyk03y2vyfpmh7zbp63,VOLUNTEER,This image is blurry,,,,,"[{""field"": ""IMAGES"", ""value"": null}]"
+cmj1m6uyk03y3vyfpqiqjdkit,cmj1m6uyk03y2vyfpmh7zbp63,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmj1lny0103ufvyfp8r8uo0z5,cmj1lny0103uevyfplzxoq23p,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmlaz1r1k018f1dfp4igxyuo6,cmixbv2s5048e1nfhn0xizsvc,VOLUNTEER,no schedule listed,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmixbv2s5048f1nfhhn806p7d,cmixbv2s5048e1nfhn0xizsvc,NEW_RESOURCE,New resource: review and publish,,,,,[]
@@ -3531,8 +3533,6 @@ cmjlhd2o902diztflviitgmht,cmjlhd2o802dhztflnj4f077x,NEW_RESOURCE,New resource: r
 cmjhehxpf0du1ykfpijzt3pzr,cmjhehxpf0dtzykfpi90evnbe,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmjhdin2o0czwzxfprsf0su44,cmjhdin2o0czvzxfpkci6slzw,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmj7cmv0w072d13fous6in4ro,cmj7cmv0w072b13fo7mlzj9rw,NEW_RESOURCE,New resource: review and publish,,,,,[]
-cmkg535e20556ykfk4nkcot9w,cmj1m6uyk03y2vyfpmh7zbp63,VOLUNTEER,This image is blurry,,,,,"[{""field"": ""IMAGES"", ""value"": null}]"
-cmj1m6uyk03y3vyfpqiqjdkit,cmj1m6uyk03y2vyfpmh7zbp63,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmit13rt602oivoeew0ifqqkr,cmit13rt502ohvoeeqml4jk66,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmm9j1ss204eze61az2y1drx2,cmit0z42i02o15agxpni7q0u1,VOLUNTEER,the image is just a fence,,,,,"[{""field"": ""IMAGES"", ""value"": null}]"
 cmit0z42i02o25agxwkh2snkd,cmit0z42i02o15agxpni7q0u1,NEW_RESOURCE,New resource: review and publish,,,,,[]
@@ -4669,6 +4669,8 @@ clw6pq3r20c64142dkqkf9g03,clhkklwj00anas60h9ij35gbz,REVIEW,"Client reports: The 
 
 Client received reminder on 5/13/2024 about pantry being open on 5/14/2024",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmkrynk3s0065zd2j8s5ay6hl,clhkk6kro09wvqd0hpag0mxs0,STALE_DATA,Stale data: call to verify our information,,,,,[]
+cmh17txa807ypyyecz4mo9n1y,clhkezx4a09epqd0hh4nr870i,RESOURCE_CARD,No food pantry,,,,,"[{""field"": ""RESOURCE_TYPE"", ""value"": null}, {""field"": ""IMAGES"", ""value"": null}]"
+cmmd48m8500r324n8aful9dom,clhkexsxl09vys60hgf1qvn5v,STALE_DATA,Stale data: call to verify our information,,,,,[]
 clk1jrq4w05pap10h0jahq29k,clhjpv87406z0s60hp09o8faj,NEW_RESOURCE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-15T19:32:33.693Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cmlq9cjnn02tkyn4dpm0375ii,clhjp9wxb06uks60hv3ocmcw9,OCCURRENCE_HOLIDAY,"Opening on Memorial Day, please confirm availability on 05/25/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cm4zsexd9009o0i0v54ibg44p,clhjixh6404rns60hvbzgrgdm,SPECIALIST,client reported 8:30am sign in required,,,,,"[{""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
@@ -4683,9 +4685,9 @@ cmkktgcyd001h8u3r7pkje8af,clhi2zaw10002lh0f9qdm31to,STALE_DATA,Stale data: call 
 cmio8b9nj000zxc39y29hbzrv,clh1fpai80000mp0fc7caaq29,STALE_DATA,Stale data: call to verify our information,,,,,[]
 ud2eaibyinyasopx09a6gik8,clgscg1y80000mb0fpc4c59g6,MANUAL_ENTRY_DUPLICATE,"Updated resource from manual entry, check audit",,,,,[]
 cmidbl5x60au13tfln5kg89z9,clgc31u390018m90fbzasiceh,STALE_DATA,"Called: no answer, left voicemail and sent an email",,,2025-12-01T15:46:45.638Z,"Called: no answer, left voicemail and sent an email | Stale data: call to verify our information",[]
-clpmp82wi0klyzua9v66049pc,clg9aheco002ojv0f660qbgvz,MANUAL_ENTRY_DUPLICATE,"Called: no answer,",,,2023-12-08T14:06:56.543Z,"Called: number not in service | Updated resource from manual entry, check audit",[]
-clpmp82wh0klvzua9mtdksofd,clg9aheco002ojv0f660qbgvz,NEW_RESOURCE,"Called: no answer,",,,2023-12-08T14:06:56.543Z,Called: number not in service | New resource: review and publish,[]
 clpmp82wh0klwzua96u3ezt77,clg9aheco002ojv0f660qbgvz,MANUAL_ENTRY_DUPLICATE,"Called: no answer,",,,2023-12-08T14:06:56.543Z,"Called: number not in service | Updated resource from manual entry, check audit",[]
+clpmp82wh0klvzua9mtdksofd,clg9aheco002ojv0f660qbgvz,NEW_RESOURCE,"Called: no answer,",,,2023-12-08T14:06:56.543Z,Called: number not in service | New resource: review and publish,[]
+clpmp82wi0klyzua9v66049pc,clg9aheco002ojv0f660qbgvz,MANUAL_ENTRY_DUPLICATE,"Called: no answer,",,,2023-12-08T14:06:56.543Z,"Called: number not in service | Updated resource from manual entry, check audit",[]
 clpmp82wi0klxzua93g8jnze1,clg9aheco002ojv0f660qbgvz,MANUAL_ENTRY_DUPLICATE,"Called: no answer,",,,2023-12-08T14:06:56.543Z,"Called: number not in service | Updated resource from manual entry, check audit",[]
 cmk1fyi6808zlyr0xhhepcd3g,clg6tojlz0020mn0fons1nib5,OCCURRENCE_HOLIDAY,"Opening on Thanksgiving Day, please confirm availability on 11/26/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cli292mkn0gdunn0ek3v6wzad,clg6tojlz0020mn0fons1nib5,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-05-26T22:01:35.606Z,Called: no answer  sent SMS | New resource: review and publish,[]
@@ -4693,8 +4695,8 @@ cliltk9zn09bzlo0gv3pwzblf,clg5o280w0000lc0fi8mmyqbv,NEW_RESOURCE,"Called: no ans
 clklmw4pd04e8ns0h521ocwd7,clg4o8ovs0014mj0f999b4gn0,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-29T20:55:28.239Z,New resource: review and publish,[]
 cmk1fyi6c08zpyr0xme7itobl,clg4kptj70000mc0fjz0y0k8z,OCCURRENCE_HOLIDAY,"Opening on Thanksgiving Day, please confirm availability on 11/26/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 clklk2zr603x5pq0hrbmbouqs,clg4kptj70000mc0fjz0y0k8z,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-07-29T19:36:26.781Z,"Updated resource from manual entry, check audit",[]
-clklk2zr503x4pq0hoysmp57f,clg4kptj70000mc0fjz0y0k8z,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-07-29T19:36:26.781Z,"Updated resource from manual entry, check audit",[]
 clklk2zr303x3pq0hntmxo0fj,clg4kptj70000mc0fjz0y0k8z,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-29T19:36:26.781Z,New resource: review and publish,[]
+clklk2zr503x4pq0hoysmp57f,clg4kptj70000mc0fjz0y0k8z,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-07-29T19:36:26.781Z,"Updated resource from manual entry, check audit",[]
 clklk2zr703x6pq0hm2c4d35x,clg4kptj70000mc0fjz0y0k8z,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-07-29T19:36:26.781Z,"Updated resource from manual entry, check audit",[]
 clplqk2a70i08zua9f4z302kt,clg4k8fap000ol40fzoqxvt7t,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-12-02T21:56:18.131Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cmexusbij00kat72i029wqh73,clf5uk7y20004mg0fm8vh7ss2,STALE_DATA,Stale data: call to verify our information,,,,,[]
@@ -4824,11 +4826,11 @@ aygxtitg0d0lbpg5w720qgc9,cljabiknu00kdob0gigpvfvg8,MANUAL_ENTRY_DUPLICATE,"Updat
 cljabiknv00kfob0g61c6robk,cljabiknu00kdob0gigpvfvg8,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cm0mjulzl00c7ogz4asivfegu,cljaat44n00izob0gdmm8gdyg,CLIENT,What they offer..hot meals or food pantry?,,,,,"[{""field"": ""RESOURCE_TYPE"", ""value"": null}]"
 cljaat44n00j1ob0g1j5feqxh,cljaat44n00izob0gdmm8gdyg,NEW_RESOURCE,New resource: review and publish,,,,,[]
-cmkppl6gk03ui2vfrn5cq79ng,clja93mw200drob0g9ow1rura,NEW_RESOURCE,"Called: no answer,",,,2026-01-24T17:12:31.040Z,New resource: review and publish,[]
+cmkppl6gh03ug2vfr5bkbak3l,clja93mw200drob0g9ow1rura,CLIENT,"Called: no answer,",,,2026-01-24T17:12:31.040Z,,"[{""field"": ""RESOURCE_STATUS"", ""value"": null}]"
 cmkppl6ge03ue2vfrj5grjsmr,clja93mw200drob0g9ow1rura,CLIENT,"Called: no answer,",,,2026-01-24T17:12:31.040Z,When they have it,"[{""field"": ""SHIFTS"", ""value"": null}]"
+cmkppl6gk03ui2vfrn5cq79ng,clja93mw200drob0g9ow1rura,NEW_RESOURCE,"Called: no answer,",,,2026-01-24T17:12:31.040Z,New resource: review and publish,[]
 cmkppl6ga03uc2vfrd59psmrw,clja93mw200drob0g9ow1rura,CLIENT,"Called: no answer,",,,2026-01-24T17:12:31.040Z,Lady from church called to tell me it was today Friday the 20th after I left a message on her matching. It started at 12pm. I could not make it tho.,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmkppl6gn03uj2vfrg0wmbjpa,clja93mw200drob0g9ow1rura,REVIEW,"Called: no answer,",,,2026-01-24T17:12:31.040Z,client called and was told they do not distribute food,"[{""field"": ""RESOURCE_STATUS"", ""value"": null}]"
-cmkppl6gh03ug2vfr5bkbak3l,clja93mw200drob0g9ow1rura,CLIENT,"Called: no answer,",,,2026-01-24T17:12:31.040Z,,"[{""field"": ""RESOURCE_STATUS"", ""value"": null}]"
 clj98v3n4022nrs0hn0hozb66,clj98v3n4022jrs0h73fb88sf,NEW_RESOURCE,New resource: review and publish,,,,,[]
 clo7ce7ee042ntb0f4ghq77fp,clj7g2ym100xzqo0h4k8p0w43,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-28T15:31:23.934Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cmkrynk3m0062zd2j65u07dwn,clj5xvcqq00a4rz0g9lrb2qle,STALE_DATA,Stale data: call to verify our information,,,,,[]
@@ -4850,23 +4852,21 @@ cmkw8z3y300lgsc33u636rgj2,cli4xzmwe01kbvy02r63zcsig,STALE_DATA,Stale data: call 
 cmkutj9bd00atvz473vjujxzz,clhp3i5c20717mb0grljqvc5q,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmmd48mai00r424n8g1aznnfm,clhp24w16034ile0f5crpdnrq,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmk1fyi4s08ykyr0x5l6rk0gl,clhkqnqab0bl9qd0hiix2uhyb,OCCURRENCE_HOLIDAY,"Opening on Thanksgiving Day, please confirm availability on 11/26/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
-cmh17txa807ypyyecz4mo9n1y,clhkezx4a09epqd0hh4nr870i,RESOURCE_CARD,No food pantry,,,,,"[{""field"": ""RESOURCE_TYPE"", ""value"": null}, {""field"": ""IMAGES"", ""value"": null}]"
-clkx3azxy01wvod0hl3ruonq3,clhkeyxv709x0s60hiqtbzbj7,NEW_RESOURCE,"Called: no answer, no voicemail. Sent email and SMS",,,2023-08-06T21:20:01.991Z,New resource: review and publish,[]
 clkx3azxy01wwod0hr6ahwpdn,clhkeyxv709x0s60hiqtbzbj7,MANUAL_ENTRY_DUPLICATE,"Called: no answer, no voicemail. Sent email and SMS",,,2023-08-06T21:20:01.991Z,"Updated resource from manual entry, check audit",[]
-cmmd48m8500r324n8aful9dom,clhkexsxl09vys60hgf1qvn5v,STALE_DATA,Stale data: call to verify our information,,,,,[]
+clkx3azxy01wvod0hl3ruonq3,clhkeyxv709x0s60hiqtbzbj7,NEW_RESOURCE,"Called: no answer, no voicemail. Sent email and SMS",,,2023-08-06T21:20:01.991Z,New resource: review and publish,[]
 cmm83wmow028jfpx17ohanof8,clhkec60d09c5qd0hyxer6f8j,RESOURCE_CARD,304-639-1725,,,,,"[{""field"": ""PHONE"", ""value"": null}]"
 cmm6lts1q0707cu021xxdw3f4,clhkec60d09c5qd0hyxer6f8j,RESOURCE_CARD,"the location is 100 N. Zane Highway in Martins Ferry OH
 the phone number is 304-639-1725
 Thank you.",,,,,"[{""field"": ""LOCATION"", ""value"": null}, {""field"": ""PHONE"", ""value"": null}]"
 cmlvyzats0002wc3aqzj34hh7,clhkec60d09c5qd0hyxer6f8j,STALE_DATA,Stale data: call to verify our information,,,,,[]
-cll2ekuc200cen40hcd3n7o1s,clhkdl4c4095xqd0hpzn9v5hh,MANUAL_ENTRY_DUPLICATE,Called:call not going through,,,2023-08-10T14:34:26.098Z,"Updated resource from manual entry, check audit",[]
 cll2ekuc200cdn40hm27ttygu,clhkdl4c4095xqd0hpzn9v5hh,NEW_RESOURCE,Called:call not going through,,,2023-08-10T14:34:26.098Z,New resource: review and publish,[]
+cll2ekuc200cen40hcd3n7o1s,clhkdl4c4095xqd0hpzn9v5hh,MANUAL_ENTRY_DUPLICATE,Called:call not going through,,,2023-08-10T14:34:26.098Z,"Updated resource from manual entry, check audit",[]
 clya28s8d05kyfcv8sxfq0uld,clhkdghl109kcs60h47p58sxu,RESOURCE_CARD,"The photo is of the church, the food pantry is the building next door.  Also, the house are 10 to 12:45 (NOT 2:00)",,,,,"[{""field"": ""IMAGES"", ""value"": null}]"
-clkww7iad00qem20hqz1ek3cd,clhkdghl109kcs60h47p58sxu,MANUAL_ENTRY_DUPLICATE,"Called: no answer, no voicemail. Sent FB Message and SMS",,,2023-08-06T18:01:19.006Z,"Updated resource from manual entry, check audit",[]
 clkww7ia700qdm20hhpiargvb,clhkdghl109kcs60h47p58sxu,NEW_RESOURCE,"Called: no answer, no voicemail. Sent FB Message and SMS",,,2023-08-06T18:01:19.006Z,New resource: review and publish,[]
+clkww7iad00qem20hqz1ek3cd,clhkdghl109kcs60h47p58sxu,MANUAL_ENTRY_DUPLICATE,"Called: no answer, no voicemail. Sent FB Message and SMS",,,2023-08-06T18:01:19.006Z,"Updated resource from manual entry, check audit",[]
 cml0japrw00vrsp4hl15c28dn,clhkaezcy095gs60hjocve379,STALE_DATA,Stale data: call to verify our information,,,,,[]
-cll1bab7i00zsqx0ed9hobpsv,clhk9y3lj092es60hh89b1gur,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-09T20:14:44.957Z,New resource: review and publish,[]
 cll1bab7k00ztqx0ex36i2wi5,clhk9y3lj092es60hh89b1gur,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-08-09T20:14:44.957Z,"Updated resource from manual entry, check audit",[]
+cll1bab7i00zsqx0ed9hobpsv,clhk9y3lj092es60hh89b1gur,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-09T20:14:44.957Z,New resource: review and publish,[]
 cmlhokvnj001bxv29hx9xfo1f,clhjpha4k06wos60h1gh363sm,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cll15d42k00abqx0eh8p7ys3x,clhjp56fw06tcs60hz5ejiyxo,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-09T17:29:08.371Z,New resource: review and publish,[]
 cll11yvzo00n7s50fmn8lmlrw,clhjoq1qh06qss60hho8ynzb8,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-09T15:53:45.079Z,New resource: review and publish,[]
@@ -4884,10 +4884,10 @@ cmkktgcy9001f8u3rcmi80iie,clgs8q4v00000l90ft7v993bn,STALE_DATA,Stale data: call 
 cmjmivtga0001xg383vufcaib,clgs3iszg001kmt0ff9t7shai,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cm2522nuc01durv7yg9bed97b,clgrlid53001el60fhy8jnevv,REVIEW,Client went on Friday Oct 11 at 10:30am and found it closed,,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cltb3th7t017wtoyciidxfbh2,clglssgmj030p1nvrifrdb5at,EXTERNAL_RESOURCE,External Resource data change from 211 Maryland,,,,,"[{""field"": ""DESCRIPTION"", ""value"": ""EMERGENCY PANTRY: Provides an emergency 3-day supply of non-perishable food items to residents in need. Quantity is based on number of household members. The pantry can be utilized once every 30 days per household.CHOICE PANTRY: Provides food for those in need, allowing them the freedom to choose the food items from the pantry that they would like. The pantry can be utilized once every 30 days per household.""}]"
-clksr15tu072wo00hvt5jbn8u,clggr4yvq0002l60fz3aaj3ic,NEW_RESOURCE,"Called: no answer, left voicemail call betwen 8-3pm",,,2023-08-03T20:25:27.810Z,New resource: review and publish,[]
-clksr15tv072xo00hvqjghsvb,clggr4yvq0002l60fz3aaj3ic,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail call betwen 8-3pm",,,2023-08-03T20:25:27.810Z,"Updated resource from manual entry, check audit",[]
-clksr15tw072zo00heg5egc3n,clggr4yvq0002l60fz3aaj3ic,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail call betwen 8-3pm",,,2023-08-03T20:25:27.810Z,"Updated resource from manual entry, check audit",[]
 clksr15tv072yo00h6c2qveji,clggr4yvq0002l60fz3aaj3ic,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail call betwen 8-3pm",,,2023-08-03T20:25:27.810Z,"Updated resource from manual entry, check audit",[]
+clksr15tu072wo00hvt5jbn8u,clggr4yvq0002l60fz3aaj3ic,NEW_RESOURCE,"Called: no answer, left voicemail call betwen 8-3pm",,,2023-08-03T20:25:27.810Z,New resource: review and publish,[]
+clksr15tw072zo00heg5egc3n,clggr4yvq0002l60fz3aaj3ic,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail call betwen 8-3pm",,,2023-08-03T20:25:27.810Z,"Updated resource from manual entry, check audit",[]
+clksr15tv072xo00hvqjghsvb,clggr4yvq0002l60fz3aaj3ic,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail call betwen 8-3pm",,,2023-08-03T20:25:27.810Z,"Updated resource from manual entry, check audit",[]
 cmidc8fcj0auq44fl7de4yfvx,clgc21lw9001il00fmpnpt8n3,STALE_DATA,"Called: no answer, left voicemail",,,2025-12-01T16:04:45.543Z,"Called: no answer, left voicemail and sms | Stale data: call to verify our information",[]
 clnlx0xue08i7rw0fxd4ubw9f,clgbnax7a0000la0fybl36nld,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-13T15:38:04.142Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 clpihx7iu0czkvk3k5fpd7rv3,clg9v458l0002l30f3mwy8yo9,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail. Sent SMS and email",,,2023-12-05T15:31:28.979Z,"Updated resource from manual entry, check audit",[]
@@ -5494,6 +5494,7 @@ cm4n40jsm00rsut0wfidwln3a,202,STALE_DATA,"Called: no answer, left voicemail",,,2
 cmmpbzhl801cu25op4hhs8mhq,cmmp38uy300050bl79y15jqoa,LOW_CONFIDENCE,"The primary operational data regarding the schedule is conflicting, making the current listing unreliable for clients.",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmmp6p6s5002y24osldlkyllv,cmmngem5y00020bl8qosvqcf9,LOW_CONFIDENCE,Overall confidence in this resource's operational information is low due to a lack of independent verification and conflicting information regarding its initial data source.,,,,,"[{""field"": ""LOCATION"", ""value"": null}, {""field"": ""SHIFTS"", ""value"": null}, {""field"": ""TAGS_REQUIREMENTS"", ""value"": null}]"
 cmmpao9mg001j25pvtxqog08j,cmmkmm8un00020bjseyt5r6iz,LOW_CONFIDENCE,"Data accuracy is questionable due to the resource's newness, initial lack of web verification, and a potential duplicate with conflicting information at the same address.",,,,,[]
+cmmehljqk00o123pquvgej1pv,cmmehlj6200nr23pqx6dpt3u1,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmmp1rv8302wc26n72au072dw,cmmdtdo34023veb1o4c330ppf,LOW_CONFIDENCE,"The resource is described as a seasonal summer program, but its current schedule is year-round, and its online presence is nil, making its operational status highly uncertain.",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmm5wygpj00k64b2yr1jvk5eg,cmm5wygog00k44b2yg997nj0s,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmljymsbl03b643eeam74jv4f,cmlh2touo00itxucrttrmlh4g,NEW_RESOURCE,"Called: no answer, left voicemail",,,2026-02-19T21:17:39.673Z,"Called: no answer, left voicemail and sent an email | New resource: review and publish",[]
@@ -5679,8 +5680,8 @@ cljhkkbjq00xgqn0gy17s8g35,cljhkkbjp00xfqn0gcjfrjxo4,NEW_RESOURCE,New resource: r
 j52qdqiaomkpvbd65hsaitu3,cljh416t4006ilt0hn44cnzae,MANUAL_ENTRY_DUPLICATE,"Updated resource from manual entry, check audit",,,,,[]
 cljh416t4006jlt0hytwgmfy8,cljh416t4006ilt0hn44cnzae,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cljh3ya6y01wzl30h9qxp0bss,cljh3ya6y01wyl30hvi1pornv,NEW_RESOURCE,New resource: review and publish,,,,,[]
-clkbijqsv01c4le0hrzeqq7zz,cljh3vvog005vlt0hefvlinut,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-22T18:56:11.149Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 clkbijqsy01c5le0hnzrfe6a6,cljh3vvog005vlt0hefvlinut,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-07-22T18:56:11.149Z,"Called: no answer, left voicemail | Updated resource from manual entry, check audit",[]
+clkbijqsv01c4le0hrzeqq7zz,cljh3vvog005vlt0hefvlinut,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-22T18:56:11.149Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cljzsmsno02htqq0g2bb2y816,cljg7hkz201hhrs0h5vm4ph6s,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-07-14T14:04:58.057Z,"Called: no answer, left voicemail | Updated resource from manual entry, check audit",[]
 cljzsmsnn02hsqq0gmzkvj1cj,cljg7hkz201hhrs0h5vm4ph6s,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-14T14:04:58.057Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cljg7eyga01hars0h7mkcz78p,cljg7eyga01h9rs0hdlicd20g,NEW_RESOURCE,New resource: review and publish,,,,,[]
@@ -5702,9 +5703,9 @@ cmmpx8l3901l423oiuqfhalls,clj98ai7d020urs0hy7x4lla4,OCCURRENCE_HOLIDAY,"Opening 
 clj98ai7d020xrs0hzb79u1xf,clj98ai7d020urs0hy7x4lla4,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmkpvwf0p0660zwea2f9mqb9e,clj97j09701z1rs0hmyvul0l8,REVIEW,Called: answered then hang up on me. please try again later,,,2026-01-24T20:08:01.204Z,Reviewed as information inaccurate,"[{""field"": ""RESOURCE_TYPE"", ""value"": null}, {""field"": ""TAGS_OFFERINGS"", ""value"": null}, {""field"": ""TAGS_REQUIREMENTS"", ""value"": null}, {""field"": ""SHIFTS"", ""value"": null}]"
 clk1junp905pjp10h0p43fwj3,clj5x3fln0060rz0gx8susres,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-15T19:34:57.002Z,"Called: no answer, left voicemail | New resource: review and publish",[]
-cloq7rptx01t6p80fa35djj1c,clj4rkk7d0088tf0gkbpnt9hr,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-11-10T20:29:32.768Z,"Updated resource from manual entry, check audit",[]
 cloq7rptx01t5p80flp0iry3b,clj4rkk7d0088tf0gkbpnt9hr,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-11-10T20:29:32.768Z,New resource: review and publish,[]
 cloq7rpty01t7p80fovy9zyfi,clj4rkk7d0088tf0gkbpnt9hr,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-11-10T20:29:32.768Z,"Updated resource from manual entry, check audit",[]
+cloq7rptx01t6p80fa35djj1c,clj4rkk7d0088tf0gkbpnt9hr,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-11-10T20:29:32.768Z,"Updated resource from manual entry, check audit",[]
 clori3tk708ryp80f6zb4tuvt,clj4reagi029dml0hufhziz5u,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-11-11T18:06:41.981Z,New resource: review and publish,[]
 clori3tk708rzp80fv7ageon9,clj4reagi029dml0hufhziz5u,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-11-11T18:06:41.981Z,"Updated resource from manual entry, check audit",[]
 cmlq9dz1s03f2yn4d96a5zsz3,clj44691e001coa0hhnkcct4q,OCCURRENCE_HOLIDAY,"Opening on Memorial Day, please confirm availability on 05/25/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
@@ -5714,8 +5715,8 @@ cmj88h98e000uxb2vf4wsbngr,clj15f2g302svpn0g85y3qm2u,STALE_DATA,Stale data: call 
 clnw746bk0qaes50ftddrizms,cliurq58801tgmg0hzcrt0osk,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-20T20:18:10.661Z,"Hours and note, do not make sense | New resource: review and publish",[]
 cmlxef7ny00cmtc3n3dylgulq,cliurkq8w01mcqw0gw9msc4p4,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cln9cddwd00egqe0fuxnkhtme,cliuqiatc00c8qw0gxvu5zhm1,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-04T20:26:36.713Z,New resource: review and publish,[]
-cln9cakqu00eaqe0fpds6ny3u,clium1dp503i5qw0frzup7hqm,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-10-04T20:24:15.349Z,"Updated resource from manual entry, check audit",[]
 cln9cakqt00e9qe0fufanm9pa,clium1dp503i5qw0frzup7hqm,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-04T20:24:15.349Z,New resource: review and publish,[]
+cln9cakqu00eaqe0fpds6ny3u,clium1dp503i5qw0frzup7hqm,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-10-04T20:24:15.349Z,"Updated resource from manual entry, check audit",[]
 cln9b8yp3007aqe0fsu32kl4i,clitsnt6e01ffqw0fryr8omgs,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-04T19:55:12.191Z,New resource: review and publish,[]
 clnaoa4mk04jjqe0fxpmzmdeg,clitshvox01e3qw0fqdg72n3a,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-05T18:47:51.848Z,New resource: review and publish,[]
 clnaodni404jwqe0fsgvxwilw,clitsecms01dxqw0fhqtxow9h,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-10-05T18:50:21.527Z,New resource: review and publish,[]
@@ -5750,8 +5751,8 @@ cmjjo04ec00isy32qlwt5qqd9,clhwfb5yx0nk6n10gn3urpq9c,STALE_DATA,Stale data: call 
 cmk1fygp808diyr0xdp9vjd65,clhorgu7q042emb0ga4jc15j6,OCCURRENCE_HOLIDAY,"Opening on Veterans Day, please confirm availability on 11/11/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cmkutj9ba00aqvz47v151240j,clhopml5r00eyle0f6yc2a2wj,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmhfvios101ugxn47z00umyw7,clhn3ypcn03f4mb0hh55tboaz,STALE_DATA,Stale data: call to verify our information,,,,,[]
-cll2hz0t400y9n40hewdy2493,clhkeuivq09e5qd0hdcd64jh6,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-10T16:09:28.559Z,New resource: review and publish,[]
 cll2hz0t500yan40hvaz8izzb,clhkeuivq09e5qd0hdcd64jh6,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-08-10T16:09:28.559Z,"Updated resource from manual entry, check audit",[]
+cll2hz0t400y9n40hewdy2493,clhkeuivq09e5qd0hdcd64jh6,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-10T16:09:28.559Z,New resource: review and publish,[]
 cmk1fyifw094cyr0xcnfx3xu8,clhjq1foz06znqd0hbspixfzt,OCCURRENCE_HOLIDAY,"Opening on Thanksgiving Day, please confirm availability on 11/26/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 cll1bdgs400zvqx0e6vqt8pff,clhjq1foz06znqd0hbspixfzt,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-09T20:17:03.778Z,New resource: review and publish,[]
 cll180w5s00n8qx0e8rk6ghwn,clhjmco6u069is60hqo0us6j8,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-09T18:43:33.838Z,New resource: review and publish,[]
@@ -5779,32 +5780,32 @@ clkmn9a1t00cpld0he8lu7pum,clgsdl19s0000lb0fjtvchwtc,NEW_RESOURCE,"Called: No ans
 clku2gte5001xpr0himtx645t,clgsd62i50002ml0f4wgmwz4u,NEW_RESOURCE,"Called: no answer, left voicemail , call before 11:30am mon, wed, fri",,,2023-08-04T18:33:22.956Z,New resource: review and publish,[]
 cmk1fyd89075ayr0xuj47ipfc,clgsctgml0002js0fghtjngip,OCCURRENCE_HOLIDAY,"Opening on Independence Day (substitute day), please confirm availability on 07/03/2026",,,,,"[{""field"": ""SHIFTS"", ""value"": null}]"
 i8znz9614gew9hykfb3liu25,clgsctgml0002js0fghtjngip,MANUAL_ENTRY_DUPLICATE,"Updated resource from manual entry, check audit",,,,,[]
-clkik4up601bsoe0hovd8kc82,clgsctgml0002js0fghtjngip,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-27T17:14:54.095Z,New resource: review and publish,[]
 clkik4up501broe0hiq4qg1wf,clgsctgml0002js0fghtjngip,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-27T17:14:54.095Z,New resource: review and publish,[]
+clkik4up601bsoe0hovd8kc82,clgsctgml0002js0fghtjngip,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-27T17:14:54.095Z,New resource: review and publish,[]
 clkiipfzi012loe0hl53y8kum,clgscf0lh0000mk0fktc3y5ev,NEW_RESOURCE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-27T16:34:51.561Z,New resource: review and publish,[]
 clkiipfzh012koe0hgkfzdjdt,clgscf0lh0000mk0fktc3y5ev,NEW_RESOURCE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-27T16:34:51.561Z,New resource: review and publish,[]
 cmknobyr900aq2u3k69gbaost,clgs06djz0000l70fg8nocyt8,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmjnybp2100072k2qsrxvkivx,clgrzx2co000omh0fduvla0ls,STALE_DATA,Stale data: call to verify our information,,,,,[]
 clq5nyu4804vfukux9poi1bqp,clgrnsujj005cmm0flff0e313,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-12-16T20:39:30.091Z,"Called: no answer, left voicemail | New resource: review and publish",[]
 cmkje0ibw0001yg3ftu2tlcqj,clglsshyw032v1nvr84gbwpse,STALE_DATA,Stale data: call to verify our information,,,,,[]
-clkjuz6a800lanp0gv5nq73pp,clghw862y0000l40fa4tq4ixf,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-28T15:06:00.369Z,New resource: review and publish,[]
 clkjuz6ai00lcnp0gp2oth93b,clghw862y0000l40fa4tq4ixf,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-28T15:06:00.369Z,New resource: review and publish,[]
+clkjuz6a800lanp0gv5nq73pp,clghw862y0000l40fa4tq4ixf,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-28T15:06:00.369Z,New resource: review and publish,[]
 clkjuz6ac00lbnp0gn9or3l28,clghw862y0000l40fa4tq4ixf,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-07-28T15:06:00.369Z,New resource: review and publish,[]
 cmha5ragh00ad1l3b0nhrdoq1,clgbslw3u0000le0fjgcclbms,STALE_DATA,Stale data: call to verify our information,,,,,[]
 i4h866x5ef9yjk8yvxs1sm7i,clgbrv8xh0000la0f1ao28i48,MANUAL_ENTRY_DUPLICATE,"Updated resource from manual entry, check audit",,,,,[]
-cliop1e5100kalc0hko7obkw7,clgbrv8xh0000la0f1ao28i48,MANUAL_ENTRY_DUPLICATE,"Called: no answer, full vm. Sent email, FB Message and SMS",,,2023-06-11T14:59:07.655Z,"Called: no answer, left voicemail | Updated resource from manual entry, check audit",[]
 cliop1e5100k8lc0h1w4wbwhk,clgbrv8xh0000la0f1ao28i48,NEW_RESOURCE,"Called: no answer, full vm. Sent email, FB Message and SMS",,,2023-06-11T14:59:07.655Z,"Called: no answer, left voicemail | New resource: review and publish",[]
+cliop1e5100kalc0hko7obkw7,clgbrv8xh0000la0f1ao28i48,MANUAL_ENTRY_DUPLICATE,"Called: no answer, full vm. Sent email, FB Message and SMS",,,2023-06-11T14:59:07.655Z,"Called: no answer, left voicemail | Updated resource from manual entry, check audit",[]
 cliop1e5100kclc0h8axza4u5,clgbrv8xh0000la0f1ao28i48,MANUAL_ENTRY_DUPLICATE,"Called: no answer, full vm. Sent email, FB Message and SMS",,,2023-06-11T14:59:07.655Z,"Called: no answer, left voicemail | Updated resource from manual entry, check audit",[]
 cmkhyklc800alum266sgxm7u2,clg9ye0410000mh0f551os4r2,STALE_DATA,Stale data: call to verify our information,,,,,[]
 ivabp2l4awnofn2qt97gqk9a,clg9y9bp80000l50f7vmfhqdr,MANUAL_ENTRY_DUPLICATE,"Updated resource from manual entry, check audit",,,,,[]
+clkrdgnfl001bp40gzv4k9wcd,clg9y9bp80000l50f7vmfhqdr,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-08-02T21:17:55.900Z,"Updated resource from manual entry, check audit",[]
 clkrdgnfk001ap40gjnckocwp,clg9y9bp80000l50f7vmfhqdr,NEW_RESOURCE,"Called: no answer, left voicemail",,,2023-08-02T21:17:55.900Z,New resource: review and publish,[]
 clkrdgnfm001cp40g1vjdi4gq,clg9y9bp80000l50f7vmfhqdr,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-08-02T21:17:55.900Z,"Updated resource from manual entry, check audit",[]
 clkrdgnfm001dp40gtznd7scg,clg9y9bp80000l50f7vmfhqdr,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-08-02T21:17:55.900Z,"Updated resource from manual entry, check audit",[]
-clkrdgnfl001bp40gzv4k9wcd,clg9y9bp80000l50f7vmfhqdr,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail",,,2023-08-02T21:17:55.900Z,"Updated resource from manual entry, check audit",[]
-clkh6cbt30291nw0hzrtv5rgy,clg9a4qkx0016jr0f8f7ulmji,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-26T18:01:03.778Z,"Called: no answer, left voicemail, sent sms | Updated resource from manual entry, check audit",[]
 clkh6cbt40292nw0htu2w7dld,clg9a4qkx0016jr0f8f7ulmji,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-26T18:01:03.778Z,"Called: no answer, left voicemail, sent sms | Updated resource from manual entry, check audit",[]
-clkh6cbt20290nw0hc8jpny0t,clg9a4qkx0016jr0f8f7ulmji,NEW_RESOURCE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-26T18:01:03.778Z,"Called: no answer, left voicemail, sent sms | New resource: review and publish",[]
 clkh6cbt40293nw0h2lr0q4sb,clg9a4qkx0016jr0f8f7ulmji,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-26T18:01:03.778Z,"Called: no answer, left voicemail, sent sms | Updated resource from manual entry, check audit",[]
+clkh6cbt20290nw0hc8jpny0t,clg9a4qkx0016jr0f8f7ulmji,NEW_RESOURCE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-26T18:01:03.778Z,"Called: no answer, left voicemail, sent sms | New resource: review and publish",[]
+clkh6cbt30291nw0hzrtv5rgy,clg9a4qkx0016jr0f8f7ulmji,MANUAL_ENTRY_DUPLICATE,"Called: no answer, left voicemail. Sent SMS",,,2023-07-26T18:01:03.778Z,"Called: no answer, left voicemail, sent sms | Updated resource from manual entry, check audit",[]
 cmjl3fy42000atg2drgzh1yfv,clg9179vw0000mj0fb40ptvyz,STALE_DATA,Stale data: call to verify our information,,,,,[]
 cmhssmjd3006tzf3jp6fc2t52,clg6bkjwe000ml20ffn7jsnsn,STALE_DATA,Stale data: call to verify our information,,,,,[]
 dzlpx28f72f2hsk9mc5oa5o4,clg56ia4m0000l60fb188rd4i,MANUAL_ENTRY_DUPLICATE,"Updated resource from manual entry, check audit",,,,,[]
@@ -5899,7 +5900,6 @@ cmmp761sq001h0bjyajkt6mdi,cmmp761qp001f0bjyeww809no,NEW_RESOURCE,New resource: r
 cmmpctpwu001a08kvfyd655xe,cmmp5mong001x0bl8o0p41qwl,NEW_RESOURCE,"Called: no answer, left voicemail and sent SMS",,,2026-03-15T20:33:17.110Z,New resource: review and publish,[]
 cmmpc2zqd00060bl528gf9ppp,cmmp4ughi000b0bjpk0hbdsuo,NEW_RESOURCE,"Called: no answer, left voicemail",,,2026-03-15T20:12:30.543Z,New resource: review and publish,[]
 cmmkwva9s000y0bl8zx4nb4a0,cmmkwn4ff00230bjp3r207l10,NEW_RESOURCE,"Called: no answer, left voicemail",,,2026-03-12T17:55:36.813Z,New resource: review and publish,[]
-cmmehljqk00o123pquvgej1pv,cmmehlj6200nr23pqx6dpt3u1,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cmlkhcl7400r04b2lyx3ntglx,cmlkhcl7400qy4b2lmr8dt4s8,NEW_RESOURCE,New resource: review and publish,,,,,[]
 cml8201lj02iy01ee71xhoq4x,cml7mdmoz00iqze42g81uo7o8,NEW_RESOURCE,"Called: no answer, left voicemail",,,2026-02-06T13:18:37.988Z,New resource: review and publish,[]
 cml1wmaeg01vk2a26manuvatp,cml1wmaeg01vi2a26eyn996fm,NEW_RESOURCE,New resource: review and publish,,,,,[]

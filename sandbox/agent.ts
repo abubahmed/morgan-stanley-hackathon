@@ -16,6 +16,9 @@ const RESOURCES_FILES = ["resources.csv", "descriptions.csv", "shifts.csv", "occ
 const CENSUS_DIR = path.join(__dirname, "..", "data", "census");
 const CENSUS_FILES = ["demographics.csv", "poverty.csv", "income.csv", "housing.csv", "education.csv", "geography.csv"];
 
+const USDA_DIR = path.join(__dirname, "..", "data", "usda");
+const USDA_FILES = ["food_environment.csv"];
+
 // Python bootstrap that loads all CSVs into DataFrames
 const PYTHON_BOOTSTRAP = `
 import pandas as pd
@@ -26,6 +29,7 @@ _str_cols = {"id", "resource_id", "shift_id", "resource_type_id", "resource_stat
              "source_id", "tag_category_id", "zip_code"}
 
 _census_str_cols = {"fips", "state_fips", "county_fips"}
+_usda_str_cols = {"fips"}
 
 def _load(path, str_cols=_str_cols):
     df = pd.read_csv(path, dtype={c: str for c in str_cols}, keep_default_na=True)
@@ -47,8 +51,12 @@ census_housing = _load("/home/user/data/census/housing.csv", _census_str_cols)
 census_education = _load("/home/user/data/census/education.csv", _census_str_cols)
 census_geography = _load("/home/user/data/census/geography.csv", _census_str_cols)
 
+# USDA Food Environment Atlas (snapshot, not time-series)
+usda_food_env = _load("/home/user/data/usda/food_environment.csv", _usda_str_cols)
+
 print(f"Lemontree: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
 print(f"Census: demographics={len(census_demographics)}, poverty={len(census_poverty)}, income={len(census_income)}, housing={len(census_housing)}, education={len(census_education)}, geography={len(census_geography)}")
+print(f"USDA: food_environment={len(usda_food_env)}")
 `;
 
 const MAX_ITERATIONS = 12;
@@ -109,7 +117,7 @@ async function initSandbox(): Promise<Sandbox> {
   );
 
   // Upload CSV files into the sandbox
-  await sandbox.runCode("import os; os.makedirs('/home/user/data/resources', exist_ok=True); os.makedirs('/home/user/data/census', exist_ok=True)");
+  await sandbox.runCode("import os; os.makedirs('/home/user/data/resources', exist_ok=True); os.makedirs('/home/user/data/census', exist_ok=True); os.makedirs('/home/user/data/usda', exist_ok=True)");
 
   for (const file of RESOURCES_FILES) {
     const filePath = path.join(RESOURCES_DIR, file);
@@ -131,15 +139,28 @@ async function initSandbox(): Promise<Sandbox> {
     await sandbox.files.write(`/home/user/data/census/${file}`, content);
   }
 
+  for (const file of USDA_FILES) {
+    const filePath = path.join(USDA_DIR, file);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`  Warning: ${filePath} not found, skipping`);
+      continue;
+    }
+    const content = fs.readFileSync(filePath, "utf-8");
+    await sandbox.files.write(`/home/user/data/usda/${file}`, content);
+  }
+
   // Load CSVs into DataFrames
   await sandbox.runCode(PYTHON_BOOTSTRAP);
   return sandbox;
 }
 
-// Run Python code in the sandbox and return the smartly truncated output.
-// Preserves head (column headers) and tail (summaries) of the output so
-// Claude always sees the data shape and final results.
-async function executePython(sandbox: Sandbox, code: string): Promise<string> {
+export interface ExecutionResult {
+  text: string;
+  images: string[]; // base64 PNG strings
+}
+
+// Run Python code in the sandbox and return the smartly truncated output + any images.
+async function executePython(sandbox: Sandbox, code: string): Promise<ExecutionResult> {
   let execResult: any;
   try {
     execResult = await sandbox.runCode(code);
@@ -147,12 +168,18 @@ async function executePython(sandbox: Sandbox, code: string): Promise<string> {
     execResult = {
       logs: { stdout: [], stderr: [err.message] },
       error: err,
+      results: [],
     };
   }
 
   const stdout = (execResult.logs.stdout || []).join("").trim();
   const stderr = (execResult.logs.stderr || []).join("").trim();
   const error = execResult.error?.value || "";
+
+  // Extract base64 PNG images from execution results
+  const images: string[] = (execResult.results || [])
+    .filter((r: any) => r.png)
+    .map((r: any) => r.png);
 
   // Print a short console preview
   if (stdout) {
@@ -171,8 +198,9 @@ async function executePython(sandbox: Sandbox, code: string): Promise<string> {
   if (stdout) output += smartTruncate(stdout);
   if (stderr) output += `\nSTDERR:\n${stderr.split("\n").slice(0, 5).join("\n")}`;
   if (error) output += `\nERROR:\n${error}`;
+  if (images.length) output += `\n[${images.length} image(s) generated]`;
 
-  return output || "(no output)";
+  return { text: output || "(no output)", images };
 }
 
 // Summarize older messages using a fast model (Haiku) and replace them with
@@ -276,6 +304,7 @@ export async function runAgent(job: string) {
   ];
 
   let finalReport: { answer: string } | null = null;
+  const allImages: string[] = [];
 
   for (let i = 1; i <= MAX_ITERATIONS; i++) {
     console.log(`[${i}/${MAX_ITERATIONS}]`);
@@ -320,7 +349,11 @@ export async function runAgent(job: string) {
         const { code, reasoning } = block.input as { code: string; reasoning: string };
         console.log(`\n  > ${reasoning}`);
         console.log(`  --- code ---\n${code}\n  --- end ---`);
-        const output = await executePython(sandbox, code);
+        const { text: output, images } = await executePython(sandbox, code);
+        if (images.length) {
+          allImages.push(...images);
+          console.log(`  [${images.length} image(s) captured]`);
+        }
         const hasError = output.includes("ERROR:") || output.includes("Traceback");
         const budget = `[Step ${i}/${MAX_ITERATIONS}]`;
         let result = `${budget}\n${output}`;
@@ -357,5 +390,5 @@ export async function runAgent(job: string) {
   }
 
   await sandbox.kill();
-  return finalReport;
+  return finalReport ? { ...finalReport, images: allImages } : null;
 }

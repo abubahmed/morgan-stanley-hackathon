@@ -12,9 +12,12 @@
     "lemontree": "npx tsx scripts/test-lemontree.ts",
     "reviews": "npx tsx scripts/test-reviews.ts",
     "analyze": "npx tsx sandbox/index.ts",
+    "analyze:html": "npx tsx sandbox/html.ts",
     "analyze:local": "uv run python sandbox/test.py",
     "fetch:resources": ".venv\\Scripts\\activate.bat && uv run python scripts/fetch_resources.py",
-    "fetch:census": ".venv\\Scripts\\activate.bat && uv run python scripts/fetch_census.py"
+    "fetch:census": ".venv\\Scripts\\activate.bat && uv run python scripts/fetch_census.py",
+    "fetch:usda": ".venv\\Scripts\\activate.bat && uv run python scripts/fetch_usda.py",
+    "fetch:all": "npm run fetch:resources && npm run fetch:census && npm run fetch:usda"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

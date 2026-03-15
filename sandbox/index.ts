@@ -41,6 +41,9 @@ async function main() {
     console.log("\nNo report generated (max iterations reached).");
   } else {
     console.log(`\nResult:\n${report.answer}\n`);
+    if (report.images.length) {
+      console.log(`${report.images.length} chart(s) generated (use npm run analyze:html to view).`);
+    }
   }
 }
 
