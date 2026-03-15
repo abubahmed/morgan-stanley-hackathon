@@ -2,7 +2,9 @@ export const TOOLS = [
   {
     name: "execute_python",
     description: `Run Python code in a persistent E2B sandbox.
-The sandbox has pre-loaded pandas DataFrames: resources, shifts, occurrences, tags, flags.
+The sandbox has pre-loaded pandas DataFrames:
+- Lemontree: resources, descriptions, shifts, occurrences, tags, flags
+- Census: census_demographics, census_poverty, census_income, census_housing, census_education, census_geography
 Common libraries are available: pandas, numpy, matplotlib, seaborn, scipy, geopy.
 Use this to analyze the data and produce findings.
 Stdout is returned. DataFrames printed with print(df) or df.to_string() are captured.

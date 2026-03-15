@@ -10,8 +10,11 @@ import { SYSTEM_PROMPT } from "./systemPrompt";
 import { TOOLS } from "./tools";
 
 // CSV files to upload into the sandbox
-const CSV_DIR = path.join(__dirname, "..", "data", "resources");
-const CSV_FILES = ["resources.csv", "descriptions.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
+const RESOURCES_DIR = path.join(__dirname, "..", "data", "resources");
+const RESOURCES_FILES = ["resources.csv", "descriptions.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
+
+const CENSUS_DIR = path.join(__dirname, "..", "data", "census");
+const CENSUS_FILES = ["demographics.csv", "poverty.csv", "income.csv", "housing.csv", "education.csv", "geography.csv"];
 
 // Python bootstrap that loads all CSVs into DataFrames
 const PYTHON_BOOTSTRAP = `
@@ -22,18 +25,30 @@ import json
 _str_cols = {"id", "resource_id", "shift_id", "resource_type_id", "resource_status_id",
              "source_id", "tag_category_id", "zip_code"}
 
-def _load(path):
-    df = pd.read_csv(path, dtype={c: str for c in _str_cols}, keep_default_na=True)
+_census_str_cols = {"fips", "state_fips", "county_fips"}
+
+def _load(path, str_cols=_str_cols):
+    df = pd.read_csv(path, dtype={c: str for c in str_cols}, keep_default_na=True)
     return df
 
-resources = _load("/home/user/data/resources.csv")
-descriptions = _load("/home/user/data/descriptions.csv")
-shifts = _load("/home/user/data/shifts.csv")
-occurrences = _load("/home/user/data/occurrences.csv")
-tags = _load("/home/user/data/tags.csv")
-flags = _load("/home/user/data/flags.csv")
+# Lemontree data
+resources = _load("/home/user/data/resources/resources.csv")
+descriptions = _load("/home/user/data/resources/descriptions.csv")
+shifts = _load("/home/user/data/resources/shifts.csv")
+occurrences = _load("/home/user/data/resources/occurrences.csv")
+tags = _load("/home/user/data/resources/tags.csv")
+flags = _load("/home/user/data/resources/flags.csv")
 
-print(f"Loaded: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
+# Census data
+census_demographics = _load("/home/user/data/census/demographics.csv", _census_str_cols)
+census_poverty = _load("/home/user/data/census/poverty.csv", _census_str_cols)
+census_income = _load("/home/user/data/census/income.csv", _census_str_cols)
+census_housing = _load("/home/user/data/census/housing.csv", _census_str_cols)
+census_education = _load("/home/user/data/census/education.csv", _census_str_cols)
+census_geography = _load("/home/user/data/census/geography.csv", _census_str_cols)
+
+print(f"Lemontree: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
+print(f"Census: demographics={len(census_demographics)}, poverty={len(census_poverty)}, income={len(census_income)}, housing={len(census_housing)}, education={len(census_education)}, geography={len(census_geography)}")
 `;
 
 const MAX_ITERATIONS = 12;
@@ -94,15 +109,26 @@ async function initSandbox(): Promise<Sandbox> {
   );
 
   // Upload CSV files into the sandbox
-  await sandbox.runCode("import os; os.makedirs('/home/user/data', exist_ok=True)");
-  for (const file of CSV_FILES) {
-    const filePath = path.join(CSV_DIR, file);
+  await sandbox.runCode("import os; os.makedirs('/home/user/data/resources', exist_ok=True); os.makedirs('/home/user/data/census', exist_ok=True)");
+
+  for (const file of RESOURCES_FILES) {
+    const filePath = path.join(RESOURCES_DIR, file);
     if (!fs.existsSync(filePath)) {
       console.warn(`  Warning: ${filePath} not found, skipping`);
       continue;
     }
     const content = fs.readFileSync(filePath, "utf-8");
-    await sandbox.files.write(`/home/user/data/${file}`, content);
+    await sandbox.files.write(`/home/user/data/resources/${file}`, content);
+  }
+
+  for (const file of CENSUS_FILES) {
+    const filePath = path.join(CENSUS_DIR, file);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`  Warning: ${filePath} not found, skipping`);
+      continue;
+    }
+    const content = fs.readFileSync(filePath, "utf-8");
+    await sandbox.files.write(`/home/user/data/census/${file}`, content);
   }
 
   // Load CSVs into DataFrames
