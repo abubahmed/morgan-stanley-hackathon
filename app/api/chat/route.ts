@@ -3,19 +3,15 @@ import { NextRequest } from "next/server";
 export const runtime = "nodejs";
 import Anthropic from "@anthropic-ai/sdk";
 import { triggerSandbox } from "@/lib/sandbox";
+import { detectMode, buildSystemPrompt } from "@/lib/chatUtils";
 import {
   getResourcesByZip,
   searchResources,
   getResourcesOpenToday,
 } from "@/lib/lemontree_api";
-import type { ChatMessage, IntentMode, SandboxResult } from "@/types/chat";
+import type { ChatMessage, IntentMode, SandboxResult, UserRole, AIMode } from "@/types/chat";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-const SYSTEM_PROMPT = `You are a helpful assistant for Lemon Tree Insights, a data analysis tool for food pantry networks.
-You help users understand visit patterns, food access trends, and pantry operations.
-Be concise and direct. Use the tools available to you to answer questions about pantries and data.
-Do not fabricate data — only use what the tools return.`;
 
 // ── Tool definitions ───────────────────────────────────────────────────────────
 
@@ -52,6 +48,51 @@ const TOOLS: Anthropic.Tool[] = [
     },
   },
   {
+    name: "generate_chart",
+    description: "Render a chart in the user's chat panel. Call this with real data you have fetched. The chart will appear automatically.",
+    input_schema: {
+      type: "object" as const,
+      required: ["type", "title", "data", "xKey", "yKey"],
+      properties: {
+        type: { type: "string", enum: ["bar", "line", "pie"], description: "Chart type" },
+        title: { type: "string", description: "Chart title" },
+        data: {
+          type: "array",
+          description: "Array of data objects",
+          items: { type: "object" },
+        },
+        xKey: { type: "string", description: "Key for X axis / labels" },
+        yKey: { type: "string", description: "Key for Y axis / values" },
+        color: { type: "string", description: "Hex color for chart (default green)" },
+      },
+    },
+  },
+  {
+    name: "render_map",
+    description: "Render an interactive map showing pantry locations. Use this when the user asks about locations geographically.",
+    input_schema: {
+      type: "object" as const,
+      required: ["title", "markers"],
+      properties: {
+        title: { type: "string", description: "Map title" },
+        markers: {
+          type: "array",
+          description: "Array of map markers",
+          items: {
+            type: "object",
+            required: ["lat", "lng", "label"],
+            properties: {
+              lat: { type: "number" },
+              lng: { type: "number" },
+              label: { type: "string" },
+              color: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+  },
+  {
     name: "run_analysis",
     description: "Run data analysis on food pantry visit patterns, trends, or statistics. Use for questions about data, counts, trends, comparisons, or anything that requires crunching numbers.",
     input_schema: {
@@ -73,7 +114,7 @@ const TOOLS: Anthropic.Tool[] = [
 function formatResources(resources: any[]): string {
   if (!resources.length) return "No pantries found for that location.";
   return resources
-    .slice(0, 5)
+    .slice(0, 8)
     .map((r, i) => {
       const address = [r.addressStreet1, r.city, r.state, r.zipCode]
         .filter(Boolean)
@@ -91,15 +132,15 @@ async function callTool(name: string, input: Record<string, any>): Promise<strin
   try {
     switch (name) {
       case "search_pantries": {
-        const data = await searchResources(input.query as string, { take: 5 });
+        const data = await searchResources(input.query as string, { take: 8 });
         return formatResources(data.resources ?? []);
       }
       case "get_pantries_by_zip": {
-        const data = await getResourcesByZip(input.zip as string, { take: 5, sort: "distance" });
+        const data = await getResourcesByZip(input.zip as string, { take: 8, sort: "distance" });
         return `Pantries near ${input.zip}:\n\n${formatResources(data.resources ?? [])}`;
       }
       case "get_open_pantries": {
-        const data = await getResourcesOpenToday({ take: 5 });
+        const data = await getResourcesOpenToday({ take: 8 });
         return `Pantries open today:\n\n${formatResources(data.resources ?? [])}`;
       }
       default:
@@ -119,10 +160,14 @@ function sseEvent(event: string, data: string): string {
 // ── Route handler ──────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  const { message, history } = (await req.json()) as {
+  const { message, history, role = "community" } = (await req.json()) as {
     message: string;
     history: ChatMessage[];
+    role?: UserRole;
   };
+
+  const aiMode: AIMode = detectMode(message);
+  const systemPrompt = buildSystemPrompt(aiMode, role);
 
   let messages: Anthropic.MessageParam[] = [
     ...history.map((m) => ({
@@ -134,14 +179,18 @@ export async function POST(req: NextRequest) {
 
   let analysisResult: { mode: IntentMode; result: SandboxResult } | null = null;
 
-  // ── Agentic loop — Claude calls tools until it has everything it needs ─────
+  // Pending chart/map specs to stream to client
+  const pendingCharts: any[] = [];
+  const pendingMaps: any[] = [];
+
+  // ── Agentic loop ──────────────────────────────────────────────────────────
   for (let round = 0; round < 5; round++) {
     let response: Anthropic.Message;
     try {
       response = await anthropic.messages.create({
-        model: "claude-opus-4-6",
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
+        model: "claude-sonnet-4-6",
+        max_tokens: 4096,
+        system: systemPrompt,
         tools: TOOLS,
         messages,
       });
@@ -164,7 +213,21 @@ export async function POST(req: NextRequest) {
     for (const toolUse of toolUseBlocks) {
       const input = toolUse.input as Record<string, any>;
 
-      if (toolUse.name === "run_analysis") {
+      if (toolUse.name === "generate_chart") {
+        pendingCharts.push(input);
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: toolUse.id,
+          content: "Chart rendered successfully.",
+        });
+      } else if (toolUse.name === "render_map") {
+        pendingMaps.push(input);
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: toolUse.id,
+          content: "Map rendered successfully.",
+        });
+      } else if (toolUse.name === "run_analysis") {
         try {
           const mode = (input.mode as IntentMode) ?? 1;
           const result = await triggerSandbox({ query: input.query as string, mode });
@@ -208,6 +271,17 @@ export async function POST(req: NextRequest) {
       };
 
       try {
+        // Always send the AI mode so the client can display it
+        send("mode", JSON.stringify(aiMode));
+
+        // Send any charts/maps that were generated
+        for (const chart of pendingCharts) {
+          send("chart", JSON.stringify(chart));
+        }
+        for (const map of pendingMaps) {
+          send("map", JSON.stringify(map));
+        }
+
         // Analysis result — send as a single event then close
         if (analysisResult) {
           send("analysis", JSON.stringify({
@@ -220,10 +294,10 @@ export async function POST(req: NextRequest) {
 
         // Stream Claude's final text response chunk by chunk
         const stream = await anthropic.messages.create({
-          model: "claude-opus-4-6",
-          max_tokens: 1024,
+          model: "claude-sonnet-4-6",
+          max_tokens: 4096,
           stream: true,
-          system: SYSTEM_PROMPT,
+          system: systemPrompt,
           messages,
         });
 
@@ -232,7 +306,6 @@ export async function POST(req: NextRequest) {
             event.type === "content_block_delta" &&
             event.delta.type === "text_delta"
           ) {
-            // JSON-encode each chunk so newlines inside the text don't break SSE framing
             send("text", JSON.stringify(event.delta.text));
           }
         }

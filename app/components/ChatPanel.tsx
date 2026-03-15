@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, Fragment } from "react";
-import type { ChatMessage, SandboxResult, IntentMode } from "@/types/chat";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import type { ChatMessage, SandboxResult, IntentMode, ChartSpec } from "@/types/chat";
 
 // ─── Lightweight markdown renderer ──────────────────────────────────────────
 // Handles: **bold**, *italic*, numbered lists, bullet lists, newlines.
@@ -143,6 +144,51 @@ function inlineMarkdown(text: string): React.ReactNode {
     }
     return <Fragment key={i}>{part}</Fragment>;
   });
+}
+
+// ─── Chart renderer ──────────────────────────────────────────────────────────
+
+const CHART_COLORS = ["#3DBFAC", "#27A090", "#F5B800", "#FF6B6B", "#6C63FF"];
+
+function ChartCard({ spec }: { spec: ChartSpec }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden my-1">
+      <div className="px-4 py-2 border-b border-gray-100">
+        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{spec.title}</p>
+      </div>
+      <div className="p-3" style={{ height: 220 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          {spec.type === "pie" ? (
+            <PieChart>
+              <Pie data={spec.data} dataKey={spec.yKey} nameKey={spec.xKey} outerRadius={80} label>
+                {spec.data.map((_, i) => (
+                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          ) : spec.type === "line" ? (
+            <LineChart data={spec.data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis dataKey={spec.xKey} tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip />
+              <Line type="monotone" dataKey={spec.yKey} stroke={spec.color ?? "#3DBFAC"} strokeWidth={2} dot={false} />
+            </LineChart>
+          ) : (
+            <BarChart data={spec.data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis dataKey={spec.xKey} tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} />
+              <Tooltip />
+              <Bar dataKey={spec.yKey} fill={spec.color ?? "#3DBFAC"} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
 }
 
 // ─── Mode labels (mirrors lib/intentDetection.ts) ───────────────────────────
@@ -302,23 +348,30 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
   // Plain assistant message (streaming or complete)
   return (
-    <div className="flex justify-start items-end gap-2">
+    <div className="flex justify-start items-start gap-2">
       <LemonAvatar />
-      <div className="max-w-[78%] bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-gray-800 shadow-sm leading-relaxed">
-        {message.isStreaming ? (
-          <span className="whitespace-pre-wrap">
-            {message.content
-              .split("\n")
-              .filter((line) => !line.includes("|"))
-              .join("\n")
-              .replace(/\*\*([^*]+)\*\*/g, "$1")
-              .replace(/\*([^*]+)\*/g, "$1")
-              .replace(/\*+/g, "")}
-            <span className="inline-block w-[2px] h-[1em] bg-gray-600 ml-0.5 animate-pulse align-middle" />
-          </span>
-        ) : (
-          renderMarkdown(message.content)
+      <div className="max-w-[78%] flex flex-col gap-2">
+        {message.content && (
+          <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-gray-800 shadow-sm leading-relaxed">
+            {message.isStreaming ? (
+              <span className="whitespace-pre-wrap">
+                {message.content
+                  .split("\n")
+                  .filter((line) => !line.includes("|"))
+                  .join("\n")
+                  .replace(/\*\*([^*]+)\*\*/g, "$1")
+                  .replace(/\*([^*]+)\*/g, "$1")
+                  .replace(/\*+/g, "")}
+                <span className="inline-block w-[2px] h-[1em] bg-gray-600 ml-0.5 animate-pulse align-middle" />
+              </span>
+            ) : (
+              renderMarkdown(message.content)
+            )}
+          </div>
         )}
+        {message.charts?.map((chart, i) => (
+          <ChartCard key={i} spec={chart} />
+        ))}
       </div>
     </div>
   );
@@ -426,7 +479,22 @@ export default function ChatPanel() {
           } else if (line.startsWith("data: ")) {
             const data = line.slice(6);
 
-            if (eventName === "text") {
+            if (eventName === "mode") {
+              // AI mode — store on the message for potential display
+              const mode = JSON.parse(data) as string;
+              setMessages((prev) =>
+                prev.map((m) => (m.id === loadingId ? { ...m, aiMode: mode as any } : m))
+              );
+            } else if (eventName === "chart") {
+              const chart = JSON.parse(data) as ChartSpec;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === loadingId
+                    ? { ...m, charts: [...(m.charts ?? []), chart] }
+                    : m
+                )
+              );
+            } else if (eventName === "text") {
               // Data is JSON-encoded to safely carry newlines
               textContent += JSON.parse(data) as string;
               const captured = textContent;
@@ -504,7 +572,7 @@ export default function ChatPanel() {
   useEffect(() => {
     setHasSpeech(
       typeof window !== "undefined" &&
-        !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition)
+        !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
     );
   }, []);
 
