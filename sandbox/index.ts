@@ -23,7 +23,7 @@ const EXAMPLE_JOBS = [
 
 const job =
   process.argv.slice(2).join(" ").replace(/^--job\s+/, "").trim() ||
-  EXAMPLE_JOBS[2];
+  EXAMPLE_JOBS[4];
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("ANTHROPIC_API_KEY is not set");
