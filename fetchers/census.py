@@ -136,6 +136,24 @@ EDUCATION_VARS = [
     ("B15003_025E", "doctorate_degree"),
 ]
 
+COMMUTE_VARS = [
+    ("B08301_001E", "total_workers"),
+    ("B08301_003E", "drove_alone"),
+    ("B08301_004E", "carpooled"),
+    ("B08301_010E", "public_transit"),
+    ("B08301_011E", "bus"),
+    ("B08301_012E", "subway"),
+    ("B08301_018E", "bicycle"),
+    ("B08301_019E", "walked"),
+    ("B08301_021E", "worked_from_home"),
+    ("B08201_001E", "total_households_vehicles"),
+    ("B08201_002E", "no_vehicle"),
+    ("B08201_003E", "one_vehicle"),
+    ("B08201_004E", "two_vehicles"),
+    ("B08201_005E", "three_vehicles"),
+    ("B08201_006E", "four_plus_vehicles"),
+]
+
 # Map table name -> var_list
 TABLES = {
     "demographics": DEMOGRAPHICS_VARS,
@@ -143,6 +161,7 @@ TABLES = {
     "income": INCOME_VARS,
     "housing": HOUSING_VARS,
     "education": EDUCATION_VARS,
+    "commute": COMMUTE_VARS,
 }
 
 

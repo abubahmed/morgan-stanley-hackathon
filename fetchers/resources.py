@@ -91,13 +91,10 @@ def clean_row(row: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 TABLES = {
-    "descriptions": [
-        "resource_id",
-        "description",
-    ],
     "resources": [
         "id",
         "name",
+        "description",
         "resource_type_id",
         "resource_status_id",
         "address_street1",
@@ -251,19 +248,12 @@ def process_resource(r: dict, writers: dict[str, CleanWriter], seen_tags: set):
     # Collect resource-level tags
     tag_ids_str = collect_tags(r.get("tags") or [], seen_tags, writers["tags"])
 
-    # --- descriptions.csv ---
-    desc = r.get("description")
-    if desc:
-        writers["descriptions"].writerow({
-            "resource_id": rid,
-            "description": desc,
-        })
-
-    # --- resources.csv ---
+    # --- resources.csv (with description inlined) ---
     writers["resources"].writerow(
         {
             "id": rid,
             "name": r.get("name"),
+            "description": r.get("description") or "",
             "resource_type_id": rt.get("id"),
             "resource_status_id": status.get("id"),
             "address_street1": r.get("addressStreet1"),

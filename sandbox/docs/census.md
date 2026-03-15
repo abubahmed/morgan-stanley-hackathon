@@ -150,6 +150,34 @@ Educational attainment for population 25 years and older. One row per county per
 
 ---
 
+## `census_commute` DataFrame
+
+Commute mode and vehicle ownership. One row per county per year.
+
+| Column | Type | Description |
+|---|---|---|
+| year | int | Survey year |
+| fips | string | 5-digit FIPS code |
+| state_fips | string | 2-digit state FIPS |
+| county_fips | string | 3-digit county FIPS |
+| total_workers | int | Total workers 16 years and over |
+| drove_alone | int | Drove alone (car/truck/van) |
+| carpooled | int | Carpooled |
+| public_transit | int | Public transportation (excluding taxicab) |
+| bus | int | Bus |
+| subway | int | Subway or elevated rail |
+| bicycle | int | Bicycle |
+| walked | int | Walked |
+| worked_from_home | int | Worked from home |
+| total_households_vehicles | int | Total households (for vehicle counts) |
+| no_vehicle | int | No vehicle available |
+| one_vehicle | int | 1 vehicle available |
+| two_vehicles | int | 2 vehicles available |
+| three_vehicles | int | 3 vehicles available |
+| four_plus_vehicles | int | 4 or more vehicles available |
+
+---
+
 ## `census_geography` DataFrame
 
 Lookup table mapping FIPS codes to county and state names. One row per county (not per year).
@@ -182,3 +210,6 @@ To join census data with Lemontree resources, match the resource's `state` and `
 - To get state-level totals, group by `state_fips` + `year` and sum the count columns (do NOT sum median/average/ratio columns — recompute those from components).
 - The `gini_index` ranges from 0 (perfect equality) to 1 (perfect inequality).
 - Income values are in nominal dollars (not inflation-adjusted). To compare across years, adjust using CPI.
+- To compute % with no car: `no_vehicle / total_households_vehicles`.
+- To compute public transit rate: `public_transit / total_workers`.
+- `no_vehicle` is critical for food access — households without cars in areas with few grocery stores are the most food-insecure.

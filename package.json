@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "analyze": "npx tsx sandbox/runner.ts",
-    "fetch": ".venv\\Scripts\\activate.bat && uv run python fetchers/fetcher.py"
+    "fetch": ".venv\\Scripts\\activate.bat && uv run python fetchers/fetcher.py",
+    "fetch:reviews": "npx tsx fetchers/reviews.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

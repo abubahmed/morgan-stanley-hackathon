@@ -11,22 +11,27 @@ Flags:
   --resources    Fetch Lemontree food resource data
   --census       Fetch US Census ACS 1-Year data
   --usda         Fetch USDA Food Environment Atlas
+  --cdc          Fetch CDC PLACES health data
   --crosswalk    Fetch ZIP-to-county FIPS crosswalk
 """
 
 import sys
+import os
 import importlib
 import time
+
+# Ensure the project root is on the path so "fetchers.xxx" resolves
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 FETCHERS = {
     "resources": "fetchers.resources",
     "census": "fetchers.census",
     "usda": "fetchers.usda",
+    "cdc": "fetchers.cdc",
     "crosswalk": "fetchers.crosswalk",
 }
 
-# Order matters: crosswalk depends on census geography
-RUN_ORDER = ["resources", "census", "usda", "crosswalk"]
+RUN_ORDER = ["resources", "census", "usda", "cdc", "crosswalk"]
 
 
 def main():
@@ -44,7 +49,7 @@ def main():
             to_run.append(name)
 
     if not to_run:
-        print("No valid flags provided. Use --all or --resources, --census, --usda, --crosswalk")
+        print("No valid flags provided. Use --all or --resources, --census, --usda, --cdc, --crosswalk")
         sys.exit(1)
 
     print(f"Running fetchers: {', '.join(to_run)}\n")

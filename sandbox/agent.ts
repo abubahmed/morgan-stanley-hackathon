@@ -11,15 +11,21 @@ import { TOOLS } from "./tools";
 
 // CSV files to upload into the sandbox
 const RESOURCES_DIR = path.join(__dirname, "data", "resources");
-const RESOURCES_FILES = ["resources.csv", "descriptions.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
+const RESOURCES_FILES = ["resources.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
 
 const CENSUS_DIR = path.join(__dirname, "data", "census");
-const CENSUS_FILES = ["demographics.csv", "poverty.csv", "income.csv", "housing.csv", "education.csv", "geography.csv"];
+const CENSUS_FILES = ["demographics.csv", "poverty.csv", "income.csv", "housing.csv", "education.csv", "geography.csv", "commute.csv"];
 
 const USDA_DIR = path.join(__dirname, "data", "usda");
 const USDA_FILES = ["food_environment.csv"];
 
 const CROSSWALK_DIR = path.join(__dirname, "data", "crosswalk");
+
+const REVIEWS_DIR = path.join(__dirname, "data", "reviews");
+const REVIEWS_FILES = ["reviews.csv"];
+
+const CDC_DIR = path.join(__dirname, "data", "cdc");
+const CDC_FILES = ["health.csv"];
 const CROSSWALK_FILES = ["zip_county.csv"];
 
 // Python bootstrap that loads all CSVs into DataFrames
@@ -61,7 +67,6 @@ def _load(path, str_cols=_str_cols):
 
 # Lemontree data
 resources = _load("/home/user/data/resources/resources.csv")
-descriptions = _load("/home/user/data/resources/descriptions.csv")
 shifts = _load("/home/user/data/resources/shifts.csv")
 occurrences = _load("/home/user/data/resources/occurrences.csv")
 tags = _load("/home/user/data/resources/tags.csv")
@@ -81,20 +86,31 @@ usda_food_env = _load("/home/user/data/usda/food_environment.csv", _usda_str_col
 # ZIP-to-county crosswalk (maps zip_code -> county FIPS)
 zip_county = _load("/home/user/data/crosswalk/zip_county.csv", {"zip_code", "fips", "state_fips", "county_fips"})
 
-print(f"Lemontree: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
-print(f"Census: demographics={len(census_demographics)}, poverty={len(census_poverty)}, income={len(census_income)}, housing={len(census_housing)}, education={len(census_education)}, geography={len(census_geography)}")
+# Census commute/transportation data
+census_commute = _load("/home/user/data/census/commute.csv", _census_str_cols)
+
+# CDC PLACES health data (2023 snapshot by county)
+cdc_health = _load("/home/user/data/cdc/health.csv", {"fips"})
+
+# Reviews (generated dataset, not tied to specific resources)
+reviews = pd.read_csv("/home/user/data/reviews/reviews.csv", parse_dates=["created_at"], keep_default_na=True)
+
+print(f"Lemontree: resources={len(resources)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
+print(f"Census: demographics={len(census_demographics)}, poverty={len(census_poverty)}, income={len(census_income)}, housing={len(census_housing)}, education={len(census_education)}, commute={len(census_commute)}, geography={len(census_geography)}")
 print(f"USDA: food_environment={len(usda_food_env)}")
+print(f"CDC: health={len(cdc_health)}")
 print(f"Crosswalk: zip_county={len(zip_county)}")
+print(f"Reviews: {len(reviews)}")
 `;
 
-const MAX_ITERATIONS = 12;
+const MAX_ITERATIONS = 20;
 const MODEL = "claude-opus-4-5";
 const MAX_CONSOLE_LINES = 20;
 
 // After COMPACT_AFTER iterations, summarize older context using a fast model.
 // The last KEEP_RECENT iteration pairs are kept fully intact.
-const COMPACT_AFTER = 4;
-const KEEP_RECENT = 3;
+const COMPACT_AFTER = 6;
+const KEEP_RECENT = 4;
 const SUMMARY_MODEL = "claude-haiku-4-5-20251001";
 
 // Keep the first HEAD_LINES and last TAIL_LINES of output so Claude always sees
@@ -145,7 +161,7 @@ async function initSandbox(): Promise<Sandbox> {
   );
 
   // Upload CSV files into the sandbox
-  await sandbox.runCode("import os; os.makedirs('/home/user/data/resources', exist_ok=True); os.makedirs('/home/user/data/census', exist_ok=True); os.makedirs('/home/user/data/usda', exist_ok=True); os.makedirs('/home/user/data/crosswalk', exist_ok=True)");
+  await sandbox.runCode("import os; os.makedirs('/home/user/data/resources', exist_ok=True); os.makedirs('/home/user/data/census', exist_ok=True); os.makedirs('/home/user/data/usda', exist_ok=True); os.makedirs('/home/user/data/crosswalk', exist_ok=True); os.makedirs('/home/user/data/reviews', exist_ok=True); os.makedirs('/home/user/data/cdc', exist_ok=True)");
 
   for (const file of RESOURCES_FILES) {
     const filePath = path.join(RESOURCES_DIR, file);
@@ -185,6 +201,26 @@ async function initSandbox(): Promise<Sandbox> {
     }
     const content = fs.readFileSync(filePath, "utf-8");
     await sandbox.files.write(`/home/user/data/crosswalk/${file}`, content);
+  }
+
+  for (const file of REVIEWS_FILES) {
+    const filePath = path.join(REVIEWS_DIR, file);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`  Warning: ${filePath} not found, skipping`);
+      continue;
+    }
+    const content = fs.readFileSync(filePath, "utf-8");
+    await sandbox.files.write(`/home/user/data/reviews/${file}`, content);
+  }
+
+  for (const file of CDC_FILES) {
+    const filePath = path.join(CDC_DIR, file);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`  Warning: ${filePath} not found, skipping`);
+      continue;
+    }
+    const content = fs.readFileSync(filePath, "utf-8");
+    await sandbox.files.write(`/home/user/data/cdc/${file}`, content);
   }
 
   // Load CSVs into DataFrames
