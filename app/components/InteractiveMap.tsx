@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import MapGL, { Marker, Source, Layer, NavigationControl, Popup } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -14,12 +14,11 @@ export interface FoodResource {
 
 interface MapProps {
   dataPoints: FoodResource[];
-  mode: 'none' | 'transit' | 'weather' | 'employment';
+  mode: 'none' | 'transit' | 'weather' | 'employment' | 'poverty';
 }
 
 type MarkerClickEvent = { originalEvent: MouseEvent };
 
-// High-speed CSV parser for your teammate's lean files
 function parseCSV(text: string) {
   const lines = text.split(/\r?\n/);
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
@@ -39,30 +38,27 @@ function parseCSV(text: string) {
 
 export default function InteractiveMap({ dataPoints, mode }: MapProps) {
   const [selectedPantry, setSelectedPantry] = useState<FoodResource | null>(null);
-  
-  // State to hold the dynamically generated Mapbox color array
   const [activeOverlayColors, setActiveOverlayColors] = useState<any[]>(["00000", "transparent"]);
+  const colorCache = useRef<Record<string, any[]>>({});
 
-  // Fetch and parse the CSVs ONLY when the user clicks a button
   useEffect(() => {
     let isMounted = true;
 
     async function loadOverlayData() {
+      if (colorCache.current[mode]) {
+        setActiveOverlayColors(colorCache.current[mode]);
+        return;
+      }
+
       try {
         if (mode === 'employment') {
-          // Fetch from the root public/csv/ directory
           const response = await fetch('/csv/bls_laus_county.csv');          
-          if (!response.ok) {
-            console.error("Failed to load Employment CSV. Status:", response.status);
-            return;
-          }
+          if (!response.ok) return console.error("Failed to load Employment CSV");
           
           const text = await response.text();
           const blsData = parseCSV(text);
-
           const countyStats = new Map<string, { sum: number; count: number }>();
           
-          // Parse the 113k rows instantly and calculate 2024 averages
           blsData.forEach(d => {
             if (d.year === '2024') {
               const fips = String(d.county_fips).padStart(5, '0');
@@ -77,36 +73,70 @@ export default function InteractiveMap({ dataPoints, mode }: MapProps) {
           const flat: any[] = [];
           countyStats.forEach((stats, fips) => {
             const avgRate = stats.sum / stats.count;
-            // Red: >7%, Yellow: >4.5%, Green: <4.5%
             const color = avgRate > 7 ? '#ef4444' : avgRate > 4.5 ? '#f59e0b' : '#10b981';
             flat.push(fips, color);
           });
           
+          if (flat.length > 0) colorCache.current[mode] = flat;
           if (isMounted) setActiveOverlayColors(flat.length > 0 ? flat : ["00000", "transparent"]);
 
         } else if (mode === 'transit') {
-          // Fetch from the root public/csv/ directory
           const response = await fetch('/csv/census_acs5_county.csv');
-          if (!response.ok) {
-            console.error("Failed to load Transit CSV. Status:", response.status);
-            return;
-          }
+          if (!response.ok) return console.error("Failed to load Transit CSV");
           
           const text = await response.text();
           const censusData = parseCSV(text);
 
-          const flat: any[] = [];
+          const popMap = new Map<string, number>();
+          
           censusData.forEach(d => {
             const fips = String(d.county_fips).padStart(5, '0');
             const pop = parseInt(d.poverty_total || '0', 10);
             if (!isNaN(pop)) {
-              flat.push(fips, pop > 100000 ? '#10b981' : pop > 40000 ? '#f59e0b' : '#ef4444');
+              popMap.set(fips, (popMap.get(fips) || 0) + pop);
             }
           });
 
+          const flat: any[] = [];
+          popMap.forEach((pop, fips) => {
+            flat.push(fips, pop > 100000 ? '#10b981' : pop > 40000 ? '#f59e0b' : '#ef4444');
+          });
+
+          if (flat.length > 0) colorCache.current[mode] = flat;
           if (isMounted) setActiveOverlayColors(flat.length > 0 ? flat : ["00000", "transparent"]);
+
+        } else if (mode === 'poverty') {
+          const response = await fetch('/csv/census_acs5_county.csv');
+          if (!response.ok) return console.error("Failed to load Census Poverty CSV");
+          
+          const text = await response.text();
+          const censusData = parseCSV(text);
+
+          const povMap = new Map<string, { count: number; total: number }>();
+
+          censusData.forEach(d => {
+            const fips = String(d.county_fips).padStart(5, '0');
+            const povCount = parseInt(d.poverty_count, 10);
+            const povTotal = parseInt(d.poverty_total, 10);
+
+            if (!isNaN(povCount) && !isNaN(povTotal)) {
+              const current = povMap.get(fips) || { count: 0, total: 0 };
+              povMap.set(fips, { count: current.count + povCount, total: current.total + povTotal });
+            }
+          });
+
+          const flat: any[] = [];
+          povMap.forEach((stats, fips) => {
+            if (stats.total > 0) {
+              const povRate = (stats.count / stats.total) * 100;
+              flat.push(fips, povRate > 20 ? '#ef4444' : povRate > 12 ? '#f59e0b' : '#10b981');
+            }
+          });
+
+          if (flat.length > 0) colorCache.current[mode] = flat;
+          if (isMounted) setActiveOverlayColors(flat.length > 0 ? flat : ["00000", "transparent"]);
+
         } else {
-          // Clear overlays if 'none' or 'weather' is selected
           if (isMounted) setActiveOverlayColors(["00000", "transparent"]);
         }
       } catch (error) {
@@ -119,13 +149,12 @@ export default function InteractiveMap({ dataPoints, mode }: MapProps) {
     return () => { isMounted = false; };
   }, [mode]);
 
-  // Mapbox Style Expression
   const regionLayerStyle: any = useMemo(() => ({
     id: 'regional-overlay',
     type: 'fill',
     paint: {
       'fill-color': ['match', ['to-string', ['get', 'GEOID']], ...activeOverlayColors, 'transparent'],
-      'fill-opacity': (mode === 'employment' || mode === 'transit') ? 0.4 : 0
+      'fill-opacity': (mode === 'employment' || mode === 'transit' || mode === 'poverty') ? 0.4 : 0
     }
   }), [activeOverlayColors, mode]);
 

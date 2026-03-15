@@ -8,8 +8,8 @@ export default function Home() {
   const [resources, setResources] = useState<FoodResource[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // 'none' ensures the map starts clean. Only one mode can be active.
-  const [mapMode, setMapMode] = useState<'none' | 'transit' | 'weather' | 'employment'>('none');
+  // Swapped 'usda' for 'poverty'
+  const [mapMode, setMapMode] = useState<'none' | 'transit' | 'weather' | 'employment' | 'poverty'>('none');
   
   const cursorRef = useRef<string | null>(null);
   const isFetchingRef = useRef(false);
@@ -25,7 +25,6 @@ export default function Home() {
           const newItems = response.resources || [];
           
           setResources((prev: FoodResource[]) => {
-            // Add (p: FoodResource) to explicitly tell TypeScript what 'p' is
             const existingIds = new Set(prev.map((p: FoodResource) => p.id));
             const uniqueNew = newItems.filter((p: FoodResource) => !existingIds.has(p.id));
             return [...prev, ...uniqueNew];
@@ -49,8 +48,7 @@ export default function Home() {
     fetchAllPages();
   }, [loading]);
 
-  const handleModeToggle = (mode: 'transit' | 'weather' | 'employment') => {
-    // If the clicked mode is already active, turn it off ('none'). Otherwise, switch to it.
+  const handleModeToggle = (mode: 'transit' | 'weather' | 'employment' | 'poverty') => {
     setMapMode(prevMode => prevMode === mode ? 'none' : mode);
   };
 
@@ -94,6 +92,13 @@ export default function Home() {
                   onClick={() => handleModeToggle('employment')} 
                   colorScheme="red" 
                 />
+                {/* REPLACED USDA WITH POVERTY */}
+                <OverlayButton 
+                  label="Poverty Data (Census)" 
+                  active={mapMode === 'poverty'} 
+                  onClick={() => handleModeToggle('poverty')} 
+                  colorScheme="amber" 
+                />
               </div>
             </div>
 
@@ -111,6 +116,7 @@ function OverlayButton({ label, active, onClick, colorScheme }: { label: string,
     emerald: active ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-900/20' : 'text-zinc-400 border-zinc-100 hover:border-emerald-200',
     blue: active ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-900/20' : 'text-zinc-400 border-zinc-100 hover:border-blue-200',
     red: active ? 'bg-red-600 text-white border-red-600 shadow-lg shadow-red-900/20' : 'text-zinc-400 border-zinc-100 hover:border-red-200',
+    amber: active ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-900/20' : 'text-zinc-400 border-zinc-100 hover:border-amber-200',
   };
 
   return (
