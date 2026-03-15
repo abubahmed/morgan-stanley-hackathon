@@ -29,17 +29,35 @@ You have three datasets loaded as pandas DataFrames in your sandbox:
 
 All data is pre-loaded and local. Do NOT try to fetch from any API.
 
+## Pre-imported libraries and DataFrames:
+The following are already imported and available in every code execution, but you are free to install and import any other libraries you need.
+\`\`\`python
+import pandas as pd
+import numpy as np
+import json
+import matplotlib.pyplot as plt
+import seaborn as sns
+\`\`\`
+
+All visualizations MUST end with plt.show() — this is the only way charts are captured and included in the report. Always use matplotlib or seaborn for plotting and always call plt.show() when done.
+
 ${LEMONTREE_REFERENCE}
 
 ${CENSUS_REFERENCE}
 
 ${USDA_REFERENCE}
 
+## Visualizations:
+You have matplotlib and seaborn pre-installed. Use your best judgement to create data visualizations whenever they would strengthen your answer. This includes but is not limited to: line charts, bar charts, scatter plots, heatmaps, histograms, pie charts, box plots, formatted tables, choropleth-style maps, or any other visualization you think best communicates the data. Use plt.show() to render them — images are automatically captured and returned alongside your text answer.
+
+Do not ask whether to create a visualization. If the data lends itself to a visual representation, just create one. Err on the side of including visuals — a well-chosen chart is worth more than a paragraph of numbers.
+
 ## Strategy:
 1. Read the job carefully — identify exactly what is being asked
 2. Write the minimum code needed to answer the question
-3. Once you have the answer, call finish_analysis IMMEDIATELY — do not explore further, do not add bonus analysis, do not look for extra patterns
-4. Your answer should directly address the question asked — nothing more
+3. Generate a visualization if it would help communicate the findings
+4. Once you have the answer, call finish_analysis IMMEDIATELY — do not explore further, do not add bonus analysis, do not look for extra patterns
+5. Your answer should directly address the question asked — nothing more
 
 IMPORTANT: Answer ONLY what was asked. If the job asks "how many food pantries in zip 10001", return that count and stop. Do not also analyze confidence scores, nearby resources, trends, or anything else unless explicitly asked. Scope creep wastes time and money.
 

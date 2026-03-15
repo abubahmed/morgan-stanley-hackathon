@@ -22,7 +22,28 @@ const USDA_FILES = ["food_environment.csv"];
 // Python bootstrap that loads all CSVs into DataFrames
 const PYTHON_BOOTSTRAP = `
 import pandas as pd
+import numpy as np
 import json
+import os
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Auto-save charts to /home/user/charts/ on every plt.show()
+os.makedirs('/home/user/charts', exist_ok=True)
+_chart_counter = [0]
+_original_show = plt.show
+
+def _saving_show(*args, **kwargs):
+    for fig_num in plt.get_fignums():
+        fig = plt.figure(fig_num)
+        _chart_counter[0] += 1
+        fig.savefig(f'/home/user/charts/{_chart_counter[0]:03d}.png', dpi=150, bbox_inches='tight')
+    plt.close('all')
+
+plt.show = _saving_show
+
 
 # Force string types on ID/zip columns so they don't get read as numbers
 _str_cols = {"id", "resource_id", "shift_id", "resource_type_id", "resource_status_id",
@@ -176,10 +197,21 @@ async function executePython(sandbox: Sandbox, code: string): Promise<ExecutionR
   const stderr = (execResult.logs.stderr || []).join("").trim();
   const error = execResult.error?.value || "";
 
-  // Extract base64 PNG images from execution results
-  const images: string[] = (execResult.results || [])
-    .filter((r: any) => r.png)
-    .map((r: any) => r.png);
+  // Collect any new chart images saved by our plt.show() override
+  const images: string[] = [];
+  try {
+    const listResult = await sandbox.runCode("import os, base64; files = sorted(os.listdir('/home/user/charts')); print('\\n'.join(files))");
+    const chartFiles = (listResult.logs.stdout || []).join("").trim().split("\n").filter(Boolean);
+    for (const file of chartFiles) {
+      const readResult = await sandbox.runCode(`with open('/home/user/charts/${file}', 'rb') as f: print(base64.b64encode(f.read()).decode())`);
+      const b64 = (readResult.logs.stdout || []).join("").trim();
+      if (b64) images.push(b64);
+    }
+    // Clear charts directory for next execution
+    if (chartFiles.length > 0) {
+      await sandbox.runCode("import glob, os\nfor f in glob.glob('/home/user/charts/*.png'): os.remove(f)");
+    }
+  } catch {};
 
   // Print a short console preview
   if (stdout) {
