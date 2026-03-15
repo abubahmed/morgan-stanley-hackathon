@@ -114,7 +114,7 @@ export default function Home() {
 
               <button onClick={() => { setData(baseDataRef.current); graphRef.current?.resetZoom(); }} className="px-6 py-2 border border-zinc-200 text-zinc-500 text-[11px] uppercase tracking-widest rounded-full hover:bg-zinc-50">Reset Data</button>
 
-              <button onClick={() => { if(data) setData({ ...data, nodes: runKMeans(data.nodes, 8) }); }} className="px-6 py-2 bg-zinc-900 text-white text-[11px] uppercase tracking-widest rounded-full hover:bg-zinc-700 shadow-sm">Generate Clusters</button>
+              <button onClick={() => { if (data) setData({ ...data, nodes: runKMeans(data.nodes, 8) }); }} className="px-6 py-2 bg-zinc-900 text-white text-[11px] uppercase tracking-widest rounded-full hover:bg-zinc-700 shadow-sm">Generate Clusters</button>
 
             </div>
 
@@ -126,7 +126,7 @@ export default function Home() {
 
             <div ref={containerRef} className={`h-full transition-all duration-700 ${selectedNode ? 'w-2/3' : 'w-full'}`} />
 
-           
+
 
             {selectedNode && (
 
@@ -150,7 +150,7 @@ export default function Home() {
 
             )}
 
-           
+
 
             <div className="absolute top-6 left-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
 
