@@ -15,11 +15,17 @@ export async function triggerSandbox(request: SandboxRequest): Promise<SandboxRe
     return MOCK_RESULTS[request.mode];
   }
 
-  const { runAgent } = await import("@/sandbox/agent");
-  const report = await runAgent(request.query);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const res = await fetch(`${baseUrl}/api/analysis`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ job: request.query }),
+  });
+  const data = await res.json() as { result?: string; images?: string[]; error?: string };
   return {
-    summary: report?.answer ?? "No analysis result returned.",
+    summary: data.result ?? data.error ?? "No analysis result returned.",
     chartData: null,
+    images: data.images ?? [],
   };
 }
 

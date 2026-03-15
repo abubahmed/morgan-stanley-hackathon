@@ -28,6 +28,7 @@ export interface SandboxChartData {
 export interface SandboxResult {
   summary: string;
   chartData: SandboxChartData | null;
+  images?: string[]; // base64 PNG strings from Abu's sandbox
 }
 
 export interface ChartSpec {

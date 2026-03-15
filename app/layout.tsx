@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lemon Tree Insights",
+  title: "LemonAid",
   description: "Food pantry network data analysis",
 };
 

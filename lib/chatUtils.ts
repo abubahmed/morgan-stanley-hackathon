@@ -47,7 +47,7 @@ export function buildSystemPrompt(mode: AIMode, role: UserRole): string {
 - End with a written summary and your confidence level (0-100%).`,
   };
 
-  return `You are an AI data analyst for Lemon Tree Insights, a platform built on top of the Lemontree Food Helpline API.
+  return `You are an AI data analyst for LemonAid, a platform built on top of the Lemontree Food Helpline API.
 You help partners understand food access patterns, resource availability, and community needs.
 
 ${roleContext[role] ?? roleContext.community}

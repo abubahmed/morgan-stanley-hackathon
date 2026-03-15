@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, Fragment } from "react";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import RechartsBarChart from "./RechartsBarChart";
+import RechartsLineChart from "./RechartsLineChart";
+import RechartsPieChart from "./RechartsPieChart";
 import type { ChatMessage, SandboxResult, IntentMode, ChartSpec } from "@/types/chat";
 
 // ─── Lightweight markdown renderer ──────────────────────────────────────────
@@ -148,44 +150,20 @@ function inlineMarkdown(text: string): React.ReactNode {
 
 // ─── Chart renderer ──────────────────────────────────────────────────────────
 
-const CHART_COLORS = ["#3DBFAC", "#27A090", "#F5B800", "#FF6B6B", "#6C63FF"];
-
 function ChartCard({ spec }: { spec: ChartSpec }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden my-1">
       <div className="px-4 py-2 border-b border-gray-100">
         <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{spec.title}</p>
       </div>
-      <div className="p-3" style={{ height: 220 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          {spec.type === "pie" ? (
-            <PieChart>
-              <Pie data={spec.data} dataKey={spec.yKey} nameKey={spec.xKey} outerRadius={80} label>
-                {spec.data.map((_, i) => (
-                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          ) : spec.type === "line" ? (
-            <LineChart data={spec.data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey={spec.xKey} tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Line type="monotone" dataKey={spec.yKey} stroke={spec.color ?? "#3DBFAC"} strokeWidth={2} dot={false} />
-            </LineChart>
-          ) : (
-            <BarChart data={spec.data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey={spec.xKey} tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Bar dataKey={spec.yKey} fill={spec.color ?? "#3DBFAC"} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          )}
-        </ResponsiveContainer>
+      <div className="p-3">
+        {spec.type === "pie" ? (
+          <RechartsPieChart data={spec.data} nameKey={spec.xKey} valueKey={spec.yKey} height={200} />
+        ) : spec.type === "line" ? (
+          <RechartsLineChart data={spec.data} xKey={spec.xKey} yKey={spec.yKey} color={spec.color ?? "#3DBFAC"} height={200} />
+        ) : (
+          <RechartsBarChart data={spec.data} xKey={spec.xKey} yKey={spec.yKey} color={spec.color ?? "#3DBFAC"} height={200} />
+        )}
       </div>
     </div>
   );
@@ -259,35 +237,17 @@ function AnalysisCard({
         <p className="text-gray-800 text-sm leading-relaxed">{result.summary}</p>
       </div>
 
-      {/* Chart slot — swap in your real visualization component here */}
-      {result.chartData && (
-        <div className="bg-gray-50 border-t border-gray-100 px-4 py-3">
-          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">
-            {result.chartData.title}
-          </p>
-          {/* ↓ Replace this div with your chart component */}
-          <div
-            className="rounded-xl border-2 border-dashed border-gray-200 h-36 flex flex-col items-center justify-center gap-1 text-gray-400"
-            data-chart-type={result.chartData.type}
-            data-chart-title={result.chartData.title}
-          >
-            <svg
-              className="w-6 h-6 opacity-40"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4v16"
-              />
-            </svg>
-            <span className="text-xs">
-              {result.chartData.type} chart · visualization slot
-            </span>
-          </div>
+      {/* Chart images from Abu's sandbox */}
+      {result.images && result.images.length > 0 && (
+        <div className="bg-gray-50 border-t border-gray-100 px-4 py-3 flex flex-col gap-2">
+          {result.images.map((img, i) => (
+            <img
+              key={i}
+              src={`data:image/png;base64,${img}`}
+              alt={`Chart ${i + 1}`}
+              className="rounded-xl w-full"
+            />
+          ))}
         </div>
       )}
     </div>
@@ -393,7 +353,7 @@ export default function ChatPanel() {
       id: "welcome",
       role: "assistant",
       content:
-        "Hi! I'm your Lemon Tree Insights assistant. Ask me about pantry visit trends, food access patterns, or anything about the network. Try asking \"show me visits last month\" to run a live analysis.",
+        "Hi! I'm your LemonAid assistant. Ask me about pantry visit trends, food access patterns, or anything about the network. Try asking \"show me visits last month\" to run a live analysis.",
     },
   ]);
 
@@ -624,7 +584,7 @@ export default function ChatPanel() {
           </div>
           <div>
             <h1 className="font-extrabold text-gray-900 text-base leading-tight tracking-tight">
-              Lemon Tree Insights
+              LemonAid
             </h1>
             <p className="text-gray-700 text-xs font-medium">
               Food pantry network · data analysis
