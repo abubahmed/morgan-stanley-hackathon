@@ -103,7 +103,7 @@ print(f"Crosswalk: zip_county={len(zip_county)}")
 print(f"Reviews: {len(reviews)}")
 `;
 
-const MAX_ITERATIONS = 20;
+const MAX_ITERATIONS = 25;
 const MODEL = "claude-opus-4-5";
 const MAX_CONSOLE_LINES = 20;
 
