@@ -5,22 +5,22 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const LEMONTREE_REFERENCE = fs.readFileSync(
-  path.join(__dirname, "lemontree.md"),
+  path.join(__dirname, "docs", "lemontree.md"),
   "utf-8"
 );
 
 const CENSUS_REFERENCE = fs.readFileSync(
-  path.join(__dirname, "census.md"),
+  path.join(__dirname, "docs", "census.md"),
   "utf-8"
 );
 
 const USDA_REFERENCE = fs.readFileSync(
-  path.join(__dirname, "usda.md"),
+  path.join(__dirname, "docs", "usda.md"),
   "utf-8"
 );
 
 const CROSSWALK_REFERENCE = fs.readFileSync(
-  path.join(__dirname, "crosswalk.md"),
+  path.join(__dirname, "docs", "crosswalk.md"),
   "utf-8"
 );
 

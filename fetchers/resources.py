@@ -20,7 +20,7 @@ import requests
 import sys
 
 BASE_URL = "https://platform.foodhelpline.org"
-OUTPUT_DIR = "data/resources"
+OUTPUT_DIR = "sandbox/data/resources"
 PAGE_SIZE = 100
 
 # ---------------------------------------------------------------------------

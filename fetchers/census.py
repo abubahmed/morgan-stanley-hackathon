@@ -33,7 +33,7 @@ from dotenv import load_dotenv
 
 load_dotenv(".env.local")
 
-OUTPUT_DIR = "data/census"
+OUTPUT_DIR = "sandbox/data/census"
 
 # ACS 1-Year: 2014–2023, skipping 2020 (no release due to COVID low response)
 YEARS = [2014, 2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023]

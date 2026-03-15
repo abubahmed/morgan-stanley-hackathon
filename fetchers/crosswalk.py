@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 
 load_dotenv(".env.local")
 
-OUTPUT_DIR = "data/crosswalk"
+OUTPUT_DIR = "sandbox/data/crosswalk"
 
 # Census 2020 ZCTA-to-County relationship file (free, no auth)
 CROSSWALK_URL = "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt"

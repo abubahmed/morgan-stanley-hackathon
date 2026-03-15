@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 
 load_dotenv(".env.local")
 
-OUTPUT_DIR = "data/usda"
+OUTPUT_DIR = "sandbox/data/usda"
 
 ATLAS_CSV_URL = "https://www.ers.usda.gov/media/5570/food-environment-atlas-csv-files.zip?v=96910"
 

@@ -10,16 +10,16 @@ import { SYSTEM_PROMPT } from "./systemPrompt";
 import { TOOLS } from "./tools";
 
 // CSV files to upload into the sandbox
-const RESOURCES_DIR = path.join(__dirname, "..", "data", "resources");
+const RESOURCES_DIR = path.join(__dirname, "data", "resources");
 const RESOURCES_FILES = ["resources.csv", "descriptions.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
 
-const CENSUS_DIR = path.join(__dirname, "..", "data", "census");
+const CENSUS_DIR = path.join(__dirname, "data", "census");
 const CENSUS_FILES = ["demographics.csv", "poverty.csv", "income.csv", "housing.csv", "education.csv", "geography.csv"];
 
-const USDA_DIR = path.join(__dirname, "..", "data", "usda");
+const USDA_DIR = path.join(__dirname, "data", "usda");
 const USDA_FILES = ["food_environment.csv"];
 
-const CROSSWALK_DIR = path.join(__dirname, "..", "data", "crosswalk");
+const CROSSWALK_DIR = path.join(__dirname, "data", "crosswalk");
 const CROSSWALK_FILES = ["zip_county.csv"];
 
 // Python bootstrap that loads all CSVs into DataFrames
