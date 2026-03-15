@@ -1,4 +1,5 @@
 import { getResources } from "./lemontree_api";
+import { getLemontreeByCountyFromCache } from "./lemontree_aggregate";
 import { readCached, getEnabledDatasets } from "./public-datasets";
 import type { CachedDatasetRow } from "./public-datasets";
 import type {
@@ -15,6 +16,7 @@ const NYC_BOUNDS = { lat: 40.65, lng: -74.0 } as const;
 const MAX_RESOURCES = 500;
 
 let zipToNta: Record<string, string> | null = null;
+let zipToCounty: Record<string, string> | null = null;
 
 function getZipToNta(): Record<string, string> {
   if (zipToNta) return zipToNta;
@@ -22,6 +24,14 @@ function getZipToNta(): Record<string, string> {
   if (!existsSync(path)) return {};
   zipToNta = JSON.parse(readFileSync(path, "utf-8")) as Record<string, string>;
   return zipToNta;
+}
+
+function getZipToCounty(): Record<string, string> {
+  if (zipToCounty) return zipToCounty;
+  const path = join(process.cwd(), "data", "geo", "zip-to-county-us.json");
+  if (!existsSync(path)) return {};
+  zipToCounty = JSON.parse(readFileSync(path, "utf-8")) as Record<string, string>;
+  return zipToCounty;
 }
 
 function hasTag(resource: { tags?: { name: string }[] }, name: string): boolean {
@@ -93,7 +103,57 @@ function ntaToCountyFips(ntaCode: string): string | null {
 }
 
 /**
+ * Pick the best-available row per geo key: latest year <= requested year.
+ * Ensures all dataset layers are used for visuals even when exact year is missing (e.g. Census 2022 + request 2025).
+ */
+function bestRowByGeoKey<T extends { year: number }>(
+  rows: T[],
+  year: number,
+  getGeoKey: (row: T) => string
+): Map<string, T> {
+  const byKey = new Map<string, T>();
+  for (const row of rows) {
+    if (row.year > year) continue;
+    const key = getGeoKey(row);
+    if (!key) continue;
+    const existing = byKey.get(key);
+    if (!existing || row.year > existing.year) byKey.set(key, row);
+  }
+  return byKey;
+}
+
+/**
+ * Build PublicIndicators from a cached row (all numeric fields except year/geo keys).
+ */
+function rowToIndicators(row: CachedDatasetRow, excludeKeys: string[]): PublicIndicators {
+  const indicators: PublicIndicators = {
+    food_insecure_pct: null,
+    unemployment_rate: null,
+    supply_gap_lbs: null,
+    vulnerable_pop: null,
+    weighted_score: null,
+  };
+  for (const [k, v] of Object.entries(row)) {
+    if (excludeKeys.includes(k)) continue;
+    if (typeof v === "number" && Number.isFinite(v)) (indicators as Record<string, number | null>)[k] = v;
+  }
+  return indicators;
+}
+
+/**
+ * Add derived indicators useful for visualizations (e.g. poverty_rate from Census).
+ */
+function addDerivedIndicators(indicators: PublicIndicators): void {
+  const total = indicators.poverty_total;
+  const count = indicators.poverty_count;
+  if (typeof total === "number" && total > 0 && typeof count === "number" && Number.isFinite(count)) {
+    (indicators as Record<string, number | null>).poverty_rate = count / total;
+  }
+}
+
+/**
  * Load public indicators for city/year from all enabled dataset caches.
+ * Uses best-available year per dataset when exact year is missing so all layers can be visualized.
  * - local_area datasets: keyed by local_area_code (NTA).
  * - county datasets: keyed by county_fips; merged into each NTA by NTA->county lookup.
  */
@@ -105,68 +165,140 @@ function loadPublicIndicators(
   const byCounty = new Map<string, PublicIndicators>();
   const datasets = getEnabledDatasets();
 
+  // County-level: one best row per county_fips, then merge all dataset indicators per county
   for (const config of datasets) {
-    const rows = readCached(config.id);
+    if (config.geoLevel !== "county") continue;
+    const rows = readCached(config.id) as CachedDatasetRow[] | null;
     if (!rows?.length) continue;
-    if (config.geoLevel === "county") {
-      for (const row of rows as CachedDatasetRow[]) {
-        const county_fips = String(row.county_fips ?? "").trim();
-        if (!county_fips || row.year !== year) continue;
-        const indicators: PublicIndicators = {};
-        for (const [k, v] of Object.entries(row)) {
-          if (k === "year" || k === "county_fips") continue;
-          if (typeof v === "number" && Number.isFinite(v)) (indicators as Record<string, number | null>)[k] = v;
-        }
-        byCounty.set(county_fips, { ...byCounty.get(county_fips), ...indicators });
-      }
+    const bestByCounty = bestRowByGeoKey(rows, year, (r) => String(r.county_fips ?? "").trim());
+    for (const [county_fips, row] of bestByCounty) {
+      if (!county_fips) continue;
+      const indicators = rowToIndicators(row, ["year", "county_fips"]);
+      addDerivedIndicators(indicators);
+      byCounty.set(county_fips, { ...byCounty.get(county_fips), ...indicators });
     }
   }
+
+  // Local-area (NTA): best row per local_area_code for this city
   for (const config of datasets) {
     if (config.geoLevel === "county") continue;
-    const rows = readCached(config.id);
+    const rows = readCached(config.id) as CachedDatasetRow[] | null;
     if (!rows?.length) continue;
-    for (const row of rows as CachedDatasetRow[]) {
-      if (row.city_code !== cityCode || row.year !== year) continue;
-      const code = String(row.local_area_code ?? "");
+    const cityRows = rows.filter((r) => r.city_code === cityCode);
+    const bestByNta = bestRowByGeoKey(cityRows, year, (r) => String(r.local_area_code ?? "").trim());
+    for (const [code, row] of bestByNta) {
       if (!code) continue;
       const name = typeof row.local_area_name === "string" ? row.local_area_name : undefined;
-      const indicators: PublicIndicators = {
-        food_insecure_pct: null,
-        unemployment_rate: null,
-        supply_gap_lbs: null,
-        vulnerable_pop: null,
-        weighted_score: null,
-      };
-      for (const [k, v] of Object.entries(row)) {
-        if (["year", "local_area_code", "local_area_name", "city_code"].includes(k)) continue;
-        if (typeof v === "number" && Number.isFinite(v)) (indicators as Record<string, number | null>)[k] = v;
-      }
+      const indicators = rowToIndicators(row, ["year", "local_area_code", "local_area_name", "city_code"]);
+      addDerivedIndicators(indicators);
       const countyFips = ntaToCountyFips(code);
       const countyIndicators = countyFips ? byCounty.get(countyFips) : undefined;
       const merged = { ...indicators, ...countyIndicators };
+      addDerivedIndicators(merged);
       byArea.set(code, { indicators: merged, name });
     }
   }
+
+  // When only county data exists (no NTA rows), expose borough-level entries for visuals
   if (byCounty.size > 0 && byArea.size === 0) {
+    const boroughNames: Record<string, string> = {
+      BX: "Bronx",
+      BK: "Brooklyn",
+      MN: "Manhattan",
+      QN: "Queens",
+      SI: "Staten Island",
+    };
     for (const [prefix, countyFips] of Object.entries(NTA_PREFIX_TO_COUNTY)) {
       const countyIndicators = byCounty.get(countyFips);
-      if (countyIndicators) byArea.set(prefix, { indicators: countyIndicators });
+      if (countyIndicators) byArea.set(prefix, { indicators: countyIndicators, name: boroughNames[prefix] ?? prefix });
     }
   } else if (byCounty.size > 0) {
     for (const [code, entry] of byArea) {
       const countyFips = ntaToCountyFips(code);
       const countyIndicators = countyFips ? byCounty.get(countyFips) : undefined;
-      if (countyIndicators) entry.indicators = { ...entry.indicators, ...countyIndicators };
+      if (countyIndicators) {
+        entry.indicators = { ...entry.indicators, ...countyIndicators };
+        addDerivedIndicators(entry.indicators);
+      }
     }
   }
   return byArea;
 }
 
 /**
+ * Load county-level public indicators for a given year (national coverage).
+ * Keyed by county_fips. Lemontree is currently only aggregated for NYC (NTA) and
+ * is not joined in county mode, so county insights will have lemontree=0 for now.
+ */
+function loadCountyPublicIndicators(year: number): Map<string, PublicIndicators> {
+  const byCounty = new Map<string, PublicIndicators>();
+  const datasets = getEnabledDatasets();
+  for (const config of datasets) {
+    if (config.geoLevel !== "county") continue;
+    const rows = readCached(config.id) as CachedDatasetRow[] | null;
+    if (!rows?.length) continue;
+    const bestByCounty = bestRowByGeoKey(rows, year, (r) => String(r.county_fips ?? "").trim());
+    for (const [county_fips, row] of bestByCounty) {
+      if (!county_fips) continue;
+      const indicators = rowToIndicators(row, ["year", "county_fips"]);
+      addDerivedIndicators(indicators);
+      byCounty.set(county_fips, { ...byCounty.get(county_fips), ...indicators });
+    }
+  }
+  return byCounty;
+}
+
+/**
  * Build the merged insights response for the agent.
  */
 export async function buildInsights(filters: InsightsFilters): Promise<InsightsResponse> {
-  const { city, year, geo, nta, minWeightedScore, maxWeightedScore, limit } = filters;
+  const { city, year, geo, nta, minWeightedScore, maxWeightedScore, minPantries, limit } = filters;
+
+  // County mode: national coverage by county_fips using public datasets + Lemontree aggregates.
+  if (geo === "county") {
+    const publicByCounty = loadCountyPublicIndicators(year);
+    const lemontreeByCounty = getLemontreeByCountyFromCache();
+    let areas: LocalAreaInsight[] = [];
+    for (const [county_fips, indicators] of publicByCounty) {
+      const score = indicators.weighted_score ?? indicators.poverty_rate ?? null;
+      if (minWeightedScore != null && (score === null || score < minWeightedScore)) continue;
+      if (maxWeightedScore != null && (score === null || score > maxWeightedScore)) continue;
+      const lemontree: LemontreeAggregate =
+        lemontreeByCounty.get(county_fips) ?? {
+          num_pantries: 0,
+          num_with_fresh_produce: 0,
+          num_with_meat: 0,
+          avg_wait_time_min: null,
+          sample_resource_ids: [],
+        };
+      if (minPantries != null && minPantries > 0 && lemontree.num_pantries < minPantries) continue;
+      areas.push({
+        geo: {
+          local_area_code: county_fips,
+          local_area_name: county_fips,
+          city_code: "us",
+        },
+        lemontree,
+        public: indicators,
+      });
+    }
+    // Sort by poverty_rate descending (or weighted_score if available)
+    areas.sort((a, b) => {
+      const sa = (a.public.weighted_score ?? a.public.poverty_rate) ?? -Infinity;
+      const sb = (b.public.weighted_score ?? b.public.poverty_rate) ?? -Infinity;
+      return sb - sa;
+    });
+    if (typeof limit === "number" && limit > 0) areas = areas.slice(0, limit);
+
+    const publicDatasetIds = getEnabledDatasets().map((d) => d.id);
+    return {
+      filters: { city, year, geo },
+      areas,
+      sources: { lemontree: lemontreeByCounty.size > 0, publicDatasetIds },
+    };
+  }
+
+  // Default: NYC local-area (NTA) mode with Lemontree layering.
   const publicByArea = loadPublicIndicators(city, year);
   const lemontreeByNta = await getLemontreeByNta();
 
