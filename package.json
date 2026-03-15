@@ -17,7 +17,8 @@
     "fetch:resources": ".venv\\Scripts\\activate.bat && uv run python scripts/fetch_resources.py",
     "fetch:census": ".venv\\Scripts\\activate.bat && uv run python scripts/fetch_census.py",
     "fetch:usda": ".venv\\Scripts\\activate.bat && uv run python scripts/fetch_usda.py",
-    "fetch:all": "npm run fetch:resources && npm run fetch:census && npm run fetch:usda"
+    "fetch:crosswalk": ".venv\\Scripts\\activate.bat && uv run python scripts/fetch_crosswalk.py",
+    "fetch:all": "npm run fetch:resources && npm run fetch:census && npm run fetch:usda && npm run fetch:crosswalk"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

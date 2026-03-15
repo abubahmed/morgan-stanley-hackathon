@@ -9,7 +9,7 @@ dotenv.config({ path: ".env.local" });
 
 const job =
   process.argv.slice(2).join(" ").replace(/^--job\s+/, "").trim() ||
-  "Plot SNAP participation rate vs poverty rate across counties using the 2022 census year.";
+  "Compare the average poverty rate of New York counties that have Lemontree food pantries vs New York counties that don't. Show a bar chart.";
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("ANTHROPIC_API_KEY is not set");

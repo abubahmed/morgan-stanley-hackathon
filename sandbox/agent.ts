@@ -19,6 +19,9 @@ const CENSUS_FILES = ["demographics.csv", "poverty.csv", "income.csv", "housing.
 const USDA_DIR = path.join(__dirname, "..", "data", "usda");
 const USDA_FILES = ["food_environment.csv"];
 
+const CROSSWALK_DIR = path.join(__dirname, "..", "data", "crosswalk");
+const CROSSWALK_FILES = ["zip_county.csv"];
+
 // Python bootstrap that loads all CSVs into DataFrames
 const PYTHON_BOOTSTRAP = `
 import pandas as pd
@@ -75,9 +78,13 @@ census_geography = _load("/home/user/data/census/geography.csv", _census_str_col
 # USDA Food Environment Atlas (snapshot, not time-series)
 usda_food_env = _load("/home/user/data/usda/food_environment.csv", _usda_str_cols)
 
+# ZIP-to-county crosswalk (maps zip_code -> county FIPS)
+zip_county = _load("/home/user/data/crosswalk/zip_county.csv", {"zip_code", "fips", "state_fips", "county_fips"})
+
 print(f"Lemontree: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
 print(f"Census: demographics={len(census_demographics)}, poverty={len(census_poverty)}, income={len(census_income)}, housing={len(census_housing)}, education={len(census_education)}, geography={len(census_geography)}")
 print(f"USDA: food_environment={len(usda_food_env)}")
+print(f"Crosswalk: zip_county={len(zip_county)}")
 `;
 
 const MAX_ITERATIONS = 12;
@@ -138,7 +145,7 @@ async function initSandbox(): Promise<Sandbox> {
   );
 
   // Upload CSV files into the sandbox
-  await sandbox.runCode("import os; os.makedirs('/home/user/data/resources', exist_ok=True); os.makedirs('/home/user/data/census', exist_ok=True); os.makedirs('/home/user/data/usda', exist_ok=True)");
+  await sandbox.runCode("import os; os.makedirs('/home/user/data/resources', exist_ok=True); os.makedirs('/home/user/data/census', exist_ok=True); os.makedirs('/home/user/data/usda', exist_ok=True); os.makedirs('/home/user/data/crosswalk', exist_ok=True)");
 
   for (const file of RESOURCES_FILES) {
     const filePath = path.join(RESOURCES_DIR, file);
@@ -168,6 +175,16 @@ async function initSandbox(): Promise<Sandbox> {
     }
     const content = fs.readFileSync(filePath, "utf-8");
     await sandbox.files.write(`/home/user/data/usda/${file}`, content);
+  }
+
+  for (const file of CROSSWALK_FILES) {
+    const filePath = path.join(CROSSWALK_DIR, file);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`  Warning: ${filePath} not found, skipping`);
+      continue;
+    }
+    const content = fs.readFileSync(filePath, "utf-8");
+    await sandbox.files.write(`/home/user/data/crosswalk/${file}`, content);
   }
 
   // Load CSVs into DataFrames
