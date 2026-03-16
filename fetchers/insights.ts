@@ -1,4 +1,4 @@
-import { getResources } from "./lemontree_api";
+import { getResources } from "@/lib/lemontree_api";
 import { readCached, getEnabledDatasets } from "./public-datasets";
 import type { CachedDatasetRow } from "./public-datasets";
 import type {

@@ -65,7 +65,7 @@ export default function ResourcesByType() {
             </Pie>
             <Tooltip
               contentStyle={{ borderRadius: "12px", border: "1px solid #e5e7eb", fontSize: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-              formatter={(value: number) => [value.toLocaleString(), "Resources"]}
+              formatter={(value) => [Number(value).toLocaleString(), "Resources"]}
             />
           </PieChart>
         </ResponsiveContainer>

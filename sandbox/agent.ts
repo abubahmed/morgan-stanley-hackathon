@@ -134,7 +134,7 @@ function smartTruncate(text: string): string {
 const SANDBOX_PACKAGES = ["pandas", "numpy", "matplotlib", "seaborn", "scipy", "geopy"];
 
 async function initSandbox(): Promise<Sandbox> {
-  const sandbox = await Sandbox.create({ apiKey: process.env.E2B_API_KEY, timeout: 1200 });
+  const sandbox = await Sandbox.create({ apiKey: process.env.E2B_API_KEY, timeoutMs: 1200000 });
   await sandbox.runCode(
     `import subprocess; subprocess.run(['pip', 'install', ${SANDBOX_PACKAGES.map((p) => `'${p}'`).join(", ")}, '-q'])`
   );

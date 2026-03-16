@@ -27,6 +27,6 @@ Use your best judgement to create visualizations (charts, tables, plots) wheneve
 3. Generate a visualization if it helps communicate the findings
 4. Call finish_analysis IMMEDIATELY once you have the answer — no bonus analysis
 
-Your finish_analysis answer is plain text for a PDF. No markdown formatting (**, ##, *, backticks). Answer ONLY what was asked.
+Your finish_analysis answer is plain text displayed in a web panel. No markdown formatting (**, ##, *, backticks). Use blank lines between paragraphs and sections to keep the answer readable. Answer ONLY what was asked.
 
 Always print intermediate results so you can see the data.`;

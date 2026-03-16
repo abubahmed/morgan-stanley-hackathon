@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { BarChart3, Menu } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -8,87 +8,181 @@ import ChatThread from "@/components/sandbox/ChatThread";
 import ChatInput from "@/components/sandbox/ChatInput";
 import VisualizationPanel from "@/components/sandbox/VisualizationPanel";
 import SessionSidebar from "@/components/sandbox/SessionSidebar";
-import type { ChatMessage, ChartSpec, MapSpec, AIMode, UserRole, UserInfo, ChatSession } from "@/types/chat";
+import type { ChatMessage, AnalysisResult, Conversation } from "@/types/chat";
+import { exportReportPdf } from "@/lib/exportPdf";
 
-const USER_KEY = "lt_user_id";
+const STORAGE_KEY = "lt_conversations";
 
 function generateId() {
-  return Math.random().toString(36).slice(2);
+  return Math.random().toString(36).slice(2, 10);
 }
+
+// ── localStorage helpers ──
+
+function loadConversations(): Conversation[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return (JSON.parse(raw) as Conversation[]).sort((a, b) => b.updatedAt - a.updatedAt);
+  } catch {
+    return [];
+  }
+}
+
+function saveConversations(convs: Conversation[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(convs));
+}
+
+function createConversation(): Conversation {
+  return {
+    id: generateId(),
+    title: "New Chat",
+    messages: [],
+    analysisResults: [],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
+// ── Main component ──
 
 function SandboxInner() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") ?? "";
-  const role = (searchParams.get("role") ?? "community") as UserRole;
 
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentId, setCurrentId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [charts, setCharts] = useState<ChartSpec[]>([]);
-  const [maps, setMaps] = useState<MapSpec[]>([]);
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [activeReportTab, setActiveReportTab] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Session persistence
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  // Track whether we've initialized from localStorage
+  const initialized = useRef(false);
 
-  // Load user from localStorage on mount
+  // Load conversations from localStorage on mount
   useEffect(() => {
-    const savedId = localStorage.getItem(USER_KEY);
-    if (savedId) {
-      fetch(`/api/sessions?userId=${savedId}`)
-        .then((r) => r.json())
-        .then((data: { sessions?: ChatSession[] }) => {
-          if (data.sessions) setSessions(data.sessions as ChatSession[]);
-        })
-        .catch(() => {});
+    const saved = loadConversations();
+    setConversations(saved);
+
+    if (saved.length > 0) {
+      // Load the most recent conversation
+      const latest = saved[0];
+      setCurrentId(latest.id);
+      setMessages(latest.messages);
+      setAnalysisResults(latest.analysisResults);
+    } else {
+      // Create a first conversation
+      const conv = createConversation();
+      setConversations([conv]);
+      setCurrentId(conv.id);
+      saveConversations([conv]);
     }
-    // Reconstruct minimal user info from localStorage
-    const savedUser = localStorage.getItem("lt_user");
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser) as UserInfo);
-      } catch {
-        /* ignore */
-      }
-    }
+
+    initialized.current = true;
   }, []);
 
-  const handleNewSession = useCallback(async () => {
-    if (!user) return;
-    const res = await fetch("/api/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id }),
-    });
-    const { session } = (await res.json()) as { session: ChatSession };
-    setCurrentSessionId(session.id);
-    setSessions((prev) => [session, ...prev]);
-    setMessages([]);
-    setCharts([]);
-    setMaps([]);
-  }, [user]);
+  // Persist current conversation to localStorage whenever messages or analysis results change
+  useEffect(() => {
+    if (!initialized.current || !currentId) return;
 
-  const handleSelectSession = useCallback(async (sessionId: string) => {
-    setCurrentSessionId(sessionId);
+    setConversations((prev) => {
+      const updated = prev.map((c) => {
+        if (c.id !== currentId) return c;
+
+        // Derive title from first user message
+        const firstUserMsg = messages.find((m) => m.role === "user");
+        const title = firstUserMsg
+          ? firstUserMsg.content.length > 40
+            ? firstUserMsg.content.slice(0, 37) + "..."
+            : firstUserMsg.content
+          : "New Chat";
+
+        return {
+          ...c,
+          title,
+          // Store messages — preserve reportIndex, strip isStreaming
+          messages: messages.map((m) => {
+            const saved: ChatMessage = { id: m.id, role: m.role, content: m.content };
+            if (m.reportIndex != null) saved.reportIndex = m.reportIndex;
+            return saved;
+          }),
+          // Store analysis results — keep text, strip base64 images (too large for localStorage)
+          analysisResults: analysisResults.map((r) => ({ answer: r.answer, images: r.images })),
+          updatedAt: Date.now(),
+        };
+      });
+      saveConversations(updated);
+      return updated;
+    });
+  }, [messages, analysisResults, currentId]);
+
+  // ── Session actions ──
+
+  const handleNew = useCallback(() => {
+    const conv = createConversation();
+    setConversations((prev) => {
+      const updated = [conv, ...prev];
+      saveConversations(updated);
+      return updated;
+    });
+    setCurrentId(conv.id);
     setMessages([]);
-    setCharts([]);
-    setMaps([]);
+    setAnalysisResults([]);
+    setPanelOpen(false);
+  }, []);
+
+  const handleSelect = useCallback((id: string) => {
+    setConversations((prev) => {
+      const conv = prev.find((c) => c.id === id);
+      if (conv) {
+        setCurrentId(id);
+        setMessages(conv.messages);
+        setAnalysisResults(conv.analysisResults);
+        setPanelOpen(conv.analysisResults.length > 0);
+      }
+      return prev;
+    });
     setSidebarOpen(false);
   }, []);
 
-  const handleDeleteSession = useCallback(
-    async (sessionId: string) => {
-      await fetch(`/api/sessions?sessionId=${sessionId}`, { method: "DELETE" });
-      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-      if (currentSessionId === sessionId) {
-        setCurrentSessionId(null);
-        setMessages([]);
+  const handleDelete = useCallback((id: string) => {
+    setConversations((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      saveConversations(updated);
+
+      if (id === currentId) {
+        if (updated.length > 0) {
+          const next = updated[0];
+          setCurrentId(next.id);
+          setMessages(next.messages);
+          setAnalysisResults(next.analysisResults);
+        } else {
+          const conv = createConversation();
+          updated.push(conv);
+          saveConversations(updated);
+          setCurrentId(conv.id);
+          setMessages([]);
+          setAnalysisResults([]);
+        }
       }
-    },
-    [currentSessionId]
-  );
+      return updated;
+    });
+  }, [currentId]);
+
+  const openReport = useCallback((index: number) => {
+    setActiveReportTab(index);
+    setPanelOpen(true);
+  }, []);
+
+  const downloadReport = useCallback((index: number) => {
+    const result = analysisResults[index];
+    if (result) exportReportPdf(result, index + 1);
+  }, [analysisResults]);
+
+  // ── Send message ──
 
   const sendMessage = useCallback(
     async (userText: string) => {
@@ -101,28 +195,19 @@ function SandboxInner() {
       setMessages((prev) => [...prev, userMsg, assistantMsg]);
       setIsStreaming(true);
 
-      // Persist user message
-      if (currentSessionId) {
-        fetch("/api/chat", { method: "HEAD" }).catch(() => {}); // warm up
-        await fetch(`/api/sessions/${currentSessionId}/messages`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: userMsg }),
-        }).catch(() => {});
-      }
-
-      const history = [...messages, userMsg].map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content,
-      }));
-
-      let finalContent = "";
+      // Build history for API — include analysis text as assistant messages
+      const history = [...messages, userMsg]
+        .filter((m) => !m.isStreaming)
+        .map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        }));
 
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: history, role, sessionId: currentSessionId }),
+          body: JSON.stringify({ messages: history }),
         });
 
         if (!res.body) throw new Error("No response body");
@@ -144,21 +229,21 @@ function SandboxInner() {
             try {
               const event = JSON.parse(line.slice(6));
 
-              if (event.type === "mode") {
-                setMessages((prev) =>
-                  prev.map((m) => (m.id === assistantId ? { ...m, mode: event.mode as AIMode } : m))
-                );
-              } else if (event.type === "text") {
-                finalContent += event.content as string;
+              if (event.type === "text") {
                 setMessages((prev) =>
                   prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + (event.content as string) } : m))
                 );
-              } else if (event.type === "chart") {
-                setCharts((prev) => [...prev, event.spec as ChartSpec]);
-                setPanelOpen(true);
-              } else if (event.type === "map") {
-                setMaps((prev) => [...prev, event.spec as MapSpec]);
-                setPanelOpen(true);
+              } else if (event.type === "analysis") {
+                const answer = event.answer as string;
+                const images = (event.images as string[]) ?? [];
+                setAnalysisResults((prev) => {
+                  const newIndex = prev.length;
+                  // Tag the current assistant message with this report's index
+                  setMessages((msgs) =>
+                    msgs.map((m) => (m.id === assistantId ? { ...m, reportIndex: newIndex } : m))
+                  );
+                  return [...prev, { answer, images }];
+                });
               } else if (event.type === "done" || event.type === "error") {
                 setMessages((prev) =>
                   prev.map((m) =>
@@ -187,49 +272,35 @@ function SandboxInner() {
       } finally {
         setIsStreaming(false);
         setMessages((prev) => prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m)));
-        // Refresh sessions list
-        if (user) {
-          fetch(`/api/sessions?userId=${user.id}`)
-            .then((r) => r.json())
-            .then((data: { sessions?: ChatSession[] }) => {
-              if (data.sessions) setSessions(data.sessions as ChatSession[]);
-            })
-            .catch(() => {});
-        }
       }
     },
-    [isStreaming, messages, role, currentSessionId, user]
+    [isStreaming, messages]
   );
 
   // Auto-send initial query from URL
   useEffect(() => {
-    if (initialQuery && messages.length === 0) {
+    if (initialQuery && messages.length === 0 && initialized.current) {
       sendMessage(initialQuery);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initialQuery]);
 
-  const vizCount = charts.length + maps.length;
+  const vizCount = analysisResults.length;
 
   return (
     <div className="flex h-screen flex-col" style={{ backgroundColor: "#F5EDD8" }}>
       <Navbar />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Session sidebar */}
-        {user && (
-          <SessionSidebar
-            sessions={sessions}
-            currentSessionId={currentSessionId}
-            user={user}
-            onSelectSession={handleSelectSession}
-            onNewSession={handleNewSession}
-            onDeleteSession={handleDeleteSession}
-
-            isOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
-          />
-        )}
+        <SessionSidebar
+          conversations={conversations}
+          currentId={currentId}
+          onSelect={handleSelect}
+          onNew={handleNew}
+          onDelete={handleDelete}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
         {/* Chat panel */}
         <div className="flex flex-1 flex-col overflow-hidden">
@@ -238,17 +309,15 @@ function SandboxInner() {
             className="flex items-center justify-between border-b bg-white px-4 py-3"
             style={{ borderColor: "#EDE2C4" }}>
             <div className="flex items-center gap-3">
-              {user && (
-                <button
-                  onClick={() => setSidebarOpen((o) => !o)}
-                  className="md:hidden rounded-lg p-1 transition hover:bg-[#F5EDD8]"
-                  style={{ color: "#4A5E6D" }}>
-                  <Menu size={16} />
-                </button>
-              )}
+              <button
+                onClick={() => setSidebarOpen((o) => !o)}
+                className="md:hidden rounded-lg p-1 transition hover:bg-[#F5EDD8]"
+                style={{ color: "#4A5E6D" }}>
+                <Menu size={16} />
+              </button>
               <div>
                 <p className="text-sm font-semibold" style={{ color: "#1E2D3D" }}>
-                  AI Coding Sandbox
+                  AI Sandbox
                 </p>
               </div>
             </div>
@@ -258,17 +327,16 @@ function SandboxInner() {
                 className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition hover:bg-[#F5EDD8]"
                 style={{ borderColor: "#EDE2C4", color: "#4A5E6D", backgroundColor: "white" }}>
                 <BarChart3 size={13} />
-                {vizCount > 0 ? `${vizCount} viz` : "Visualizations"}
+                {vizCount > 0 ? `${vizCount} report${vizCount > 1 ? "s" : ""}` : "Reports"}
               </button>
             )}
           </div>
 
-          <ChatThread messages={messages} isLoading={isStreaming} />
+          <ChatThread messages={messages} isLoading={isStreaming} onOpenReport={openReport} onDownloadReport={downloadReport} />
           <ChatInput onSend={sendMessage} isDisabled={isStreaming} />
         </div>
 
-        {/* Visualization panel */}
-        <VisualizationPanel charts={charts} maps={maps} isVisible={panelOpen} onToggle={() => setPanelOpen(false)} />
+        <VisualizationPanel analysisResults={analysisResults} activeTab={activeReportTab} onTabChange={setActiveReportTab} isVisible={panelOpen} onToggle={() => setPanelOpen(false)} />
       </div>
     </div>
   );

@@ -8,9 +8,7 @@ import {
   MessageSquare, BarChart3, Lightbulb, TrendingUp, Leaf, ArrowRight,
 } from "lucide-react";
 import { SignInButton, SignUpButton, Show } from "@clerk/nextjs";
-import type { UserRole } from "@/types/chat";
-
-const ROLE_CARDS: { id: UserRole; label: string; desc: string; Icon: React.ElementType }[] = [
+const ROLE_CARDS: { id: string; label: string; desc: string; Icon: React.ElementType }[] = [
   { id: "food_bank_partner", label: "Food Bank Partner",    desc: "Optimize distribution and identify service gaps",    Icon: Warehouse    },
   { id: "government_policy", label: "Government / Policy",  desc: "Make data-informed decisions on food security",      Icon: Landmark     },
   { id: "donor",             label: "Potential Donor",      desc: "See where your contributions make the most impact",  Icon: HandHeart    },
@@ -43,12 +41,12 @@ const STEPS: { Icon: React.ElementType; title: string; desc: string }[] = [
 export default function LandingPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [selectedRole, setSelectedRole] = useState<UserRole>("community");
+  const [selectedRole, setSelectedRole] = useState("community");
 
   function go(text: string) {
     const q = text.trim();
     if (!q) return;
-    router.push(`/sandbox?q=${encodeURIComponent(q)}&role=${selectedRole}`);
+    router.push(`/sandbox?q=${encodeURIComponent(q)}`);
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -340,7 +338,7 @@ export default function LandingPage() {
             Start asking questions and discover insights that drive real impact in your community.
           </p>
           <button
-            onClick={() => router.push(`/sandbox?role=${selectedRole}`)}
+            onClick={() => router.push("/sandbox")}
             className="group inline-flex items-center gap-2 rounded-2xl bg-white px-10 py-4 text-base font-semibold transition-all hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98]"
             style={{ color: "#1A8E80", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}
           >

@@ -24,6 +24,7 @@ export interface ChatMessage {
   charts?: ChartSpec[];
   mode?: AIMode;
   isStreaming?: boolean;
+  reportIndex?: number;
 }
 
 export interface KpiStat {
@@ -45,6 +46,20 @@ export interface UserInfo {
   organization?: string;
   role?: "community" | "researcher" | "admin" | "coordinator";
   createdAt: number;
+}
+
+export interface AnalysisResult {
+  answer: string;
+  images: string[]; // base64 PNG strings
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  analysisResults: AnalysisResult[];
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface ChatSession {

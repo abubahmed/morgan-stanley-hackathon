@@ -1,16 +1,20 @@
-import type { ChartSpec, MapSpec } from "@/types/chat";
+"use client";
+
+import type { AnalysisResult } from "@/types/chat";
 import { BarChart3, X, TrendingUp } from "lucide-react";
-import ChartRenderer from "./ChartRenderer";
-import MapRenderer from "./MapRenderer";
+import AnalysisRenderer from "./AnalysisRenderer";
 
 interface VisualizationPanelProps {
-  charts: ChartSpec[];
-  maps?: MapSpec[];
+  analysisResults: AnalysisResult[];
+  activeTab: number;
+  onTabChange: (index: number) => void;
   isVisible: boolean;
   onToggle: () => void;
 }
 
-export default function VisualizationPanel({ charts, maps = [], isVisible, onToggle }: VisualizationPanelProps) {
+export default function VisualizationPanel({ analysisResults, activeTab, onTabChange, isVisible, onToggle }: VisualizationPanelProps) {
+  const currentTab = Math.min(activeTab, Math.max(analysisResults.length - 1, 0));
+
   return (
     <div
       className={`flex flex-col border-l transition-all duration-300 ${isVisible ? "w-[42%]" : "w-0 overflow-hidden"}`}
@@ -18,6 +22,7 @@ export default function VisualizationPanel({ charts, maps = [], isVisible, onTog
     >
       {isVisible && (
         <>
+          {/* Header */}
           <div
             className="flex items-center justify-between border-b bg-white/70 px-4 py-3 backdrop-blur-sm"
             style={{ borderColor: "rgba(210,195,165,0.4)" }}
@@ -27,13 +32,13 @@ export default function VisualizationPanel({ charts, maps = [], isVisible, onTog
                 style={{ background: "linear-gradient(135deg, #C8EDE8 0%, #A8DDD6 100%)" }}>
                 <BarChart3 size={12} style={{ color: "#1E9080" }} />
               </div>
-              <p className="text-[13px] font-semibold" style={{ color: "#1E2D3D" }}>Visualizations</p>
-              {(charts.length + maps.length) > 0 && (
+              <p className="text-[13px] font-semibold" style={{ color: "#1E2D3D" }}>Reports</p>
+              {analysisResults.length > 0 && (
                 <span
                   className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
                   style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)", color: "white" }}
                 >
-                  {charts.length + maps.length}
+                  {analysisResults.length}
                 </span>
               )}
             </div>
@@ -45,25 +50,51 @@ export default function VisualizationPanel({ charts, maps = [], isVisible, onTog
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {charts.length === 0 && maps.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                <div
-                  className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-                  style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(210,195,165,0.5)" }}
-                >
-                  <TrendingUp size={24} style={{ color: "#C8D8E0" }} />
-                </div>
-                <p className="text-[13px] font-semibold" style={{ color: "#6A7E8D" }}>Charts will appear here</p>
-                <p className="mt-1 text-[11px]" style={{ color: "#9AAAB8" }}>Ask a question to generate visualizations</p>
+          {analysisResults.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center text-center py-16">
+              <div
+                className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
+                style={{ background: "rgba(255,255,255,0.5)", border: "1px solid rgba(210,195,165,0.5)" }}
+              >
+                <TrendingUp size={24} style={{ color: "#C8D8E0" }} />
               </div>
-            ) : (
-              <>
-                {maps.map((map, i) => <MapRenderer key={`map-${i}`} spec={map} />)}
-                {charts.map((chart, i) => <ChartRenderer key={`chart-${i}`} spec={chart} />)}
-              </>
-            )}
-          </div>
+              <p className="text-[13px] font-semibold" style={{ color: "#6A7E8D" }}>Reports will appear here</p>
+              <p className="mt-1 text-[11px]" style={{ color: "#9AAAB8" }}>Ask a data analysis question to generate a report</p>
+            </div>
+          ) : (
+            <>
+              {/* Tabs */}
+              {analysisResults.length > 1 && (
+                <div
+                  className="flex gap-1 overflow-x-auto border-b px-3 pt-2 pb-0"
+                  style={{ borderColor: "rgba(210,195,165,0.4)" }}
+                >
+                  {analysisResults.map((_, i) => {
+                    const isActive = i === currentTab;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => onTabChange(i)}
+                        className="shrink-0 rounded-t-lg px-3 py-1.5 text-[12px] font-medium transition-all"
+                        style={{
+                          color: isActive ? "#1E2D3D" : "#8A9AAA",
+                          background: isActive ? "white" : "transparent",
+                          borderBottom: isActive ? "2px solid #3DBFAC" : "2px solid transparent",
+                        }}
+                      >
+                        Report {i + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Active report content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <AnalysisRenderer result={analysisResults[currentTab]} />
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

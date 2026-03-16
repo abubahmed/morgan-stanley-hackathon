@@ -221,11 +221,13 @@ export default function TrendsOverTime() {
               boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
               padding: "10px 14px",
             }}
-            formatter={(value: number, name: string) => {
-              const metric = METRICS.find((m) => m.key === name);
-              if (metric?.unit === "$") return [`$${value.toLocaleString()}`, metric.label];
-              if (metric?.unit === "%") return [`${value}%`, metric.label];
-              return [value, name];
+            formatter={(value, name) => {
+              const v = Number(value);
+              const n = String(name);
+              const metric = METRICS.find((m) => m.key === n);
+              if (metric?.unit === "$") return [`$${v.toLocaleString()}`, metric.label];
+              if (metric?.unit === "%") return [`${v}%`, metric.label];
+              return [v, n];
             }}
           />
           {activeMetrics.map((m) => (

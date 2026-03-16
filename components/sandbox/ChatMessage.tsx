@@ -1,15 +1,14 @@
 import ReactMarkdown from "react-markdown";
-import type { ChatMessage, AIMode } from "@/types/chat";
+import type { ChatMessage } from "@/types/chat";
+import { FlaskConical, Download } from "lucide-react";
 
-const modeBadge: Record<AIMode, { label: string; bg: string; color: string }> = {
-  query:         { label: "Query",         bg: "linear-gradient(135deg, #DDF0EC 0%, #C8E8E2 100%)", color: "#1A8070" },
-  exploration:   { label: "Exploration",   bg: "linear-gradient(135deg, #F5EDD8 0%, #EDE0C0 100%)", color: "#8A6020" },
-  investigation: { label: "Investigation", bg: "linear-gradient(135deg, #FEF3E2 0%, #FDEBD0 100%)", color: "#B86810" },
-};
+interface ChatMessageProps {
+  message: ChatMessage;
+  onOpenReport?: (index: number) => void;
+  onDownloadReport?: (index: number) => void;
+}
 
-interface ChatMessageProps { message: ChatMessage }
-
-export default function ChatMessageBubble({ message }: ChatMessageProps) {
+export default function ChatMessageBubble({ message, onOpenReport, onDownloadReport }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   if (isUser) {
@@ -31,14 +30,6 @@ export default function ChatMessageBubble({ message }: ChatMessageProps) {
   return (
     <div className="flex justify-start">
       <div className="max-w-[85%] space-y-1.5">
-        {message.mode && (
-          <span
-            className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-            style={{ background: modeBadge[message.mode].bg, color: modeBadge[message.mode].color }}
-          >
-            {modeBadge[message.mode].label} Mode
-          </span>
-        )}
         <div
           className="rounded-2xl rounded-tl-sm px-4 py-3 text-[14px] leading-relaxed"
           style={{
@@ -53,7 +44,7 @@ export default function ChatMessageBubble({ message }: ChatMessageProps) {
               h1: (p) => <h1 className="text-lg font-bold mb-2 mt-1" {...p} />,
               h2: (p) => <h2 className="text-base font-bold mb-1.5 mt-1" {...p} />,
               h3: (p) => <h3 className="text-[14px] font-semibold mb-1 mt-1" {...p} />,
-              p: (p) => <p className="mb-2 last:mb-0" {...p} />,
+              p: (p) => <p className="mb-3 last:mb-0 whitespace-pre-wrap" {...p} />,
               ul: (p) => <ul className="list-disc pl-5 mb-2 space-y-0.5" {...p} />,
               ol: (p) => <ol className="list-decimal pl-5 mb-2 space-y-0.5" {...p} />,
               li: (p) => <li className="text-[14px]" {...p} />,
@@ -76,7 +67,7 @@ export default function ChatMessageBubble({ message }: ChatMessageProps) {
               ),
             }}
           >
-            {message.content}
+            {message.content.replace(/\n/g, "  \n")}
           </ReactMarkdown>
           {message.isStreaming && (
             <span
@@ -85,6 +76,36 @@ export default function ChatMessageBubble({ message }: ChatMessageProps) {
             />
           )}
         </div>
+
+        {/* Report action buttons */}
+        {message.reportIndex != null && !message.isStreaming && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onOpenReport?.(message.reportIndex!)}
+              className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[12px] font-semibold transition-all hover:shadow-sm active:scale-[0.97]"
+              style={{
+                background: "linear-gradient(135deg, #DDF0EC 0%, #C8E8E2 100%)",
+                color: "#1A8070",
+                border: "1px solid rgba(61,191,172,0.25)",
+              }}
+            >
+              <FlaskConical size={12} />
+              Open Report {message.reportIndex + 1}
+            </button>
+            <button
+              onClick={() => onDownloadReport?.(message.reportIndex!)}
+              className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[12px] font-semibold transition-all hover:shadow-sm active:scale-[0.97]"
+              style={{
+                background: "linear-gradient(135deg, #FDECEA 0%, #F9D6D2 100%)",
+                color: "#9B2C2C",
+                border: "1px solid rgba(185,68,68,0.25)",
+              }}
+            >
+              <Download size={12} />
+              Download PDF
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

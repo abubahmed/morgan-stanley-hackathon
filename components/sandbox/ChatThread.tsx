@@ -8,9 +8,11 @@ import ChatMessageBubble from "./ChatMessage";
 interface ChatThreadProps {
   messages: ChatMessage[];
   isLoading: boolean;
+  onOpenReport?: (index: number) => void;
+  onDownloadReport?: (index: number) => void;
 }
 
-export default function ChatThread({ messages, isLoading }: ChatThreadProps) {
+export default function ChatThread({ messages, isLoading, onOpenReport, onDownloadReport }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function ChatThread({ messages, isLoading }: ChatThreadProps) {
   return (
     <div className="flex flex-1 flex-col gap-3 overflow-y-auto bg-white px-4 py-4">
       {messages.map((msg) => (
-        <ChatMessageBubble key={msg.id} message={msg} />
+        <ChatMessageBubble key={msg.id} message={msg} onOpenReport={onOpenReport} onDownloadReport={onDownloadReport} />
       ))}
       {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
         <div className="flex justify-start">
