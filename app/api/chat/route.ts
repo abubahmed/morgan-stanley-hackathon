@@ -1,275 +1,249 @@
 import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { getResources, searchResources, getResourcesByZip } from "@/lib/lemontree_api";
-import { detectMode, buildSystemPrompt } from "@/lib/chatUtils";
-import type { UserRole } from "@/types/chat";
+import { detectIntent } from "@/lib/intentDetection";
+import { triggerSandbox } from "@/lib/sandbox";
+import {
+  getResourcesByZip,
+  searchResources,
+  getResourcesOpenToday,
+} from "@/lib/lemontree_api";
+import { createSession, saveMessage } from "@/lib/db";
+import type { UserRole, IntentMode } from "@/types/chat";
 
 export const runtime = "nodejs";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const TOOLS: Anthropic.Tool[] = [
-  {
-    name: "search_resources",
-    description:
-      "Search food resources from the Lemontree Food Helpline database. Use this to get real data about food pantries, soup kitchens, and SNAP resources.",
-    input_schema: {
-      type: "object" as const,
-      properties: {
-        text: { type: "string", description: "Text search query (e.g. 'food bank', 'soup kitchen')" },
-        zipCode: { type: "string", description: "Filter by zip code" },
-        region: { type: "string", description: "Filter by region ID (e.g. 'NEW_YORK_CITY', 'BROOKLYN')" },
-        resourceTypeId: {
-          type: "string",
-          enum: ["FOOD_PANTRY", "SOUP_KITCHEN", "SNAP_EBT"],
-          description: "Filter by resource type",
-        },
-        take: { type: "number", description: "Number of results to return (default 10, max 40)" },
-      },
-    },
-  },
-  {
-    name: "generate_chart",
-    description:
-      "Render a chart in the user's visualization panel. Call this with data you've fetched to create a visual. The chart will appear automatically in the side panel.",
-    input_schema: {
-      type: "object" as const,
-      required: ["type", "title", "data", "xKey", "yKey"],
-      properties: {
-        type: { type: "string", enum: ["bar", "line", "pie"], description: "Chart type" },
-        title: { type: "string", description: "Chart title displayed above the visualization" },
-        data: {
-          type: "array",
-          description: "Array of data objects",
-          items: { type: "object" },
-        },
-        xKey: { type: "string", description: "Key in data objects for the X axis" },
-        yKey: { type: "string", description: "Key in data objects for the Y axis / value" },
-        color: { type: "string", description: "Hex color for the chart (default green)" },
-      },
-    },
-  },
-  {
-    name: "render_map",
-    description:
-      "Render an interactive map in the visualization panel showing locations with pin markers. Use this to display resources geographically.",
-    input_schema: {
-      type: "object" as const,
-      required: ["title", "markers"],
-      properties: {
-        title: { type: "string", description: "Map title" },
-        markers: {
-          type: "array",
-          description: "Array of map markers to display",
-          items: {
-            type: "object",
-            required: ["lat", "lng", "label"],
-            properties: {
-              lat: { type: "number", description: "Latitude" },
-              lng: { type: "number", description: "Longitude" },
-              label: { type: "string", description: "Marker label" },
-              color: { type: "string", description: "Marker color (hex or named)" },
-            },
-          },
-        },
-      },
-    },
-  },
-  {
-    name: "run_analysis",
-    description:
-      "Run Python code analysis on food resource data for complex statistical or geographic queries. Use this for questions requiring data computation, aggregation, or analysis that can't be answered from search alone.",
-    input_schema: {
-      type: "object" as const,
-      required: ["job"],
-      properties: {
-        job: { type: "string", description: "A clear description of the analysis to perform" },
-      },
-    },
-  },
-];
+const SYSTEM_PROMPT = `You are LemonAId, an AI assistant for Lemon Tree Insights — a data analysis platform for food pantry networks.
+You help users understand visit patterns, food access trends, and pantry operations.
+Be concise and direct. When a user's question requires data analysis, let them know the analysis is running.
+Do not fabricate data — only comment on what the user tells you or what the analysis returns.`;
 
-async function executeTool(
-  name: string,
-  input: Record<string, unknown>
-): Promise<string> {
-  if (name === "search_resources") {
-    const { text, zipCode, region, resourceTypeId, take = 10 } = input as {
-      text?: string;
-      zipCode?: string;
-      region?: string;
-      resourceTypeId?: string;
-      take?: number;
-    };
+// ── SSE helper ────────────────────────────────────────────────────────────────
 
-    let result;
-    if (text) {
-      result = await searchResources(text, { take });
-    } else if (zipCode) {
-      result = await getResourcesByZip(zipCode as string, { take });
-    } else {
-      result = await getResources({ region, resourceTypeId, take } as Parameters<typeof getResources>[0]);
-    }
+function sse(data: object): string {
+  return `data: ${JSON.stringify(data)}\n\n`;
+}
 
-    // Summarize for Claude to avoid huge context
-    const resources = result.resources ?? [];
-    const summary = resources.slice(0, take as number).map((r: Record<string, unknown>) => ({
-      id: r.id,
-      name: r.name,
-      city: r.city,
-      zipCode: r.zipCode,
-      resourceType: (r.resourceType as Record<string, unknown>)?.name,
-      ratingAverage: r.ratingAverage,
-      waitTimeMinutesAverage: r.waitTimeMinutesAverage,
-      reviewCount: (r._count as Record<string, unknown>)?.reviews,
-      subscriptions: (r._count as Record<string, unknown>)?.resourceSubscriptions,
-      acceptingNewClients: r.acceptingNewClients,
-      tags: ((r.tags as unknown[]) ?? []).map((t) => (t as Record<string, unknown>).name),
-    }));
+// ── Lookup helpers ────────────────────────────────────────────────────────────
 
-    return JSON.stringify({ count: result.count, resources: summary });
+function extractZip(message: string): string | null {
+  const match = message.match(/\b(\d{5})\b/);
+  return match ? match[1] : null;
+}
+
+function extractLocation(message: string): string | null {
+  const match = message.match(
+    /\b(?:near|in|around|close to|by|to)\s+([A-Za-z][A-Za-z\s,]{2,30}?)(?:\?|$|,|\.|!)/i
+  );
+  return match ? match[1].trim() : null;
+}
+
+function isOpenQuery(message: string): boolean {
+  return /\bopen (now|today|tonight|this week)\b/i.test(message);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function formatResources(resources: any[]): string {
+  if (!resources.length) return "No pantries found for that location.";
+  return resources
+    .slice(0, 5)
+    .map((r, i) => {
+      const address = [r.addressStreet1, r.city, r.state, r.zipCode]
+        .filter(Boolean)
+        .join(", ");
+      const type = r.resourceType?.name ?? "Food Resource";
+      const accepting = r.acceptingNewClients ? "Yes" : "No";
+      const appt = r.openByAppointment ? "Yes" : "No";
+      const site = r.website ?? "N/A";
+      return `${i + 1}. ${r.name} (${type})\n   Address: ${address || "Not listed"}\n   Accepting new clients: ${accepting} | Appointment needed: ${appt}\n   Website: ${site}`;
+    })
+    .join("\n\n");
+}
+
+async function fetchLookupContext(message: string): Promise<string> {
+  const zip = extractZip(message);
+  if (isOpenQuery(message)) {
+    const data = await getResourcesOpenToday({ take: 5 });
+    return `Pantries open today:\n\n${formatResources(data.resources ?? [])}`;
   }
-
-  return "Tool not found";
+  if (zip) {
+    const data = await getResourcesByZip(zip, { take: 5, sort: "distance" });
+    return `Pantries near ${zip}:\n\n${formatResources(data.resources ?? [])}`;
+  }
+  const location = extractLocation(message);
+  if (location) {
+    const data = await searchResources(location, { take: 5 });
+    return `Pantries matching "${location}":\n\n${formatResources(data.resources ?? [])}`;
+  }
+  const data = await searchResources(message, { take: 5 });
+  return `Pantries found:\n\n${formatResources(data.resources ?? [])}`;
 }
 
-function encodeSSE(payload: Record<string, unknown>): Uint8Array {
-  return new TextEncoder().encode(`data: ${JSON.stringify(payload)}\n\n`);
+// Map IntentMode (1-4) to the AIMode strings the frontend understands
+const MODE_MAP: Record<IntentMode, string> = {
+  1: "query",
+  2: "exploration",
+  3: "investigation",
+  4: "query",
+};
+
+// ── Persistence helpers ────────────────────────────────────────────────────────
+
+async function ensureSession(
+  sessionId: string | null | undefined,
+  userId: string | null | undefined,
+  firstMessage: string
+): Promise<string | null> {
+  if (sessionId) return sessionId;
+  if (!userId) return null;
+  try {
+    const session = await createSession(userId, firstMessage.slice(0, 60));
+    return session.id as string;
+  } catch {
+    return null;
+  }
 }
+
+async function persistMessages(
+  sid: string | null,
+  userMsgId: string,
+  userContent: string,
+  assistantContent: string,
+  extras?: { isAnalysis?: boolean; mode?: IntentMode }
+) {
+  if (!sid) return;
+  await saveMessage(sid, { id: userMsgId, role: "user", content: userContent }).catch(() => {});
+  await saveMessage(sid, {
+    id: crypto.randomUUID(),
+    role: "assistant",
+    content: assistantContent,
+    isAnalysis: extras?.isAnalysis,
+    mode: extras?.mode ?? null,
+  }).catch(() => {});
+}
+
+// ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  const { messages, role = "community" } = await req.json() as {
-    messages: Anthropic.MessageParam[];
-    role: UserRole;
+  const { messages, role, sessionId, userId } = (await req.json()) as {
+    messages: { role: "user" | "assistant"; content: string }[];
+    role?: UserRole;
+    sessionId?: string | null;
+    userId?: string | null;
   };
 
-  const lastMessage = messages[messages.length - 1];
-  const lastContent =
-    typeof lastMessage?.content === "string"
-      ? lastMessage.content
-      : Array.isArray(lastMessage?.content)
-      ? lastMessage.content
-          .filter((b) => b.type === "text")
-          .map((b) => (b as Anthropic.TextBlockParam).text)
-          .join(" ")
-      : "";
+  // Extract the latest user message and prior history
+  const message = messages[messages.length - 1]?.content ?? "";
+  const history = messages.slice(0, -1);
+  const userMsgId = crypto.randomUUID();
+  const sid = await ensureSession(sessionId, userId, message);
 
-  const mode = detectMode(lastContent);
-  const systemPrompt = buildSystemPrompt(mode, role as UserRole);
+  void role;
+
+  const intent = detectIntent(message);
+  const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
+      const send = (data: object) =>
+        controller.enqueue(encoder.encode(sse(data)));
+
       try {
-        // Send mode to client immediately
-        controller.enqueue(encodeSSE({ type: "mode", mode }));
+        // ── Analysis path ──────────────────────────────────────────────────
+        if (intent.kind === "analysis") {
+          send({ type: "mode", mode: MODE_MAP[intent.mode] });
+          send({ type: "text", content: "Running analysis…\n\n" });
 
-        let currentMessages = [...messages];
-        let continueLoop = true;
+          // Keep SSE connection alive with comment pings while analysis runs
+          const heartbeat = setInterval(() => {
+            try { controller.enqueue(encoder.encode(": ping\n\n")); } catch { /* stream closed */ }
+          }, 10000);
 
-        while (continueLoop) {
-          const response = await client.messages.create({
-            model: "claude-sonnet-4-6",
-            max_tokens: 4096,
-            system: systemPrompt,
-            messages: currentMessages,
-            tools: TOOLS,
-          });
-
-          // Collect text and tool uses from response
-          const toolUses: Anthropic.ToolUseBlock[] = [];
-
-          for (const block of response.content) {
-            if (block.type === "text") {
-              // Stream text in chunks
-              const words = block.text.split(" ");
-              for (let i = 0; i < words.length; i += 5) {
-                const chunk = words.slice(i, i + 5).join(" ") + (i + 5 < words.length ? " " : "");
-                controller.enqueue(encodeSSE({ type: "text", content: chunk }));
-              }
-            } else if (block.type === "tool_use") {
-              toolUses.push(block);
-
-              if (block.name === "generate_chart") {
-                // Stream chart spec directly to client
-                controller.enqueue(encodeSSE({ type: "chart", spec: block.input }));
-              } else if (block.name === "render_map") {
-                // Stream map spec directly to client
-                controller.enqueue(encodeSSE({ type: "map", spec: block.input }));
-              }
-            }
+          let result;
+          try {
+            const timeout = new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error("Analysis timed out. The sandbox took too long to respond. Try a more specific question.")), 90000)
+            );
+            result = await Promise.race([
+              triggerSandbox({ query: message, mode: intent.mode }),
+              timeout,
+            ]);
+          } finally {
+            clearInterval(heartbeat);
           }
 
-          if (response.stop_reason === "tool_use" && toolUses.length > 0) {
-            // Execute non-chart tools and continue the loop
-            const toolResults: Anthropic.ToolResultBlockParam[] = [];
+          await persistMessages(sid, userMsgId, message, result.summary, { isAnalysis: true, mode: intent.mode });
+          send({ type: "text", content: result.summary });
 
-            for (const toolUse of toolUses) {
-              if (toolUse.name === "generate_chart") {
-                // Chart already sent to client — return success to Claude
-                toolResults.push({
-                  type: "tool_result",
-                  tool_use_id: toolUse.id,
-                  content: "Chart rendered successfully in the visualization panel.",
-                });
-              } else if (toolUse.name === "render_map") {
-                // Map already sent to client — return success to Claude
-                toolResults.push({
-                  type: "tool_result",
-                  tool_use_id: toolUse.id,
-                  content: "Map rendered successfully in the visualization panel.",
-                });
-              } else if (toolUse.name === "run_analysis") {
-                try {
-                  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-                  const res = await fetch(`${baseUrl}/api/analysis`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ job: (toolUse.input as { job: string }).job }),
-                  });
-                  const data = await res.json() as { result?: string; error?: string };
-                  toolResults.push({
-                    type: "tool_result",
-                    tool_use_id: toolUse.id,
-                    content: data.result ?? data.error ?? "Analysis failed",
-                  });
-                } catch {
-                  toolResults.push({
-                    type: "tool_result",
-                    tool_use_id: toolUse.id,
-                    content: "Analysis service unavailable",
-                  });
-                }
-              } else {
-                const result = await executeTool(
-                  toolUse.name,
-                  toolUse.input as Record<string, unknown>
-                );
-                toolResults.push({
-                  type: "tool_result",
-                  tool_use_id: toolUse.id,
-                  content: result,
-                });
-              }
-            }
-
-            // Append assistant turn + tool results and loop
-            currentMessages = [
-              ...currentMessages,
-              { role: "assistant", content: response.content },
-              { role: "user", content: toolResults },
-            ];
-          } else {
-            continueLoop = false;
+          if (result.chartData) {
+            send({
+              type: "chart",
+              spec: {
+                type: result.chartData.type,
+                title: result.chartData.title,
+                data: result.chartData.data,
+                xKey: result.chartData.xKey ?? "x",
+                yKey: result.chartData.yKey ?? "y",
+              },
+            });
           }
+
+          if (result.images && result.images.length > 0) {
+            send({ type: "images", images: result.images });
+          }
+
+          send({ type: "done" });
+          controller.close();
+          return;
         }
 
-        controller.enqueue(encodeSSE({ type: "done" }));
+        // ── Lookup path ────────────────────────────────────────────────────
+        if (intent.kind === "lookup") {
+          send({ type: "mode", mode: "query" });
+
+          const lookupContext = await fetchLookupContext(message);
+          const groundedSystem = `${SYSTEM_PROMPT}\n\nThe following pantry data was retrieved live from the Lemon Tree network. Use it to answer the user. Do not add pantries that aren't listed here.\n\n${lookupContext}`;
+
+          const response = await client.messages.create({
+            model: "claude-opus-4-6",
+            max_tokens: 1024,
+            system: groundedSystem,
+            messages: [{ role: "user", content: message }],
+          });
+
+          const text =
+            response.content[0].type === "text"
+              ? response.content[0].text
+              : "";
+          await persistMessages(sid, userMsgId, message, text);
+          send({ type: "text", content: text });
+          send({ type: "done" });
+          controller.close();
+          return;
+        }
+
+        // ── Conversation path ──────────────────────────────────────────────
+        const response = await client.messages.create({
+          model: "claude-opus-4-6",
+          max_tokens: 1024,
+          system: SYSTEM_PROMPT,
+          messages: [
+            ...history.map((m) => ({ role: m.role, content: m.content })),
+            { role: "user", content: message },
+          ],
+        });
+
+        const text =
+          response.content[0].type === "text" ? response.content[0].text : "";
+        await persistMessages(sid, userMsgId, message, text);
+        send({ type: "text", content: text });
+        send({ type: "done" });
         controller.close();
       } catch (err) {
-        console.error("Chat API error:", err);
-        controller.enqueue(
-          encodeSSE({ type: "error", message: "Something went wrong. Please try again." })
-        );
+        const msg =
+          err instanceof Error ? err.message : "Something went wrong.";
+        send({ type: "error", message: msg });
         controller.close();
       }
     },

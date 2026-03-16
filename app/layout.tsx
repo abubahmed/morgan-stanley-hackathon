@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lemon Tree Insights",
-  description: "AI-powered food access data analysis for Lemontree Food Helpline partners",
+  title: "LemonAId",
+  description: "AI-powered food access data analysis for Lemon Tree Food Helpline partners",
 };
 
 export default function RootLayout({

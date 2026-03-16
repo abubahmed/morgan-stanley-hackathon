@@ -27,7 +27,7 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-2 group">
           <Leaf size={18} style={{ color: "#3DBFAC" }} />
           <span className="text-[15px] font-semibold tracking-tight" style={{ color: "#1E2D3D" }}>
-            Lemon Tree <span className="font-normal" style={{ opacity: 0.55 }}>Insights</span>
+            Lemon<span className="font-normal" style={{ opacity: 0.55 }}>AId</span>
           </span>
         </Link>
 

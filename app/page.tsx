@@ -66,7 +66,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Leaf size={20} style={{ color: "#3DBFAC" }} />
             <span className="text-[15px] font-semibold tracking-tight" style={{ color: "#1E2D3D" }}>
-              Lemon Tree <span className="font-normal" style={{ opacity: 0.55 }}>Insights</span>
+              Lemon<span className="font-normal" style={{ opacity: 0.55 }}>AId</span>
             </span>
           </div>
           <div className="flex items-center gap-6">
@@ -368,7 +368,7 @@ export default function LandingPage() {
       >
         <div className="flex items-center justify-center gap-2 mb-1">
           <Leaf size={14} style={{ color: "#3DBFAC", opacity: 0.7 }} />
-          <span className="text-xs font-medium" style={{ color: "#8A9AAA" }}>Lemon Tree Insights</span>
+          <span className="text-xs font-medium" style={{ color: "#8A9AAA" }}>LemonAId</span>
         </div>
         <p className="text-xs" style={{ color: "#9AAAB8" }}>Empowering food access through data.</p>
       </footer>

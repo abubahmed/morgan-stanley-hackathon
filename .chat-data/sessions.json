@@ -1,0 +1,72 @@
+{
+  "c4990985-a79a-4792-b0fe-e8d1de271ba9": {
+    "id": "c4990985-a79a-4792-b0fe-e8d1de271ba9",
+    "userId": "7b244313-058c-4434-b4ae-b216e07fdf51",
+    "title": "hey chat how are you?",
+    "messages": [
+      {
+        "id": "ce8nnwzt7o",
+        "role": "user",
+        "content": "hey chat how are you?"
+      },
+      {
+        "id": "yi9spqhj5k",
+        "role": "assistant",
+        "content": "Hey there! I'm doing great, thanks for asking! 😊\n\nWelcome to Lemon Tree Insights. I'm LemonAId, your data analysis assistant for food pantry networks. I can help you explore things like:\n\n- **Visit patterns** and trends over time\n- **Food access** across your pantry network\n- **Pantry operations** and performance metrics\n- **Client demographics** and service reach\n\nWhat can I help you dig into today?"
+      }
+    ],
+    "createdAt": 1773611649417,
+    "updatedAt": 1773614352645,
+    "messageCount": 2
+  },
+  "df88ecf4-2035-4cb7-b65b-fc7177531bc8": {
+    "id": "df88ecf4-2035-4cb7-b65b-fc7177531bc8",
+    "userId": "7b244313-058c-4434-b4ae-b216e07fdf51",
+    "title": "can you tell me about trends near newark?",
+    "messages": [
+      {
+        "id": "0v1dguamwx9a",
+        "role": "user",
+        "content": "can you tell me about trends near newark?"
+      }
+    ],
+    "createdAt": 1773614811592,
+    "updatedAt": 1773614821065,
+    "messageCount": 1
+  },
+  "a527b0fa-d390-46e6-99b0-e77669e90bf5": {
+    "id": "a527b0fa-d390-46e6-99b0-e77669e90bf5",
+    "userId": "7b244313-058c-4434-b4ae-b216e07fdf51",
+    "title": "can you tell me a fun fact about pantries in ma...",
+    "messages": [
+      {
+        "id": "e792zy1fbe",
+        "role": "user",
+        "content": "can you tell me a fun fact about pantries in manhattan?"
+      }
+    ],
+    "createdAt": 1773614930783,
+    "updatedAt": 1773614945848,
+    "messageCount": 1
+  },
+  "d4e5994a-606a-4245-b44c-1973a5bd3e3c": {
+    "id": "d4e5994a-606a-4245-b44c-1973a5bd3e3c",
+    "userId": "7b244313-058c-4434-b4ae-b216e07fdf51",
+    "title": "what are the top pantries in newark, nj",
+    "messages": [
+      {
+        "id": "hxzpo2jlfz",
+        "role": "user",
+        "content": "what are the top pantries in newark, nj"
+      },
+      {
+        "id": "dfcskboav7j",
+        "role": "assistant",
+        "content": "Here are the food pantries available in the Newark, NJ area:\n\n1. **Newark Spanish 7th Day Adventist Church**\n   - 📍 58 2nd Avenue, Newark, NJ 07104\n   - 🛒 Food pantry (groceries)\n   - ✅ Accepting new clients | No appointment needed\n   - 🌐 [Website](https://newarkspanishnj.adventistchurch.org/)\n\n2. **Newark Water Coalition - Wilson Avenue**\n   - 📍 7 Wilson Avenue, Newark, NJ 07105\n   - 🛒 Food pantry (groceries)\n   - ✅ Accepting new clients | No appointment needed\n   - 🌐 [Website](https://www.newarkwatercoalition.org/)\n\n3. **The Salvation Army - Newark (Central)**\n   - 📍 699 Springfield Avenue, West Side, NJ 07103\n   - 🛒 Food pantry (groceries)\n   - ✅ Accepting new clients | No appointment needed\n\n4. **Grace Church in Newark**\n   - 📍 950 Broad St, Newark, NJ 07102\n   - 🛒 Food pantry (groceries)\n   - ✅ Accepting new clients | No appointment needed\n   - 🌐 [Website](https://www.gracechurchinnewark.org/the-food-ministry)\n\n5. **Salvation Army - Kearny** *(nearby)*\n   - 📍 443 Chestnut Street, Kearny, NJ 07032\n   - 🛒 Food pantry (groceries)\n   - ✅ Accepting new clients | No appointment needed\n   - 🌐 [Website](https://easternusa.salvationarmy.org/new-jersey/kearny/)\n\nAll five pantries are **currently accepting new clients** and **none require an appointment**, making them easily accessible. Would you like more details on any of these locations, such as hours of operation or specific services?"
+      }
+    ],
+    "createdAt": 1773614992456,
+    "updatedAt": 1773615012732,
+    "messageCount": 2
+  }
+}

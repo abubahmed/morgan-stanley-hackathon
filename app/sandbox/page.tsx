@@ -25,6 +25,7 @@ function SandboxInner() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [charts, setCharts] = useState<ChartSpec[]>([]);
   const [maps, setMaps] = useState<MapSpec[]>([]);
+  const [images, setImages] = useState<string[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -92,14 +93,23 @@ function SandboxInner() {
     setMessages([]);
     setCharts([]);
     setMaps([]);
+    setImages([]);
   }, [user]);
 
   const handleSelectSession = useCallback(async (sessionId: string) => {
     setCurrentSessionId(sessionId);
-    setMessages([]);
     setCharts([]);
     setMaps([]);
+    setImages([]);
     setSidebarOpen(false);
+    // Load saved messages for this session
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}`);
+      const data = await res.json() as { messages?: ChatMessage[] };
+      setMessages(data.messages ?? []);
+    } catch {
+      setMessages([]);
+    }
   }, []);
 
   const handleDeleteSession = useCallback(async (sessionId: string) => {
@@ -108,6 +118,9 @@ function SandboxInner() {
     if (currentSessionId === sessionId) {
       setCurrentSessionId(null);
       setMessages([]);
+      setCharts([]);
+      setMaps([]);
+      setImages([]);
     }
   }, [currentSessionId]);
 
@@ -182,6 +195,9 @@ function SandboxInner() {
               } else if (event.type === "map") {
                 setMaps((prev) => [...prev, event.spec as MapSpec]);
                 setPanelOpen(true);
+              } else if (event.type === "images") {
+                setImages((prev) => [...prev, ...(event.images as string[])]);
+                setPanelOpen(true);
               } else if (event.type === "done" || event.type === "error") {
                 setMessages((prev) =>
                   prev.map((m) =>
@@ -206,6 +222,15 @@ function SandboxInner() {
       } finally {
         setIsStreaming(false);
         setMessages((prev) => prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m)));
+        // Save assistant reply
+        if (currentSessionId && finalContent) {
+          const assistantMsg: ChatMessage = { id: assistantId, role: "assistant", content: finalContent };
+          fetch(`/api/sessions/${currentSessionId}/messages`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: assistantMsg }),
+          }).catch(() => {});
+        }
         // Refresh sessions list
         if (user) {
           fetch(`/api/sessions?userId=${user.id}`)
@@ -294,6 +319,7 @@ function SandboxInner() {
         <VisualizationPanel
           charts={charts}
           maps={maps}
+          images={images}
           isVisible={panelOpen}
           onToggle={() => setPanelOpen(false)}
         />

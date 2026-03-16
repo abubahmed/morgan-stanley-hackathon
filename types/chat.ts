@@ -1,5 +1,26 @@
 export type AIMode = "query" | "exploration" | "investigation";
 
+export type IntentMode = 1 | 2 | 3 | 4;
+
+export type IntentResult =
+  | { kind: "conversation" }
+  | { kind: "analysis"; mode: IntentMode }
+  | { kind: "lookup" };
+
+export interface SandboxChartData {
+  type: "bar" | "line" | "pie" | "scatter";
+  title: string;
+  data: Record<string, unknown>[];
+  xKey?: string;
+  yKey?: string;
+}
+
+export interface SandboxResult {
+  summary: string;
+  chartData: SandboxChartData | null;
+  images?: string[];
+}
+
 export type UserRole =
   | "food_bank_partner"
   | "government_policy"

@@ -6,11 +6,12 @@ import MapRenderer from "./MapRenderer";
 interface VisualizationPanelProps {
   charts: ChartSpec[];
   maps?: MapSpec[];
+  images?: string[];
   isVisible: boolean;
   onToggle: () => void;
 }
 
-export default function VisualizationPanel({ charts, maps = [], isVisible, onToggle }: VisualizationPanelProps) {
+export default function VisualizationPanel({ charts, maps = [], images = [], isVisible, onToggle }: VisualizationPanelProps) {
   return (
     <div
       className={`flex flex-col border-l transition-all duration-300 ${isVisible ? "w-[42%]" : "w-0 overflow-hidden"}`}
@@ -28,12 +29,12 @@ export default function VisualizationPanel({ charts, maps = [], isVisible, onTog
                 <BarChart3 size={12} style={{ color: "#1E9080" }} />
               </div>
               <p className="text-[13px] font-semibold" style={{ color: "#1E2D3D" }}>Visualizations</p>
-              {(charts.length + maps.length) > 0 && (
+              {(charts.length + maps.length + images.length) > 0 && (
                 <span
                   className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
                   style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)", color: "white" }}
                 >
-                  {charts.length + maps.length}
+                  {charts.length + maps.length + images.length}
                 </span>
               )}
             </div>
@@ -46,7 +47,7 @@ export default function VisualizationPanel({ charts, maps = [], isVisible, onTog
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {charts.length === 0 && maps.length === 0 ? (
+            {charts.length === 0 && maps.length === 0 && images.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-16">
                 <div
                   className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
@@ -61,6 +62,10 @@ export default function VisualizationPanel({ charts, maps = [], isVisible, onTog
               <>
                 {maps.map((map, i) => <MapRenderer key={`map-${i}`} spec={map} />)}
                 {charts.map((chart, i) => <ChartRenderer key={`chart-${i}`} spec={chart} />)}
+                {images.map((img, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={`img-${i}`} src={`data:image/png;base64,${img}`} alt={`Analysis chart ${i + 1}`} className="rounded-xl w-full" />
+                ))}
               </>
             )}
           </div>

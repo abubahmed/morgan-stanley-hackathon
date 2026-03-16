@@ -41,7 +41,7 @@ export default function UserInfoModal({ existing, onSubmit, onCancel }: UserInfo
           </div>
           <div>
             <h2 className="text-[16px] font-bold leading-tight" style={{ color: "#1E2D3D" }}>
-              {isEdit ? "Edit your profile" : "Welcome to Lemon Tree Insights"}
+              {isEdit ? "Edit your profile" : "Welcome to LemonAId"}
             </h2>
             <p className="text-[12px]" style={{ color: "#8A9AAA" }}>
               {isEdit ? "Update your information below" : "Tell us about yourself to get started"}
