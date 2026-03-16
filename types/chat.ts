@@ -40,17 +40,21 @@ export interface MapSpec {
 }
 
 export interface UserInfo {
-  id: string;
+  _id?: string;
+  id?: string;
+  clerkId: string;
   name: string;
   email?: string;
+  imageUrl?: string;
   organization?: string;
   role?: "community" | "researcher" | "admin" | "coordinator";
   createdAt: number;
+  updatedAt?: number;
 }
 
 export interface AnalysisResult {
   answer: string;
-  images: string[]; // base64 PNG strings
+  images: string[]; // URL paths to images (e.g. /api/images/<id>)
 }
 
 export interface Conversation {

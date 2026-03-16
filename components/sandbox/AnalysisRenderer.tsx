@@ -46,7 +46,7 @@ export default function AnalysisRenderer({ result }: AnalysisRendererProps) {
           {result.images.map((img, i) => (
             <img
               key={i}
-              src={`data:image/png;base64,${img}`}
+              src={img}
               alt={`Analysis chart ${i + 1}`}
               className="w-full rounded-lg"
               style={{

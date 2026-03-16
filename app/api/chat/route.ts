@@ -11,14 +11,14 @@ const TOOLS: Anthropic.Tool[] = [
   {
     name: "run_analysis",
     description:
-      "Run a Python data analysis in a sandbox environment with pre-loaded datasets (Lemontree resources/reviews, US Census demographics/poverty/income/housing/education/commute, USDA food environment, CDC health data, ZIP-to-county crosswalk). Use this when the user asks a question that requires data computation, aggregation, statistical analysis, cross-dataset joins, visualizations, or anything that cannot be answered from your general knowledge alone. Write a clear, specific job description for the analyst.",
+      "Run a Python data analysis in a sandbox environment with pre-loaded datasets (Lemontree resources/reviews, US Census demographics/poverty/income/housing/education/commute, USDA food environment, CDC health data, ZIP-to-county crosswalk). Use this when the user asks a question that requires data computation, aggregation, statistical analysis, cross-dataset joins, visualizations, or anything that cannot be answered from your general knowledge alone. Write a clear, specific job statement for the analyst.",
     input_schema: {
       type: "object" as const,
       required: ["job"],
       properties: {
         job: {
           type: "string",
-          description: "A short, high-level description of what to analyze (1-2 sentences). State the question, not the methodology. The analyst will determine the approach.",
+          description: "Repeat the statement of what to analyze/determine. State the question/statement, not the methodology. DO NOT provide any additional information or context. ONLY state what the user asked for, nothing more or less.",
         },
       },
     },

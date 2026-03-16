@@ -8,6 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 import { SYSTEM_PROMPT } from "./systemPrompt";
 import { TOOLS } from "./tools";
+import { saveImage } from "@/lib/db/images";
 
 // Data directories and files to upload
 const DATA_SETS: [string, string[]][] = [
@@ -160,7 +161,7 @@ async function initSandbox(): Promise<Sandbox> {
 
 export interface ExecutionResult {
   text: string;
-  images: string[]; // base64 PNG strings
+  images: string[]; // base64 PNG strings from sandbox execution
 }
 
 // Run Python code in the sandbox and return the smartly truncated output + any images.
@@ -405,5 +406,15 @@ export async function runAgent(job: string) {
   }
 
   await sandbox.kill();
-  return finalReport ? { ...finalReport, images: allImages } : null;
+
+  if (!finalReport) return null;
+
+  // Save images to MongoDB and return URLs instead of raw base64
+  const imageUrls: string[] = [];
+  for (const b64 of allImages) {
+    const id = await saveImage(b64);
+    imageUrls.push(`/api/images/${id}`);
+  }
+
+  return { ...finalReport, images: imageUrls };
 }

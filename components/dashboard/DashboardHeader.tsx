@@ -9,13 +9,13 @@ const STATS = [
 export default function DashboardHeader() {
   return (
     <div className="mb-6 pt-2">
-      <p className="text-xl font-extrabold uppercase tracking-[0.15em]" style={{ color: "black" }}>
+      <p className="text-xl font-extrabold" style={{ color: "black" }}>
         Quick View Dashboard
       </p>
 
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <p className="mt-2 text-[14px] leading-relaxed max-w-xl" style={{ color: "#6A7E8D" }}>
+          <p className="mt-2 text-base leading-relaxed max-w-xl" style={{ color: "#6A7E8D" }}>
             Real-time resource distribution, demographic overlays, and trend analysis nationwide, statewide, and countywide.
           </p>
         </div>

@@ -20,14 +20,14 @@ export const TOOLS = [
   {
     name: "finish_analysis",
     description:
-      "Call this as soon as you can answer the question. Provide a short plain-text answer that directly addresses what was asked — nothing extra.",
+      "Call this as soon as you can answer the question. Provide a concise answer that addresses what was asked and concisely summarizes any findings related to the initial question. The answer should be in plain text, not markdown.",
     input_schema: {
       type: "object",
       properties: {
         answer: {
           type: "string",
           description:
-            "A few sentences summarizing the answer to the user's question",
+            "Plain text summarizing the answer to the user's question",
         },
       },
       required: ["answer"],

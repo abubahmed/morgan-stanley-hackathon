@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { BarChart3, Menu } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ChatThread from "@/components/sandbox/ChatThread";
@@ -11,37 +12,72 @@ import SessionSidebar from "@/components/sandbox/SessionSidebar";
 import type { ChatMessage, AnalysisResult, Conversation } from "@/types/chat";
 import { exportReportPdf } from "@/lib/exportPdf";
 
-const STORAGE_KEY = "lt_conversations";
-
 function generateId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-// ── localStorage helpers ──
+// ── API helpers ──
 
-function loadConversations(): Conversation[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return (JSON.parse(raw) as Conversation[]).sort((a, b) => b.updatedAt - a.updatedAt);
-  } catch {
-    return [];
-  }
-}
-
-function saveConversations(convs: Conversation[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(convs));
-}
-
-function createConversation(): Conversation {
-  return {
-    id: generateId(),
-    title: "New Chat",
+async function fetchConversations(): Promise<Conversation[]> {
+  const res = await fetch("/api/conversations");
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.conversations ?? []).map((c: Record<string, unknown>) => ({
+    id: c.id as string,
+    title: c.title as string,
     messages: [],
     analysisResults: [],
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: c.createdAt as number,
+    updatedAt: c.updatedAt as number,
+  }));
+}
+
+async function fetchConversation(id: string): Promise<Conversation | null> {
+  const res = await fetch(`/api/conversations/${id}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  const c = data.conversation;
+  return {
+    id: c.id,
+    title: c.title,
+    messages: c.messages ?? [],
+    analysisResults: c.analysisResults ?? [],
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
   };
+}
+
+async function apiCreateConversation(title?: string): Promise<Conversation> {
+  const res = await fetch("/api/conversations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title }),
+  });
+  const data = await res.json();
+  const c = data.conversation;
+  return {
+    id: c.id,
+    title: c.title,
+    messages: c.messages ?? [],
+    analysisResults: c.analysisResults ?? [],
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt,
+  };
+}
+
+async function apiUpdateConversation(
+  id: string,
+  update: { title?: string; messages?: ChatMessage[]; analysisResults?: AnalysisResult[] }
+) {
+  await fetch("/api/conversations", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, ...update }),
+  });
+}
+
+async function apiDeleteConversation(id: string) {
+  await fetch(`/api/conversations?id=${id}`, { method: "DELETE" });
 }
 
 // ── Main component ──
@@ -49,6 +85,7 @@ function createConversation(): Conversation {
 function SandboxInner() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") ?? "";
+  const { user } = useUser();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
@@ -59,128 +96,148 @@ function SandboxInner() {
   const [activeReportTab, setActiveReportTab] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Track whether we've initialized from localStorage
   const initialized = useRef(false);
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load conversations from localStorage on mount
+  // Sync user to MongoDB on mount
   useEffect(() => {
-    const saved = loadConversations();
-    setConversations(saved);
-
-    if (saved.length > 0) {
-      // Load the most recent conversation
-      const latest = saved[0];
-      setCurrentId(latest.id);
-      setMessages(latest.messages);
-      setAnalysisResults(latest.analysisResults);
-    } else {
-      // Create a first conversation
-      const conv = createConversation();
-      setConversations([conv]);
-      setCurrentId(conv.id);
-      saveConversations([conv]);
+    if (user) {
+      fetch("/api/user/sync", { method: "POST" }).catch(() => {});
     }
+  }, [user]);
 
-    initialized.current = true;
-  }, []);
+  // Load conversations from MongoDB on mount
+  useEffect(() => {
+    if (!user) return;
 
-  // Persist current conversation to localStorage whenever messages or analysis results change
+    (async () => {
+      const saved = await fetchConversations();
+
+      if (saved.length > 0) {
+        setConversations(saved);
+        // Load full data for most recent conversation
+        const full = await fetchConversation(saved[0].id);
+        if (full) {
+          setCurrentId(full.id);
+          setMessages(full.messages);
+          setAnalysisResults(full.analysisResults);
+        }
+      } else {
+        // Create a first conversation
+        const conv = await apiCreateConversation();
+        setConversations([conv]);
+        setCurrentId(conv.id);
+      }
+
+      initialized.current = true;
+    })();
+  }, [user]);
+
+  // Persist current conversation to MongoDB (debounced)
   useEffect(() => {
     if (!initialized.current || !currentId) return;
 
-    setConversations((prev) => {
-      const updated = prev.map((c) => {
-        if (c.id !== currentId) return c;
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => {
+      // Derive title from first user message
+      const firstUserMsg = messages.find((m) => m.role === "user");
+      const title = firstUserMsg
+        ? firstUserMsg.content.length > 40
+          ? firstUserMsg.content.slice(0, 37) + "..."
+          : firstUserMsg.content
+        : "New Chat";
 
-        // Derive title from first user message
-        const firstUserMsg = messages.find((m) => m.role === "user");
-        const title = firstUserMsg
-          ? firstUserMsg.content.length > 40
-            ? firstUserMsg.content.slice(0, 37) + "..."
-            : firstUserMsg.content
-          : "New Chat";
-
-        return {
-          ...c,
-          title,
-          // Store messages — preserve reportIndex, strip isStreaming
-          messages: messages.map((m) => {
-            const saved: ChatMessage = { id: m.id, role: m.role, content: m.content };
-            if (m.reportIndex != null) saved.reportIndex = m.reportIndex;
-            return saved;
-          }),
-          // Store analysis results — keep text, strip base64 images (too large for localStorage)
-          analysisResults: analysisResults.map((r) => ({ answer: r.answer, images: r.images })),
-          updatedAt: Date.now(),
-        };
+      // Clean messages for storage
+      const cleanMessages = messages.map((m) => {
+        const saved: ChatMessage = { id: m.id, role: m.role, content: m.content };
+        if (m.reportIndex != null) saved.reportIndex = m.reportIndex;
+        return saved;
       });
-      saveConversations(updated);
-      return updated;
-    });
+
+      apiUpdateConversation(currentId, {
+        title,
+        messages: cleanMessages,
+        analysisResults,
+      });
+
+      // Update local sidebar list
+      setConversations((prev) =>
+        prev.map((c) => (c.id === currentId ? { ...c, title, updatedAt: Date.now() } : c))
+      );
+    }, 500);
+
+    return () => {
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    };
   }, [messages, analysisResults, currentId]);
 
   // ── Session actions ──
 
-  const handleNew = useCallback(() => {
-    const conv = createConversation();
-    setConversations((prev) => {
-      const updated = [conv, ...prev];
-      saveConversations(updated);
-      return updated;
-    });
+  const handleNew = useCallback(async () => {
+    const conv = await apiCreateConversation();
+    setConversations((prev) => [conv, ...prev]);
     setCurrentId(conv.id);
     setMessages([]);
     setAnalysisResults([]);
     setPanelOpen(false);
   }, []);
 
-  const handleSelect = useCallback((id: string) => {
-    setConversations((prev) => {
-      const conv = prev.find((c) => c.id === id);
-      if (conv) {
-        setCurrentId(id);
-        setMessages(conv.messages);
-        setAnalysisResults(conv.analysisResults);
-        setPanelOpen(conv.analysisResults.length > 0);
-      }
-      return prev;
-    });
+  const handleSelect = useCallback(async (id: string) => {
+    const full = await fetchConversation(id);
+    if (full) {
+      setCurrentId(id);
+      setMessages(full.messages);
+      setAnalysisResults(full.analysisResults);
+      setPanelOpen(full.analysisResults.length > 0);
+    }
     setSidebarOpen(false);
   }, []);
 
-  const handleDelete = useCallback((id: string) => {
-    setConversations((prev) => {
-      const updated = prev.filter((c) => c.id !== id);
-      saveConversations(updated);
+  const handleDelete = useCallback(
+    async (id: string) => {
+      await apiDeleteConversation(id);
+      setConversations((prev) => {
+        const updated = prev.filter((c) => c.id !== id);
 
-      if (id === currentId) {
-        if (updated.length > 0) {
-          const next = updated[0];
-          setCurrentId(next.id);
-          setMessages(next.messages);
-          setAnalysisResults(next.analysisResults);
-        } else {
-          const conv = createConversation();
-          updated.push(conv);
-          saveConversations(updated);
-          setCurrentId(conv.id);
-          setMessages([]);
-          setAnalysisResults([]);
+        if (id === currentId) {
+          if (updated.length > 0) {
+            const next = updated[0];
+            // Load full conversation data
+            fetchConversation(next.id).then((full) => {
+              if (full) {
+                setCurrentId(next.id);
+                setMessages(full.messages);
+                setAnalysisResults(full.analysisResults);
+              }
+            });
+          } else {
+            // Create a new conversation
+            apiCreateConversation().then((conv) => {
+              setConversations([conv]);
+              setCurrentId(conv.id);
+              setMessages([]);
+              setAnalysisResults([]);
+            });
+          }
         }
-      }
-      return updated;
-    });
-  }, [currentId]);
+        return updated;
+      });
+    },
+    [currentId]
+  );
 
   const openReport = useCallback((index: number) => {
     setActiveReportTab(index);
     setPanelOpen(true);
   }, []);
 
-  const downloadReport = useCallback((index: number) => {
-    const result = analysisResults[index];
-    if (result) exportReportPdf(result, index + 1);
-  }, [analysisResults]);
+  const downloadReport = useCallback(
+    (index: number) => {
+      const result = analysisResults[index];
+      if (result) exportReportPdf(result, index + 1);
+    },
+    [analysisResults]
+  );
 
   // ── Send message ──
 
@@ -231,14 +288,15 @@ function SandboxInner() {
 
               if (event.type === "text") {
                 setMessages((prev) =>
-                  prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + (event.content as string) } : m))
+                  prev.map((m) =>
+                    m.id === assistantId ? { ...m, content: m.content + (event.content as string) } : m
+                  )
                 );
               } else if (event.type === "analysis") {
                 const answer = event.answer as string;
                 const images = (event.images as string[]) ?? [];
                 setAnalysisResults((prev) => {
                   const newIndex = prev.length;
-                  // Tag the current assistant message with this report's index
                   setMessages((msgs) =>
                     msgs.map((m) => (m.id === assistantId ? { ...m, reportIndex: newIndex } : m))
                   );
@@ -266,7 +324,9 @@ function SandboxInner() {
         console.error("Chat error:", err);
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === assistantId ? { ...m, isStreaming: false, content: "Something went wrong. Please try again." } : m
+            m.id === assistantId
+              ? { ...m, isStreaming: false, content: "Something went wrong. Please try again." }
+              : m
           )
         );
       } finally {
@@ -332,11 +392,22 @@ function SandboxInner() {
             )}
           </div>
 
-          <ChatThread messages={messages} isLoading={isStreaming} onOpenReport={openReport} onDownloadReport={downloadReport} />
+          <ChatThread
+            messages={messages}
+            isLoading={isStreaming}
+            onOpenReport={openReport}
+            onDownloadReport={downloadReport}
+          />
           <ChatInput onSend={sendMessage} isDisabled={isStreaming} />
         </div>
 
-        <VisualizationPanel analysisResults={analysisResults} activeTab={activeReportTab} onTabChange={setActiveReportTab} isVisible={panelOpen} onToggle={() => setPanelOpen(false)} />
+        <VisualizationPanel
+          analysisResults={analysisResults}
+          activeTab={activeReportTab}
+          onTabChange={setActiveReportTab}
+          isVisible={panelOpen}
+          onToggle={() => setPanelOpen(false)}
+        />
       </div>
     </div>
   );

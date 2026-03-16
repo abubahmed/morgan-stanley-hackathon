@@ -50,11 +50,11 @@ export async function exportReportPdf(result: AnalysisResult, reportNumber: numb
     y += 2;
   }
 
-  // Images — insert as JPEG (much smaller than PNG)
-  for (const b64 of result.images) {
+  // Images — fetch from URL and insert into PDF
+  for (const imgSrc of result.images) {
     try {
-      // Determine image dimensions by loading it
-      const imgDims = await getImageDimensions(b64);
+      const dataUrl = await loadImageAsDataUrl(imgSrc);
+      const imgDims = await getImageDimensions(imgSrc);
       const ratio = imgDims.width / imgDims.height;
       const imgWidth = Math.min(contentWidth, 170);
       const imgHeight = imgWidth / ratio;
@@ -62,14 +62,14 @@ export async function exportReportPdf(result: AnalysisResult, reportNumber: numb
       checkPage(imgHeight + 5);
 
       pdf.addImage(
-        `data:image/png;base64,${b64}`,
+        dataUrl,
         "PNG",
         margin,
         y,
         imgWidth,
         imgHeight,
         undefined,
-        "FAST"  // Use fast compression
+        "FAST"
       );
       y += imgHeight + 8;
     } catch {
@@ -80,11 +80,27 @@ export async function exportReportPdf(result: AnalysisResult, reportNumber: numb
   pdf.save(`report-${reportNumber}.pdf`);
 }
 
-function getImageDimensions(b64: string): Promise<{ width: number; height: number }> {
+function getImageDimensions(src: string): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve({ width: img.width, height: img.height });
     img.onerror = reject;
-    img.src = `data:image/png;base64,${b64}`;
+    img.src = src;
+  });
+}
+
+function loadImageAsDataUrl(src: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = reject;
+    img.src = src;
   });
 }
