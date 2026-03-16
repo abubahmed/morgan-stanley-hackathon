@@ -72,7 +72,9 @@ export async function POST(req: NextRequest) {
               if (toolUse.name === "run_analysis") {
                 try {
                   const job = (toolUse.input as { job: string }).job;
-                  const result = await runAgent(job);
+                  const result = await runAgent(job, (progress) => {
+                    controller.enqueue(encodeSSE({ type: "progress", ...progress }));
+                  });
 
                   if (result) {
                     controller.enqueue(encodeSSE({

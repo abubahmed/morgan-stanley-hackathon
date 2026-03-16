@@ -95,6 +95,13 @@ function SandboxInner() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [activeReportTab, setActiveReportTab] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [thinkingStatus, setThinkingStatus] = useState<{
+    status?: string;
+    reasoning?: string;
+    code?: string;
+    step?: number;
+    maxSteps?: number;
+  } | null>(null);
 
   const initialized = useRef(false);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -292,7 +299,16 @@ function SandboxInner() {
                     m.id === assistantId ? { ...m, content: m.content + (event.content as string) } : m
                   )
                 );
+              } else if (event.type === "progress") {
+                setThinkingStatus({
+                  status: event.status,
+                  reasoning: event.reasoning,
+                  code: event.code,
+                  step: event.step,
+                  maxSteps: event.maxSteps,
+                });
               } else if (event.type === "analysis") {
+                setThinkingStatus(null);
                 const answer = event.answer as string;
                 const images = (event.images as string[]) ?? [];
                 setAnalysisResults((prev) => {
@@ -303,6 +319,7 @@ function SandboxInner() {
                   return [...prev, { answer, images }];
                 });
               } else if (event.type === "done" || event.type === "error") {
+                setThinkingStatus(null);
                 setMessages((prev) =>
                   prev.map((m) =>
                     m.id === assistantId
@@ -331,6 +348,7 @@ function SandboxInner() {
         );
       } finally {
         setIsStreaming(false);
+        setThinkingStatus(null);
         setMessages((prev) => prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m)));
       }
     },
@@ -395,6 +413,7 @@ function SandboxInner() {
           <ChatThread
             messages={messages}
             isLoading={isStreaming}
+            thinkingStatus={thinkingStatus}
             onOpenReport={openReport}
             onDownloadReport={downloadReport}
           />

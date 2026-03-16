@@ -5,19 +5,26 @@ import { Leaf } from "lucide-react";
 import type { ChatMessage } from "@/types/chat";
 import ChatMessageBubble from "./ChatMessage";
 
+interface ThinkingStatus {
+  status?: string;
+  reasoning?: string;
+  code?: string;
+}
+
 interface ChatThreadProps {
   messages: ChatMessage[];
   isLoading: boolean;
+  thinkingStatus?: ThinkingStatus | null;
   onOpenReport?: (index: number) => void;
   onDownloadReport?: (index: number) => void;
 }
 
-export default function ChatThread({ messages, isLoading, onOpenReport, onDownloadReport }: ChatThreadProps) {
+export default function ChatThread({ messages, isLoading, thinkingStatus, onOpenReport, onDownloadReport }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, thinkingStatus]);
 
   if (messages.length === 0) {
     return (
@@ -46,7 +53,53 @@ export default function ChatThread({ messages, isLoading, onOpenReport, onDownlo
       {messages.map((msg) => (
         <ChatMessageBubble key={msg.id} message={msg} onOpenReport={onOpenReport} onDownloadReport={onDownloadReport} />
       ))}
-      {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+      {isLoading && thinkingStatus && (
+        <div className="flex justify-start">
+          <div
+            className="max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-3"
+            style={{
+              background: "rgba(245, 237, 216, 0.6)",
+              border: "1px solid rgba(210,195,165,0.45)",
+              boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
+            }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="flex gap-1">
+                {[0, 0.15, 0.3].map((delay, i) => (
+                  <span
+                    key={i}
+                    className="h-1.5 w-1.5 animate-bounce rounded-full"
+                    style={{ animationDelay: `${delay}s`, background: "linear-gradient(135deg, #3DBFAC, #27A090)" }}
+                  />
+                ))}
+              </span>
+            </div>
+            <p className="text-[12px] font-medium" style={{ color: "#4A5E6D" }}>
+              {thinkingStatus.status}
+            </p>
+            {thinkingStatus.reasoning && (
+              <p className="mt-1 text-[11px] italic" style={{ color: "#6A7E8D" }}>
+                {thinkingStatus.reasoning}
+              </p>
+            )}
+            {thinkingStatus.code && (
+              <pre
+                className="mt-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-mono overflow-hidden"
+                style={{
+                  background: "rgba(30, 45, 61, 0.05)",
+                  color: "#4A5E6D",
+                  maxHeight: "25em",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                }}
+              >
+                {thinkingStatus.code}
+              </pre>
+            )}
+          </div>
+        </div>
+      )}
+      {isLoading && !thinkingStatus && messages[messages.length - 1]?.role !== "assistant" && (
         <div className="flex justify-start">
           <div
             className="rounded-2xl rounded-tl-sm px-4 py-3"

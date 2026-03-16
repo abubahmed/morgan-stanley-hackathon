@@ -301,15 +301,25 @@ async function compactContext(
   return true;
 }
 
+export type ProgressCallback = (event: {
+  step?: number;
+  maxSteps?: number;
+  reasoning?: string;
+  code?: string;
+  status?: string;
+}) => void;
+
 // Core agentic loop: sends the job to Claude, executes tool calls in a sandbox,
 // and iterates until Claude calls finish_analysis or we hit MAX_ITERATIONS.
-export async function runAgent(job: string) {
+export async function runAgent(job: string, onProgress?: ProgressCallback) {
   console.log(`\nJob: ${job}\n`);
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+  onProgress?.({ status: "Creating instance of E2B coding environment..." });
   console.log("Setting up sandbox...");
   const sandbox = await initSandbox();
+  onProgress?.({ status: "Environment ready. Loading datasets..." });
   console.log("Sandbox ready.\n");
 
   const messages: Anthropic.MessageParam[] = [
@@ -351,6 +361,7 @@ export async function runAgent(job: string) {
 
       // finish_analysis = Claude is done, capture the report
       if (block.name === "finish_analysis") {
+        onProgress?.({ status: "Compiling final report..." });
         finalReport = block.input as { answer: string };
         toolResults.push({
           type: "tool_result",
@@ -365,10 +376,12 @@ export async function runAgent(job: string) {
         const { code, reasoning } = block.input as { code: string; reasoning: string };
         console.log(`\n  > ${reasoning}`);
         console.log(`  --- code ---\n${code}\n  --- end ---`);
+        onProgress?.({ reasoning, code, status: "Executing code..." });
         const { text: output, images } = await executePython(sandbox, code);
         if (images.length) {
           allImages.push(...images);
           console.log(`  [${images.length} image(s) captured]`);
+          onProgress?.({ status: `Generated ${images.length} chart(s)` });
         }
         const hasError = output.includes("ERROR:") || output.includes("Traceback");
         const budget = `[Step ${i}/${MAX_ITERATIONS}]`;
