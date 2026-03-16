@@ -7,6 +7,7 @@ import {
   Warehouse, Landmark, HandHeart, UserCheck, FlaskConical, Home,
   MessageSquare, BarChart3, Lightbulb, TrendingUp, Leaf, ArrowRight,
 } from "lucide-react";
+import { SignInButton, SignUpButton, Show } from "@clerk/nextjs";
 import type { UserRole } from "@/types/chat";
 
 const ROLE_CARDS: { id: UserRole; label: string; desc: string; Icon: React.ElementType }[] = [
@@ -70,20 +71,33 @@ export default function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="text-sm font-medium transition-opacity hover:opacity-50"
-              style={{ color: "#4A5E6D" }}
-            >
-              Log In
-            </button>
-            <button
-              onClick={() => router.push(`/sandbox?role=${selectedRole}`)}
-              className="flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md hover:opacity-95 active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)" }}
-            >
-              Get Started <ArrowRight size={14} />
-            </button>
+            <Show when="signed-out">
+              <SignInButton>
+                <button
+                  className="text-sm font-medium transition-opacity hover:opacity-50"
+                  style={{ color: "#4A5E6D" }}
+                >
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton>
+                <button
+                  className="flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md hover:opacity-95 active:scale-[0.98]"
+                  style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)" }}
+                >
+                  Get Started <ArrowRight size={14} />
+                </button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="flex items-center gap-1.5 rounded-xl px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md hover:opacity-95 active:scale-[0.98]"
+                style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)" }}
+              >
+                Dashboard <ArrowRight size={14} />
+              </button>
+            </Show>
           </div>
         </div>
       </nav>
@@ -101,20 +115,6 @@ export default function LandingPage() {
             background: "radial-gradient(ellipse at center top, rgba(61,191,172,0.10) 0%, transparent 70%)",
           }}
         />
-
-        {/* Badge */}
-        <div
-          className="relative mb-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium shadow-sm"
-          style={{
-            background: "rgba(255,255,255,0.75)",
-            border: "1px solid rgba(61,191,172,0.25)",
-            color: "#2A7A6E",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <Sparkles size={13} style={{ color: "#3DBFAC" }} />
-          AI-Powered Food Access Intelligence
-        </div>
 
         {/* Headline */}
         <h1
@@ -200,41 +200,26 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            {ROLE_CARDS.map(({ id, label, desc, Icon }) => {
-              const selected = selectedRole === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => setSelectedRole(id)}
-                  className="rounded-2xl p-6 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99]"
-                  style={{
-                    background: selected
-                      ? "linear-gradient(145deg, #EBF8F5 0%, #F5EDD8 100%)"
-                      : "linear-gradient(145deg, #F8F2E4 0%, #F2EAD4 100%)",
-                    border: selected
-                      ? "1.5px solid rgba(61,191,172,0.55)"
-                      : "1.5px solid rgba(200,190,165,0.4)",
-                    boxShadow: selected
-                      ? "0 2px 12px rgba(61,191,172,0.12)"
-                      : "0 1px 4px rgba(0,0,0,0.04)",
-                  }}
+          <div className="grid grid-cols-3 gap-5">
+            {ROLE_CARDS.map(({ id, label, desc, Icon }) => (
+              <div
+                key={id}
+                className="rounded-2xl p-6 text-left"
+                style={{
+                  background: "linear-gradient(145deg, #F8F2E4 0%, #F2EAD4 100%)",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                }}
+              >
+                <div
+                  className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl"
+                  style={{ background: "linear-gradient(135deg, #DDF0EC 0%, #C8E8E2 100%)" }}
                 >
-                  <div
-                    className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl"
-                    style={{
-                      background: selected
-                        ? "linear-gradient(135deg, #C8EDE8 0%, #A8DDD6 100%)"
-                        : "linear-gradient(135deg, #DDF0EC 0%, #C8E8E2 100%)",
-                    }}
-                  >
-                    <Icon size={20} style={{ color: selected ? "#1E9080" : "#3DBFAC" }} />
-                  </div>
-                  <p className="mb-1 text-[15px] font-bold" style={{ color: "#1E2D3D" }}>{label}</p>
-                  <p className="text-[13px] leading-relaxed" style={{ color: "#6A7E8D" }}>{desc}</p>
-                </button>
-              );
-            })}
+                  <Icon size={20} style={{ color: "#3DBFAC" }} />
+                </div>
+                <p className="mb-1 text-[15px] font-bold" style={{ color: "#1E2D3D" }}>{label}</p>
+                <p className="text-[13px] leading-relaxed" style={{ color: "#6A7E8D" }}>{desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -244,14 +229,21 @@ export default function LandingPage() {
         className="px-6 py-20"
         style={{ background: "linear-gradient(180deg, #EDE0C2 0%, #F5EDD8 100%)" }}
       >
+        <div className="mb-12 text-center">
+          <h2 className="mb-3 text-[38px] font-bold leading-tight" style={{ color: "#1E2D3D" }}>
+            Our Impact
+          </h2>
+          <p className="text-base" style={{ color: "#6A7E8D" }}>
+            Connecting communities to food access across the nation
+          </p>
+        </div>
         <div className="mx-auto grid max-w-4xl grid-cols-4 gap-6">
-          {STATS.map(({ Icon, value, label }, i) => (
+          {STATS.map(({ Icon, value, label }) => (
             <div
               key={label}
               className="flex flex-col items-center gap-2 rounded-2xl py-8 text-center"
               style={{
                 background: "rgba(255,255,255,0.35)",
-                border: "1px solid rgba(255,255,255,0.6)",
                 backdropFilter: "blur(8px)",
                 boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
               }}
@@ -263,7 +255,7 @@ export default function LandingPage() {
                 <Icon size={20} style={{ color: "#D4861A" }} />
               </div>
               <p
-                className="text-[52px] font-extrabold leading-none tracking-tight"
+                className="text-[42px] font-extrabold leading-none tracking-tight"
                 style={{ color: "#C07A10" }}
               >
                 {value}
@@ -356,7 +348,7 @@ export default function LandingPage() {
             <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
           </button>
           <p className="mt-5 text-sm" style={{ color: "rgba(255,255,255,0.50)" }}>
-            No credit card required • Free trial available
+            No credit card required
           </p>
         </div>
       </section>

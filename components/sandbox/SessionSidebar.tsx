@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ChatSession, UserInfo } from "@/types/chat";
-import { MessageSquare, Plus, Trash2, Pencil } from "lucide-react";
+import { MessageSquare, Plus, Trash2 } from "lucide-react";
 
 interface SessionSidebarProps {
   sessions: ChatSession[];
@@ -11,7 +11,6 @@ interface SessionSidebarProps {
   onSelectSession: (sessionId: string) => void;
   onNewSession: () => void;
   onDeleteSession: (sessionId: string) => void;
-  onEditUser: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -33,7 +32,6 @@ export default function SessionSidebar({
   onSelectSession,
   onNewSession,
   onDeleteSession,
-  onEditUser,
   isOpen,
   onClose,
 }: SessionSidebarProps) {
@@ -65,15 +63,7 @@ export default function SessionSidebar({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white text-[13px] font-semibold truncate leading-tight">{user?.name ?? "Guest"}</p>
-              <p className="text-[11px] truncate" style={{ color: "#8A9AAA" }}>
-                {user?.role ?? "community"}{user?.organization ? ` · ${user.organization}` : ""}
-              </p>
             </div>
-            <button onClick={onEditUser} className="transition-colors shrink-0" style={{ color: "#4A5E6D" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#8A9AAA")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#4A5E6D")}>
-              <Pencil size={13} />
-            </button>
           </div>
         </div>
 
@@ -81,14 +71,19 @@ export default function SessionSidebar({
         <div className="px-3 pt-3 pb-2 shrink-0">
           <button
             onClick={onNewSession}
-            className="w-full flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold text-white transition-colors"
-            style={{ background: "rgba(61,191,172,0.15)", border: "1px solid rgba(61,191,172,0.25)" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(61,191,172,0.25)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "rgba(61,191,172,0.15)")}
+            className="w-full flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-white transition-all active:scale-[0.97]"
+            style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)" }}
           >
             <Plus size={14} />
             New Chat
           </button>
+        </div>
+
+        {/* Section label */}
+        <div className="px-4 pt-3 pb-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: "rgba(255,255,255,0.25)" }}>
+            Recent
+          </p>
         </div>
 
         {/* Sessions list */}
@@ -98,7 +93,7 @@ export default function SessionSidebar({
               No chats yet. Start a new conversation!
             </p>
           ) : (
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1">
               {sessions.map((session) => {
                 const isActive = session.id === currentSessionId;
                 const isDeleting = session.id === pendingDelete;
@@ -106,15 +101,20 @@ export default function SessionSidebar({
                   <div
                     key={session.id}
                     onClick={() => !isDeleting && onSelectSession(session.id)}
-                    className="group relative flex items-start gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors select-none"
+                    className="group relative flex items-start gap-2.5 px-3 py-3 rounded-xl cursor-pointer transition-all select-none"
                     style={{
-                      background: isActive ? "rgba(61,191,172,0.12)" : "transparent",
-                      border: isActive ? "1px solid rgba(61,191,172,0.2)" : "1px solid transparent",
+                      background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+                      borderLeft: isActive ? "2px solid #3DBFAC" : "2px solid transparent",
                     }}
                     onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = isActive ? "rgba(255,255,255,0.08)" : "transparent"; }}
                   >
-                    <MessageSquare size={13} className="mt-0.5 shrink-0" style={{ color: "#4A5E6D" }} />
+                    <div
+                      className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                      style={{ background: isActive ? "rgba(61,191,172,0.15)" : "rgba(255,255,255,0.05)" }}
+                    >
+                      <MessageSquare size={12} style={{ color: isActive ? "#3DBFAC" : "#5A6E7D" }} />
+                    </div>
                     <div className="flex-1 min-w-0">
                       {isDeleting ? (
                         <div className="flex items-center gap-1.5">
@@ -126,10 +126,10 @@ export default function SessionSidebar({
                         </div>
                       ) : (
                         <>
-                          <p className="text-[13px] leading-snug truncate" style={{ color: isActive ? "#3DBFAC" : "#C8D8E0" }}>
+                          <p className="text-[13px] leading-snug truncate font-medium" style={{ color: isActive ? "#fff" : "#94A3B8" }}>
                             {session.title}
                           </p>
-                          <p className="text-[10px] mt-0.5" style={{ color: "#4A5E6D" }}>
+                          <p className="text-[10px] mt-0.5" style={{ color: isActive ? "rgba(61,191,172,0.7)" : "#3D4F5F" }}>
                             {session.messageCount} msg{session.messageCount !== 1 ? "s" : ""} · {timeAgo(session.updatedAt)}
                           </p>
                         </>
@@ -138,7 +138,7 @@ export default function SessionSidebar({
                     {!isDeleting && (
                       <button
                         onClick={(e) => { e.stopPropagation(); setPendingDelete(session.id); }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-0.5"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1"
                         style={{ color: "#4A5E6D" }}
                         onMouseEnter={e => (e.currentTarget.style.color = "#f87171")}
                         onMouseLeave={e => (e.currentTarget.style.color = "#4A5E6D")}

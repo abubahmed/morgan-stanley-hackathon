@@ -9,7 +9,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { SYSTEM_PROMPT } from "./systemPrompt";
 import { TOOLS } from "./tools";
 
-<<<<<<< HEAD
 // Data directories and files to upload
 const DATA_SETS: [string, string[]][] = [
   ["resources", ["resources.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"]],
@@ -19,16 +18,10 @@ const DATA_SETS: [string, string[]][] = [
   ["cdc", ["health.csv"]],
   ["reviews", ["reviews.csv"]],
 ];
-=======
-// CSV files to upload into the sandbox
-const CSV_DIR = path.join(__dirname, "..", "data", "resources");
-const CSV_FILES = ["resources.csv", "descriptions.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
 
 // Python bootstrap that loads all CSVs into DataFrames
 const PYTHON_BOOTSTRAP = `
 import pandas as pd
-<<<<<<< HEAD
 import numpy as np
 import json
 import os
@@ -51,15 +44,11 @@ def _saving_show(*args, **kwargs):
 
 plt.show = _saving_show
 
-=======
-import json
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
 
 # Force string types on ID/zip columns so they don't get read as numbers
 _str_cols = {"id", "resource_id", "shift_id", "resource_type_id", "resource_status_id",
              "source_id", "tag_category_id", "zip_code"}
 
-<<<<<<< HEAD
 _census_str_cols = {"fips", "state_fips", "county_fips"}
 _usda_str_cols = {"fips"}
 
@@ -118,54 +107,22 @@ const SUMMARY_MODEL = "claude-haiku-4-5-20251001";
 // Keep the first HEAD_LINES and last TAIL_LINES of output so Claude always sees
 // the data shape (column headers) and the end of the output (summaries, totals).
 // Anything in the middle is replaced with a count of omitted lines.
-=======
-def _load(path):
-    df = pd.read_csv(path, dtype={c: str for c in _str_cols}, keep_default_na=True)
-    return df
-
-resources = _load("/home/user/data/resources.csv")
-descriptions = _load("/home/user/data/descriptions.csv")
-shifts = _load("/home/user/data/shifts.csv")
-occurrences = _load("/home/user/data/occurrences.csv")
-tags = _load("/home/user/data/tags.csv")
-flags = _load("/home/user/data/flags.csv")
-
-print(f"Loaded: resources={len(resources)}, descriptions={len(descriptions)}, shifts={len(shifts)}, occurrences={len(occurrences)}, tags={len(tags)}, flags={len(flags)}")
-`;
-
-const MAX_ITERATIONS = 12;
-const MODEL = "claude-opus-4-6";
-const MAX_CONSOLE_LINES = 20;
-
-const COMPACT_AFTER = 4;
-const KEEP_RECENT = 3;
-const SUMMARY_MODEL = "claude-haiku-4-5-20251001";
-
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
 const HEAD_LINES = 30;
 const TAIL_LINES = 10;
 const MAX_LINE_LENGTH = 300;
 
 function smartTruncate(text: string): string {
-<<<<<<< HEAD
   // Truncate individual lines that are too wide (e.g. a single massive JSON blob)
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   let lines = text.split("\n").map((line) =>
     line.length > MAX_LINE_LENGTH
       ? line.slice(0, MAX_LINE_LENGTH) + " ... (line truncated)"
       : line
   );
 
-<<<<<<< HEAD
   // If the output fits, return as-is
   if (lines.length <= HEAD_LINES + TAIL_LINES) return lines.join("\n");
 
   // Keep head and tail so Claude sees column headers + final results
-=======
-  if (lines.length <= HEAD_LINES + TAIL_LINES) return lines.join("\n");
-
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   const omitted = lines.length - HEAD_LINES - TAIL_LINES;
   return [
     ...lines.slice(0, HEAD_LINES),
@@ -174,35 +131,19 @@ function smartTruncate(text: string): string {
   ].join("\n");
 }
 
-<<<<<<< HEAD
 const SANDBOX_PACKAGES = ["pandas", "numpy", "matplotlib", "seaborn", "scipy", "geopy"];
 
 async function initSandbox(): Promise<Sandbox> {
   const sandbox = await Sandbox.create({ apiKey: process.env.E2B_API_KEY, timeout: 1200 });
-=======
-const SANDBOX_PACKAGES = [
-  "pandas",
-  "requests",
-  "numpy",
-  "matplotlib",
-  "seaborn",
-  "scipy",
-  "geopy",
-];
-
-async function initSandbox(): Promise<Sandbox> {
-  const sandbox = await Sandbox.create({ apiKey: process.env.E2B_API_KEY });
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   await sandbox.runCode(
     `import subprocess; subprocess.run(['pip', 'install', ${SANDBOX_PACKAGES.map((p) => `'${p}'`).join(", ")}, '-q'])`
   );
 
-<<<<<<< HEAD
   // Upload all data files
   for (const [dir, files] of DATA_SETS) {
     await sandbox.runCode(`import os; os.makedirs('/home/user/data/${dir}', exist_ok=True)`);
     for (const file of files) {
-      const filePath = path.join(__dirname, "data", dir, file);
+      const filePath = path.join(__dirname, "..", "data", dir, file);
       if (!fs.existsSync(filePath)) {
         console.warn(`  Warning: ${filePath} not found, skipping`);
         continue;
@@ -213,24 +154,10 @@ async function initSandbox(): Promise<Sandbox> {
   }
 
   await sandbox.runCode("import os; os.makedirs('/home/user/charts', exist_ok=True)");
-=======
-  await sandbox.runCode("import os; os.makedirs('/home/user/data', exist_ok=True)");
-  for (const file of CSV_FILES) {
-    const filePath = path.join(CSV_DIR, file);
-    if (!fs.existsSync(filePath)) {
-      console.warn(`  Warning: ${filePath} not found, skipping`);
-      continue;
-    }
-    const content = fs.readFileSync(filePath, "utf-8");
-    await sandbox.files.write(`/home/user/data/${file}`, content);
-  }
-
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   await sandbox.runCode(PYTHON_BOOTSTRAP);
   return sandbox;
 }
 
-<<<<<<< HEAD
 export interface ExecutionResult {
   text: string;
   images: string[]; // base64 PNG strings
@@ -238,9 +165,6 @@ export interface ExecutionResult {
 
 // Run Python code in the sandbox and return the smartly truncated output + any images.
 async function executePython(sandbox: Sandbox, code: string): Promise<ExecutionResult> {
-=======
-async function executePython(sandbox: Sandbox, code: string): Promise<string> {
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   let execResult: any;
   try {
     execResult = await sandbox.runCode(code);
@@ -248,10 +172,7 @@ async function executePython(sandbox: Sandbox, code: string): Promise<string> {
     execResult = {
       logs: { stdout: [], stderr: [err.message] },
       error: err,
-<<<<<<< HEAD
       results: [],
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
     };
   }
 
@@ -259,7 +180,6 @@ async function executePython(sandbox: Sandbox, code: string): Promise<string> {
   const stderr = (execResult.logs.stderr || []).join("").trim();
   const error = execResult.error?.value || "";
 
-<<<<<<< HEAD
   // Collect any new chart images saved by our plt.show() override
   const images: string[] = [];
   try {
@@ -277,32 +197,22 @@ async function executePython(sandbox: Sandbox, code: string): Promise<string> {
   } catch { };
 
   // Print a short console preview
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   if (stdout) {
     const lines = stdout.split("\n");
     const display =
       lines.length > MAX_CONSOLE_LINES
         ? [...lines.slice(0, MAX_CONSOLE_LINES), `... (${lines.length - MAX_CONSOLE_LINES} more lines)`]
         : lines;
-<<<<<<< HEAD
     display.forEach((l: any) => console.log(`    ${l}`));
-=======
-    display.forEach((l: string) => console.log(`    ${l}`));
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   }
   if (error) console.log(`  Error: ${error.split("\n")[0]}`);
   else if (stderr) console.log(`  Stderr: ${stderr.split("\n")[0]}`);
 
-<<<<<<< HEAD
   // Build and smart-truncate the output sent back to Claude
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   let output = "";
   if (stdout) output += smartTruncate(stdout);
   if (stderr) output += `\nSTDERR:\n${stderr.split("\n").slice(0, 5).join("\n")}`;
   if (error) output += `\nERROR:\n${error}`;
-<<<<<<< HEAD
   if (images.length) output += `\n[${images.length} image(s) generated]`;
 
   return { text: output || "(no output)", images };
@@ -312,17 +222,10 @@ async function executePython(sandbox: Sandbox, code: string): Promise<string> {
 // a single summary message. Keeps the original job message and the last
 // KEEP_RECENT iteration pairs intact. Only triggers after COMPACT_AFTER iterations.
 // Returns true if compaction happened.
-=======
-
-  return output || "(no output)";
-}
-
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
 async function compactContext(
   anthropic: Anthropic,
   messages: Anthropic.MessageParam[]
 ): Promise<boolean> {
-<<<<<<< HEAD
   // Keep first message (job) and last KEEP_RECENT pairs intact.
   // Everything in between is eligible for compaction.
   const keepTail = KEEP_RECENT * 2;
@@ -333,13 +236,6 @@ async function compactContext(
   if (toSummarize.length < COMPACT_AFTER * 2) return false;
 
   // Serialize the old messages into a readable format for the summarizer
-=======
-  const keepTail = KEEP_RECENT * 2;
-  const toSummarize = messages.slice(1, messages.length - keepTail);
-
-  if (toSummarize.length < COMPACT_AFTER * 2) return false;
-
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   const transcript = toSummarize
     .map((msg) => {
       if (typeof msg.content === "string") {
@@ -384,21 +280,15 @@ async function compactContext(
   const summaryText =
     summary.content[0].type === "text" ? summary.content[0].text : "";
 
-<<<<<<< HEAD
   // Replace the old messages with a single summary injected after the job message.
   // The conversation becomes: [job, summary, ...recent messages]
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   messages.splice(1, toSummarize.length, {
     role: "user",
     content: `Summary of prior analysis steps:\n${summaryText}`,
   });
 
-<<<<<<< HEAD
   // Need a valid assistant response after user message, insert a placeholder
   // only if the next message is also a user message (which would be invalid).
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
   if (messages[2]?.role === "user") {
     messages.splice(2, 0, {
       role: "assistant",
@@ -410,11 +300,8 @@ async function compactContext(
   return true;
 }
 
-<<<<<<< HEAD
 // Core agentic loop: sends the job to Claude, executes tool calls in a sandbox,
 // and iterates until Claude calls finish_analysis or we hit MAX_ITERATIONS.
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
 export async function runAgent(job: string) {
   console.log(`\nJob: ${job}\n`);
 
@@ -432,23 +319,15 @@ export async function runAgent(job: string) {
   ];
 
   let finalReport: { answer: string } | null = null;
-<<<<<<< HEAD
   const allImages: string[] = [];
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
 
   for (let i = 1; i <= MAX_ITERATIONS; i++) {
     console.log(`[${i}/${MAX_ITERATIONS}]`);
 
-<<<<<<< HEAD
     // Summarize older iterations to keep context window lean
     await compactContext(anthropic, messages);
 
     // Ask Claude for the next step
-=======
-    await compactContext(anthropic, messages);
-
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 4096,
@@ -459,10 +338,7 @@ export async function runAgent(job: string) {
 
     messages.push({ role: "assistant", content: response.content });
 
-<<<<<<< HEAD
     // Process each content block: print text, execute tools, or record the final report
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
     for (const block of response.content) {
@@ -472,10 +348,7 @@ export async function runAgent(job: string) {
 
       if (block.type !== "tool_use") continue;
 
-<<<<<<< HEAD
       // finish_analysis = Claude is done, capture the report
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
       if (block.name === "finish_analysis") {
         finalReport = block.input as { answer: string };
         toolResults.push({
@@ -486,7 +359,6 @@ export async function runAgent(job: string) {
         break;
       }
 
-<<<<<<< HEAD
       // execute_python = run code in sandbox, return output to Claude
       if (block.name === "execute_python") {
         const { code, reasoning } = block.input as { code: string; reasoning: string };
@@ -497,12 +369,6 @@ export async function runAgent(job: string) {
           allImages.push(...images);
           console.log(`  [${images.length} image(s) captured]`);
         }
-=======
-      if (block.name === "execute_python") {
-        const { code, reasoning } = block.input as { code: string; reasoning: string };
-        console.log(`\n  > ${reasoning}`);
-        const output = await executePython(sandbox, code);
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
         const hasError = output.includes("ERROR:") || output.includes("Traceback");
         const budget = `[Step ${i}/${MAX_ITERATIONS}]`;
         let result = `${budget}\n${output}`;
@@ -520,10 +386,7 @@ export async function runAgent(job: string) {
       }
     }
 
-<<<<<<< HEAD
     // Feed tool results back into the conversation
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
     if (finalReport) {
       if (toolResults.length) messages.push({ role: "user", content: toolResults });
       break;
@@ -532,10 +395,7 @@ export async function runAgent(job: string) {
     if (toolResults.length) {
       messages.push({ role: "user", content: toolResults });
     } else if (response.stop_reason === "end_turn") {
-<<<<<<< HEAD
       // Claude stopped without using a tool or finishing — nudge it to finish
-=======
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
       messages.push({
         role: "user",
         content:
@@ -545,9 +405,5 @@ export async function runAgent(job: string) {
   }
 
   await sandbox.kill();
-<<<<<<< HEAD
   return finalReport ? { ...finalReport, images: allImages } : null;
-=======
-  return finalReport;
->>>>>>> 96fddce600fcd9041eff44bca6e36a1075c992e1
 }

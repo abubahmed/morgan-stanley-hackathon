@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Leaf, LayoutDashboard, Bot, Map, Store, Star } from "lucide-react";
+import { Leaf, LayoutDashboard, Bot, Store, Star } from "lucide-react";
+import { Show, SignOutButton } from "@clerk/nextjs";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/sandbox",   label: "Sandbox",   Icon: Bot             },
-  { href: "/map",       label: "Map",       Icon: Map             },
   { href: "/resources", label: "Resources", Icon: Store           },
   { href: "/reviews",   label: "Reviews",   Icon: Star            },
 ];
@@ -49,16 +49,18 @@ export default function Navbar() {
               </Link>
             );
           })}
+          <Show when="signed-in">
+            <SignOutButton>
+              <button
+                className="ml-3 rounded-lg px-3.5 py-2 text-[13px] font-medium transition-all"
+                style={{ color: "#5A6E7D" }}
+              >
+                Sign out
+              </button>
+            </SignOutButton>
+          </Show>
         </div>
 
-        <Link
-          href="/sandbox"
-          className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition-all hover:shadow-md hover:opacity-95 active:scale-[0.98]"
-          style={{ background: "linear-gradient(135deg, #3DBFAC 0%, #27A090 100%)" }}
-        >
-          <Bot size={13} />
-          Open Sandbox
-        </Link>
       </div>
     </nav>
   );

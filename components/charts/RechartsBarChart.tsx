@@ -37,6 +37,7 @@ export default function RechartsBarChart({
             tickLine={false}
           />
           <YAxis
+            domain={["dataMin - 20", "dataMax + 20"]}
             tick={{ fontSize: 11, fill: "#6b7280" }}
             axisLine={false}
             tickLine={false}

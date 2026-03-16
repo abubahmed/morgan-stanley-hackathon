@@ -33,7 +33,7 @@ export default function ChatInput({ onSend, isDisabled = false }: ChatInputProps
 
   return (
     <div
-      className="border-t px-4 py-3"
+      className="border-t px-4 py-4"
       style={{ borderColor: "rgba(210,195,165,0.5)", background: "linear-gradient(180deg, #F5EDD8 0%, #EEE2C4 100%)" }}
     >
       <div
@@ -41,6 +41,8 @@ export default function ChatInput({ onSend, isDisabled = false }: ChatInputProps
         style={{
           border: "1.5px solid rgba(210,195,165,0.5)",
           boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
         <Search size={15} className="mb-0.5 shrink-0" style={{ color: "#B0C0CC" }} />
@@ -65,9 +67,6 @@ export default function ChatInput({ onSend, isDisabled = false }: ChatInputProps
           <ArrowUp size={14} />
         </button>
       </div>
-      <p className="mt-1.5 text-center text-[11px]" style={{ color: "#9AAAB8" }}>
-        AI can make mistakes. Verify important information from official sources.
-      </p>
     </div>
   );
 }
