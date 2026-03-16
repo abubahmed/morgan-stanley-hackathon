@@ -8,18 +8,15 @@ const STATS = [
 
 export default function DashboardHeader() {
   return (
-    <div className="mb-10 pt-2">
-      <p className="text-[11px] font-bold uppercase tracking-[0.15em] mb-3" style={{ color: "#3DBFAC" }}>
-        Dashboard
+    <div className="mb-6 pt-2">
+      <p className="text-xl font-extrabold uppercase tracking-[0.15em]" style={{ color: "black" }}>
+        Quick View Dashboard
       </p>
 
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-[32px] font-extrabold tracking-tight leading-tight" style={{ color: "#1E2D3D" }}>
-            Food Access Intelligence
-          </h1>
           <p className="mt-2 text-[14px] leading-relaxed max-w-xl" style={{ color: "#6A7E8D" }}>
-            Real-time resource distribution, demographic overlays, and trend analysis nationwide.
+            Real-time resource distribution, demographic overlays, and trend analysis nationwide, statewide, and countywide.
           </p>
         </div>
 

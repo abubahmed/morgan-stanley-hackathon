@@ -15,10 +15,8 @@ const COLORS: Record<string, string> = {
   "Community Fridge": "#ec4899",
   "Meal Delivery": "#3b82f6",
   "Public Benefits": "#6366f1",
-  "Grocery Delivery": "#14b8a6",
-  "Other": "#9ca3af",
-  "Material Needs": "#f97316",
   "Financial Aid": "#84cc16",
+  "Other": "#9ca3af",
 };
 
 export default function ResourcesByType() {
@@ -26,9 +24,24 @@ export default function ResourcesByType() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const MERGE_INTO_OTHER = ["Material Needs", "Grocery Delivery"];
     fetch("/api/resources-type")
       .then((r) => r.json())
-      .then((result: TypeData[]) => setData(result))
+      .then((result: TypeData[]) => {
+        const merged: TypeData[] = [];
+        let otherCount = 0;
+        for (const item of result) {
+          if (MERGE_INTO_OTHER.includes(item.type)) {
+            otherCount += item.resources;
+          } else if (item.type === "Other") {
+            otherCount += item.resources;
+          } else {
+            merged.push(item);
+          }
+        }
+        if (otherCount > 0) merged.push({ type: "Other", resources: otherCount });
+        setData(merged);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

@@ -128,7 +128,7 @@ export default function TrendsOverTime() {
                 onClick={() => handleLevelChange(l)}
                 className="px-3.5 py-1.5 text-[11px] font-semibold transition-all"
                 style={{
-                  backgroundColor: level === l ? "#1E2D3D" : "#fff",
+                  backgroundColor: level === l ? "#3DBFAC" : "#fff",
                   color: level === l ? "#fff" : "#6b7280",
                 }}
               >

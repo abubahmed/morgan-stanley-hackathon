@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Leaf, LayoutDashboard, Bot, Store, Star } from "lucide-react";
+import { Leaf, LayoutDashboard, Bot, Store } from "lucide-react";
 import { Show, SignOutButton } from "@clerk/nextjs";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/sandbox",   label: "Sandbox",   Icon: Bot             },
   { href: "/resources", label: "Resources", Icon: Store           },
-  { href: "/reviews",   label: "Reviews",   Icon: Star            },
 ];
 
 export default function Navbar() {

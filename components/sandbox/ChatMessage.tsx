@@ -29,7 +29,7 @@ export default function ChatMessageBubble({ message, onOpenReport, onDownloadRep
 
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%] space-y-1.5">
+      <div className="max-w-[85%] space-y-2.5">
         <div
           className="rounded-2xl rounded-tl-sm px-4 py-3 text-[14px] leading-relaxed"
           style={{
@@ -79,7 +79,7 @@ export default function ChatMessageBubble({ message, onOpenReport, onDownloadRep
 
         {/* Report action buttons */}
         {message.reportIndex != null && !message.isStreaming && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-3">
             <button
               onClick={() => onOpenReport?.(message.reportIndex!)}
               className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[12px] font-semibold transition-all hover:shadow-sm active:scale-[0.97]"

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import type { Resource } from "@/types/resource";
 import { Search, Clock, Star, CheckCircle, SlidersHorizontal } from "lucide-react";
 
@@ -191,6 +192,8 @@ function ResourcesInner() {
           </>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 }

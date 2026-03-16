@@ -8,6 +8,7 @@ import {
   MessageSquare, BarChart3, Lightbulb, TrendingUp, Leaf, ArrowRight,
 } from "lucide-react";
 import { SignInButton, SignUpButton, Show } from "@clerk/nextjs";
+import Footer from "@/components/layout/Footer";
 const ROLE_CARDS: { id: string; label: string; desc: string; Icon: React.ElementType }[] = [
   { id: "food_bank_partner", label: "Food Bank Partner",    desc: "Optimize distribution and identify service gaps",    Icon: Warehouse    },
   { id: "government_policy", label: "Government / Policy",  desc: "Make data-informed decisions on food security",      Icon: Landmark     },
@@ -351,17 +352,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer
-        className="px-6 py-8 text-center"
-        style={{ background: "linear-gradient(180deg, #EEE2C4 0%, #F5EDD8 100%)" }}
-      >
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <Leaf size={14} style={{ color: "#3DBFAC", opacity: 0.7 }} />
-          <span className="text-xs font-medium" style={{ color: "#8A9AAA" }}>Lemon Tree Insights</span>
-        </div>
-        <p className="text-xs" style={{ color: "#9AAAB8" }}>Empowering food access through data.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }

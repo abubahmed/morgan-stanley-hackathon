@@ -85,7 +85,7 @@ export default function SessionSidebar({
                   <div
                     key={conv.id}
                     onClick={() => !isDeleting && onSelect(conv.id)}
-                    className="group relative flex items-start gap-2.5 px-3 py-3 rounded-xl cursor-pointer transition-all select-none"
+                    className="group relative flex items-center gap-2.5 px-3 py-3 rounded-xl cursor-pointer transition-all select-none"
                     style={{
                       background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
                       borderLeft: isActive ? "2px solid #3DBFAC" : "2px solid transparent",
@@ -94,7 +94,7 @@ export default function SessionSidebar({
                     onMouseLeave={e => { e.currentTarget.style.background = isActive ? "rgba(255,255,255,0.08)" : "transparent"; }}
                   >
                     <div
-                      className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
                       style={{ background: isActive ? "rgba(61,191,172,0.15)" : "rgba(255,255,255,0.05)" }}
                     >
                       <MessageSquare size={12} style={{ color: isActive ? "#3DBFAC" : "#5A6E7D" }} />
@@ -112,9 +112,6 @@ export default function SessionSidebar({
                         <>
                           <p className="text-[13px] leading-snug truncate font-medium" style={{ color: isActive ? "#fff" : "#94A3B8" }}>
                             {conv.title}
-                          </p>
-                          <p className="text-[10px] mt-0.5" style={{ color: isActive ? "rgba(61,191,172,0.7)" : "#3D4F5F" }}>
-                            {msgCount} msg{msgCount !== 1 ? "s" : ""} · {timeAgo(conv.updatedAt)}
                           </p>
                         </>
                       )}

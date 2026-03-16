@@ -5,53 +5,86 @@ export async function exportReportPdf(result: AnalysisResult, reportNumber: numb
 
   const pdf = new jsPDF("p", "mm", "a4");
   const pageWidth = 210;
+  const pageHeight = 297;
   const margin = 15;
   const contentWidth = pageWidth - margin * 2;
   let y = margin;
 
+  function checkPage(needed: number) {
+    if (y + needed > pageHeight - margin) {
+      pdf.addPage();
+      y = margin;
+    }
+  }
+
   // Title
+  pdf.setFont("helvetica", "bold");
   pdf.setFontSize(16);
   pdf.setTextColor(30, 45, 61);
   pdf.text(`Analysis Report ${reportNumber}`, margin, y);
-  y += 10;
+  y += 8;
 
-  // Separator line
+  // Separator
   pdf.setDrawColor(210, 195, 165);
   pdf.setLineWidth(0.3);
   pdf.line(margin, y, pageWidth - margin, y);
   y += 8;
 
   // Answer text
-  pdf.setFontSize(11);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(10);
   pdf.setTextColor(58, 80, 96);
-  const lines = pdf.splitTextToSize(result.answer, contentWidth);
 
-  for (const line of lines) {
-    if (y > 280) {
-      pdf.addPage();
-      y = margin;
+  const paragraphs = result.answer.split(/\n/);
+  for (const para of paragraphs) {
+    if (para.trim() === "") {
+      y += 4;
+      continue;
     }
-    pdf.text(line, margin, y);
-    y += 5.5;
+    const lines = pdf.splitTextToSize(para, contentWidth) as string[];
+    for (const line of lines) {
+      checkPage(5);
+      pdf.text(line, margin, y);
+      y += 5;
+    }
+    y += 2;
   }
 
-  // Images
-  for (const img of result.images) {
-    if (y > 200) {
-      pdf.addPage();
-      y = margin;
-    } else {
-      y += 8;
-    }
-
+  // Images — insert as JPEG (much smaller than PNG)
+  for (const b64 of result.images) {
     try {
-      const imgData = `data:image/png;base64,${img}`;
-      pdf.addImage(imgData, "PNG", margin, y, contentWidth, contentWidth * 0.6);
-      y += contentWidth * 0.6 + 8;
+      // Determine image dimensions by loading it
+      const imgDims = await getImageDimensions(b64);
+      const ratio = imgDims.width / imgDims.height;
+      const imgWidth = Math.min(contentWidth, 170);
+      const imgHeight = imgWidth / ratio;
+
+      checkPage(imgHeight + 5);
+
+      pdf.addImage(
+        `data:image/png;base64,${b64}`,
+        "PNG",
+        margin,
+        y,
+        imgWidth,
+        imgHeight,
+        undefined,
+        "FAST"  // Use fast compression
+      );
+      y += imgHeight + 8;
     } catch {
-      // skip images that fail to embed
+      // skip broken images
     }
   }
 
   pdf.save(`report-${reportNumber}.pdf`);
+}
+
+function getImageDimensions(b64: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.width, height: img.height });
+    img.onerror = reject;
+    img.src = `data:image/png;base64,${b64}`;
+  });
 }
