@@ -9,24 +9,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { SYSTEM_PROMPT } from "./systemPrompt";
 import { TOOLS } from "./tools";
 
-// CSV files to upload into the sandbox
-const RESOURCES_DIR = path.join(__dirname, "data", "resources");
-const RESOURCES_FILES = ["resources.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"];
-
-const CENSUS_DIR = path.join(__dirname, "data", "census");
-const CENSUS_FILES = ["demographics.csv", "poverty.csv", "income.csv", "housing.csv", "education.csv", "geography.csv", "commute.csv"];
-
-const USDA_DIR = path.join(__dirname, "data", "usda");
-const USDA_FILES = ["food_environment.csv"];
-
-const CROSSWALK_DIR = path.join(__dirname, "data", "crosswalk");
-
-const REVIEWS_DIR = path.join(__dirname, "data", "reviews");
-const REVIEWS_FILES = ["reviews.csv"];
-
-const CDC_DIR = path.join(__dirname, "data", "cdc");
-const CDC_FILES = ["health.csv"];
-const CROSSWALK_FILES = ["zip_county.csv"];
+// Data directories and files to upload
+const DATA_SETS: [string, string[]][] = [
+  ["resources", ["resources.csv", "shifts.csv", "occurrences.csv", "tags.csv", "flags.csv"]],
+  ["census", ["demographics.csv", "poverty.csv", "income.csv", "housing.csv", "education.csv", "geography.csv", "commute.csv"]],
+  ["usda", ["food_environment.csv"]],
+  ["crosswalk", ["zip_county.csv"]],
+  ["cdc", ["health.csv"]],
+  ["reviews", ["reviews.csv"]],
+];
 
 // Python bootstrap that loads all CSVs into DataFrames
 const PYTHON_BOOTSTRAP = `
@@ -140,90 +131,29 @@ function smartTruncate(text: string): string {
   ].join("\n");
 }
 
-// Pre-installed packages for the sandbox environment.
-// Covers data analysis, visualization, geo, and stats so Claude doesn't waste
-// iterations pip-installing common libraries.
-const SANDBOX_PACKAGES = [
-  "pandas",
-  "requests",
-  "numpy",
-  "matplotlib",
-  "seaborn",
-  "scipy",
-  "geopy",
-];
+const SANDBOX_PACKAGES = ["pandas", "numpy", "matplotlib", "seaborn", "scipy", "geopy"];
 
-// Spin up an E2B sandbox with common data science libraries and pre-loaded CSV data.
 async function initSandbox(): Promise<Sandbox> {
-  const sandbox = await Sandbox.create({ apiKey: process.env.E2B_API_KEY });
+  const sandbox = await Sandbox.create({ apiKey: process.env.E2B_API_KEY, timeout: 1200 });
   await sandbox.runCode(
     `import subprocess; subprocess.run(['pip', 'install', ${SANDBOX_PACKAGES.map((p) => `'${p}'`).join(", ")}, '-q'])`
   );
 
-  // Upload CSV files into the sandbox
-  await sandbox.runCode("import os; os.makedirs('/home/user/data/resources', exist_ok=True); os.makedirs('/home/user/data/census', exist_ok=True); os.makedirs('/home/user/data/usda', exist_ok=True); os.makedirs('/home/user/data/crosswalk', exist_ok=True); os.makedirs('/home/user/data/reviews', exist_ok=True); os.makedirs('/home/user/data/cdc', exist_ok=True)");
-
-  for (const file of RESOURCES_FILES) {
-    const filePath = path.join(RESOURCES_DIR, file);
-    if (!fs.existsSync(filePath)) {
-      console.warn(`  Warning: ${filePath} not found, skipping`);
-      continue;
+  // Upload all data files
+  for (const [dir, files] of DATA_SETS) {
+    await sandbox.runCode(`import os; os.makedirs('/home/user/data/${dir}', exist_ok=True)`);
+    for (const file of files) {
+      const filePath = path.join(__dirname, "data", dir, file);
+      if (!fs.existsSync(filePath)) {
+        console.warn(`  Warning: ${filePath} not found, skipping`);
+        continue;
+      }
+      const content = fs.readFileSync(filePath, "utf-8");
+      await sandbox.files.write(`/home/user/data/${dir}/${file}`, content);
     }
-    const content = fs.readFileSync(filePath, "utf-8");
-    await sandbox.files.write(`/home/user/data/resources/${file}`, content);
   }
 
-  for (const file of CENSUS_FILES) {
-    const filePath = path.join(CENSUS_DIR, file);
-    if (!fs.existsSync(filePath)) {
-      console.warn(`  Warning: ${filePath} not found, skipping`);
-      continue;
-    }
-    const content = fs.readFileSync(filePath, "utf-8");
-    await sandbox.files.write(`/home/user/data/census/${file}`, content);
-  }
-
-  for (const file of USDA_FILES) {
-    const filePath = path.join(USDA_DIR, file);
-    if (!fs.existsSync(filePath)) {
-      console.warn(`  Warning: ${filePath} not found, skipping`);
-      continue;
-    }
-    const content = fs.readFileSync(filePath, "utf-8");
-    await sandbox.files.write(`/home/user/data/usda/${file}`, content);
-  }
-
-  for (const file of CROSSWALK_FILES) {
-    const filePath = path.join(CROSSWALK_DIR, file);
-    if (!fs.existsSync(filePath)) {
-      console.warn(`  Warning: ${filePath} not found, skipping`);
-      continue;
-    }
-    const content = fs.readFileSync(filePath, "utf-8");
-    await sandbox.files.write(`/home/user/data/crosswalk/${file}`, content);
-  }
-
-  for (const file of REVIEWS_FILES) {
-    const filePath = path.join(REVIEWS_DIR, file);
-    if (!fs.existsSync(filePath)) {
-      console.warn(`  Warning: ${filePath} not found, skipping`);
-      continue;
-    }
-    const content = fs.readFileSync(filePath, "utf-8");
-    await sandbox.files.write(`/home/user/data/reviews/${file}`, content);
-  }
-
-  for (const file of CDC_FILES) {
-    const filePath = path.join(CDC_DIR, file);
-    if (!fs.existsSync(filePath)) {
-      console.warn(`  Warning: ${filePath} not found, skipping`);
-      continue;
-    }
-    const content = fs.readFileSync(filePath, "utf-8");
-    await sandbox.files.write(`/home/user/data/cdc/${file}`, content);
-  }
-
-  // Load CSVs into DataFrames
+  await sandbox.runCode("import os; os.makedirs('/home/user/charts', exist_ok=True)");
   await sandbox.runCode(PYTHON_BOOTSTRAP);
   return sandbox;
 }
@@ -264,7 +194,7 @@ async function executePython(sandbox: Sandbox, code: string): Promise<ExecutionR
     if (chartFiles.length > 0) {
       await sandbox.runCode("import glob, os\nfor f in glob.glob('/home/user/charts/*.png'): os.remove(f)");
     }
-  } catch {};
+  } catch { };
 
   // Print a short console preview
   if (stdout) {
@@ -273,7 +203,7 @@ async function executePython(sandbox: Sandbox, code: string): Promise<ExecutionR
       lines.length > MAX_CONSOLE_LINES
         ? [...lines.slice(0, MAX_CONSOLE_LINES), `... (${lines.length - MAX_CONSOLE_LINES} more lines)`]
         : lines;
-    display.forEach((l) => console.log(`    ${l}`));
+    display.forEach((l: any) => console.log(`    ${l}`));
   }
   if (error) console.log(`  Error: ${error.split("\n")[0]}`);
   else if (stderr) console.log(`  Stderr: ${stderr.split("\n")[0]}`);

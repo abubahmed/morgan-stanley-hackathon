@@ -1,4 +1,4 @@
-j# Data Schema Reference
+# Data Schema Reference
 
 All DataFrames are pre-loaded. County-level datasets join on `fips`. Resources use `zip_code` — use `zip_county` crosswalk to bridge to `fips`.
 
